@@ -1,0 +1,7 @@
+{
+  "debug": false,
+  "api_port": "8080",
+  "device_repo_url": "http://device-repo:8080",
+  "semantic_repo_url": "http://semantic-repo:8080",
+  "perm_search_url": "http://permission-search:8080"
+}
