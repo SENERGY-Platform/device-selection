@@ -19,7 +19,8 @@ package devices
 import (
 	"context"
 	"device-selection/pkg/configuration"
-	"device-selection/pkg/devicemodel"
+	"device-selection/pkg/model"
+	"device-selection/pkg/model/devicemodel"
 	"log"
 )
 
@@ -51,9 +52,9 @@ func (this *Devices) FilterProtocols(protocols []devicemodel.Protocol, filterBy 
 	return result
 }
 
-func (this *Devices) GetFilteredDevices(token string, descriptions devicemodel.DeviceTypesFilter, protocolBlockList []string) (result []devicemodel.Selectable, err error, code int) {
+func (this *Devices) GetFilteredDevices(token string, descriptions model.DeviceTypesFilter, protocolBlockList []string) (result []model.Selectable, err error, code int) {
 	if len(descriptions) == 0 {
-		return []devicemodel.Selectable{}, nil, 200
+		return []model.Selectable{}, nil, 200
 	}
 	filteredProtocols := map[string]bool{}
 	for _, protocolId := range protocolBlockList {
@@ -100,7 +101,7 @@ func (this *Devices) GetFilteredDevices(token string, descriptions devicemodel.D
 				log.Println("DEBUG: GetFilteredDevices()::GetDevicesOfType()", dt.Id, devices)
 			}
 			for _, device := range devices {
-				result = append(result, devicemodel.Selectable{
+				result = append(result, model.Selectable{
 					Device:   device,
 					Services: services,
 				})

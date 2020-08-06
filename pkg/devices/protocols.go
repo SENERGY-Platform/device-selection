@@ -17,7 +17,7 @@
 package devices
 
 import (
-	"device-selection/pkg/devicemodel"
+	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"errors"
 	"net/http"

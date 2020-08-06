@@ -14,11 +14,27 @@
  * limitations under the License.
  */
 
-package devicemodel
+package model
+
+import "device-selection/pkg/model/devicemodel"
+
+type PermSearchDevice struct {
+	devicemodel.Device
+	Permissions Permissions `json:"permissions"`
+	Shared      bool        `json:"shared"`
+	Creator     string      `json:"creator"`
+}
+
+type Permissions struct {
+	R bool `json:"r"`
+	W bool `json:"w"`
+	X bool `json:"x"`
+	A bool `json:"a"`
+}
 
 type Selectable struct {
-	Device   Device    `json:"device"`
-	Services []Service `json:"services"`
+	Device   PermSearchDevice      `json:"device"`
+	Services []devicemodel.Service `json:"services"`
 }
 
 type DeviceTypesFilter []DeviceTypeFilterElement

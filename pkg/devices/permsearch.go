@@ -18,7 +18,7 @@ package devices
 
 import (
 	"bytes"
-	"device-selection/pkg/devicemodel"
+	"device-selection/pkg/model"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -26,30 +26,7 @@ import (
 	"runtime/debug"
 )
 
-func (this *Devices) GetDevicesOfType(token string, deviceTypeId string) (result []devicemodel.Device, err error, code int) {
-	devices, err, code := this.getDevicesOfTypeFromPermsearch(token, deviceTypeId)
-	if err != nil {
-		return result, err, code
-	}
-	for _, device := range devices {
-		result = append(result, devicemodel.Device{
-			Id:           device.Id,
-			LocalId:      device.LocalId,
-			Name:         device.Name,
-			DeviceTypeId: device.DeviceType,
-		})
-	}
-	return result, nil, 200
-}
-
-type PermSearchDevice struct {
-	Id         string `json:"id"`
-	Name       string `json:"name"`
-	DeviceType string `json:"device_type_id"`
-	LocalId    string `json:"local_id"`
-}
-
-func (this *Devices) getDevicesOfTypeFromPermsearch(token string, deviceTypeId string) (result []PermSearchDevice, err error, code int) {
+func (this *Devices) GetDevicesOfType(token string, deviceTypeId string) (result []model.PermSearchDevice, err error, code int) {
 	req, err := http.NewRequest("GET", this.config.PermSearchUrl+"/jwt/select/devices/device_type_id/"+url.PathEscape(deviceTypeId)+"/x", nil)
 	if err != nil {
 		debug.PrintStack()

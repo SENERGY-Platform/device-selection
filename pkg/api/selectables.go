@@ -18,8 +18,9 @@ package api
 
 import (
 	"device-selection/pkg/configuration"
-	"device-selection/pkg/devicemodel"
 	"device-selection/pkg/devices"
+	"device-selection/pkg/model"
+	"device-selection/pkg/model/devicemodel"
 	"encoding/base64"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
@@ -56,7 +57,7 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 	})
 }
 
-func getCriteriaFromRequest(ctrl *devices.Devices, request *http.Request, token string) (descriptions devicemodel.DeviceTypesFilter, protocolBlockList []string, err error, code int) {
+func getCriteriaFromRequest(ctrl *devices.Devices, request *http.Request, token string) (descriptions model.DeviceTypesFilter, protocolBlockList []string, err error, code int) {
 	if filterProtocols := request.URL.Query().Get("filter_protocols"); filterProtocols != "" {
 		protocolBlockList = strings.Split(filterProtocols, ",")
 		for i, protocol := range protocolBlockList {
@@ -84,7 +85,7 @@ func getCriteriaFromRequest(ctrl *devices.Devices, request *http.Request, token 
 		return
 	}
 
-	descriptions = []devicemodel.DeviceTypeFilterElement{{
+	descriptions = []model.DeviceTypeFilterElement{{
 		FunctionId:    request.URL.Query().Get("function_id"),
 		DeviceClassId: request.URL.Query().Get("device_class_id"),
 		AspectId:      request.URL.Query().Get("aspect_id"),
@@ -94,7 +95,7 @@ func getCriteriaFromRequest(ctrl *devices.Devices, request *http.Request, token 
 	return
 }
 
-func getCriteriaFromBase64(b64 string) (descriptions devicemodel.DeviceTypesFilter, err error, code int) {
+func getCriteriaFromBase64(b64 string) (descriptions model.DeviceTypesFilter, err error, code int) {
 	var jsonByte []byte
 	jsonByte, err = base64.StdEncoding.DecodeString(b64)
 	if err != nil {

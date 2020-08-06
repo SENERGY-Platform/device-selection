@@ -19,7 +19,8 @@ package devices
 import (
 	"context"
 	"device-selection/pkg/configuration"
-	"device-selection/pkg/devicemodel"
+	"device-selection/pkg/model"
+	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -129,22 +130,22 @@ func TestGetFilteredDevices(t *testing.T) {
 
 	searchmock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/jwt/select/devices/device_type_id/dt1/x" {
-			json.NewEncoder(w).Encode([]PermSearchDevice{
+			json.NewEncoder(w).Encode([]TestPermSearchDevice{
 				{Id: "1", Name: "1", DeviceType: "dt1"},
 			})
 		}
 		if r.URL.Path == "/jwt/select/devices/device_type_id/dt2/x" {
-			json.NewEncoder(w).Encode([]PermSearchDevice{
+			json.NewEncoder(w).Encode([]TestPermSearchDevice{
 				{Id: "2", Name: "2", DeviceType: "dt2"},
 			})
 		}
 		if r.URL.Path == "/jwt/select/devices/device_type_id/dt3/x" {
-			json.NewEncoder(w).Encode([]PermSearchDevice{
+			json.NewEncoder(w).Encode([]TestPermSearchDevice{
 				{Id: "3", Name: "3", DeviceType: "dt3"},
 			})
 		}
 		if r.URL.Path == "/jwt/select/devices/device_type_id/dt4/x" {
-			json.NewEncoder(w).Encode([]PermSearchDevice{
+			json.NewEncoder(w).Encode([]TestPermSearchDevice{
 				{Id: "4", Name: "4", DeviceType: "dt4"},
 			})
 		}
@@ -211,9 +212,9 @@ type DeviceDescription struct {
 	Aspect           *devicemodel.Aspect      `json:"aspect,omitempty"`
 }
 
-func (this DeviceDescriptions) ToFilter() (result devicemodel.DeviceTypesFilter) {
+func (this DeviceDescriptions) ToFilter() (result model.DeviceTypesFilter) {
 	for _, element := range this {
-		newElement := devicemodel.DeviceTypeFilterElement{
+		newElement := model.DeviceTypeFilterElement{
 			FunctionId: element.Function.Id,
 		}
 		if element.DeviceClass != nil {
@@ -231,4 +232,14 @@ func (this DeviceDescriptions) ToFilter() (result devicemodel.DeviceTypesFilter)
 
 func IsZero(x interface{}) bool {
 	return x == reflect.Zero(reflect.TypeOf(x)).Interface()
+}
+
+type TestPermSearchDevice struct {
+	Id          string            `json:"id"`
+	LocalId     string            `json:"local_id,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	DeviceType  string            `json:"device_type_id,omitempty"`
+	Permissions model.Permissions `json:"permissions"`
+	Shared      bool              `json:"shared"`
+	Creator     string            `json:"creator"`
 }

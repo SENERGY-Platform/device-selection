@@ -20,8 +20,9 @@ import (
 	"context"
 	"device-selection/pkg/api"
 	"device-selection/pkg/configuration"
-	"device-selection/pkg/devicemodel"
 	"device-selection/pkg/devices"
+	"device-selection/pkg/model"
+	"device-selection/pkg/model/devicemodel"
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
@@ -41,12 +42,20 @@ func TestApiSimpleGet(t *testing.T) {
 	defer semanticmock.Close()
 	defer selectionApi.Close()
 
-	result := []devicemodel.Selectable{}
+	result := []model.Selectable{}
 
 	t.Run("send simple request", sendSimpleRequest(selectionApi.URL, &result, devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION+"_1", "dc1", "a1", "mqtt"))
 
 	t.Run("check result", func(t *testing.T) {
-		if len(result) != 1 || result[0].Device.Name != "1" || result[0].Device.Id != "1" || len(result[0].Services) != 1 || result[0].Services[0].Id != "11" {
+		if len(result) != 1 ||
+			result[0].Device.Name != "1" ||
+			result[0].Device.Id != "1" ||
+			len(result[0].Services) != 1 ||
+			result[0].Services[0].Id != "11" ||
+			!result[0].Device.Permissions.R ||
+			result[0].Device.Permissions.W ||
+			!result[0].Device.Permissions.X ||
+			result[0].Device.Permissions.A {
 			t.Error(result)
 			return
 		}
@@ -75,12 +84,20 @@ func TestApiJsonGet(t *testing.T) {
 	defer semanticmock.Close()
 	defer selectionApi.Close()
 
-	result := []devicemodel.Selectable{}
+	result := []model.Selectable{}
 
 	t.Run("send json request", sendJsonRequest(selectionApi.URL, &result, devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION+"_1", "dc1", "a1", "mqtt"))
 
 	t.Run("check result", func(t *testing.T) {
-		if len(result) != 1 || result[0].Device.Name != "1" || result[0].Device.Id != "1" || len(result[0].Services) != 1 || result[0].Services[0].Id != "11" {
+		if len(result) != 1 ||
+			result[0].Device.Name != "1" ||
+			result[0].Device.Id != "1" ||
+			len(result[0].Services) != 1 ||
+			result[0].Services[0].Id != "11" ||
+			!result[0].Device.Permissions.R ||
+			result[0].Device.Permissions.W ||
+			!result[0].Device.Permissions.X ||
+			result[0].Device.Permissions.A {
 			t.Error(result)
 			return
 		}
@@ -109,12 +126,20 @@ func TestApiBase64Get(t *testing.T) {
 	defer semanticmock.Close()
 	defer selectionApi.Close()
 
-	result := []devicemodel.Selectable{}
+	result := []model.Selectable{}
 
 	t.Run("send base64 request", sendBase64Request(selectionApi.URL, &result, devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION+"_1", "dc1", "a1", "mqtt"))
 
 	t.Run("check result", func(t *testing.T) {
-		if len(result) != 1 || result[0].Device.Name != "1" || result[0].Device.Id != "1" || len(result[0].Services) != 1 || result[0].Services[0].Id != "11" {
+		if len(result) != 1 ||
+			result[0].Device.Name != "1" ||
+			result[0].Device.Id != "1" ||
+			len(result[0].Services) != 1 ||
+			result[0].Services[0].Id != "11" ||
+			!result[0].Device.Permissions.R ||
+			result[0].Device.Permissions.W ||
+			!result[0].Device.Permissions.X ||
+			result[0].Device.Permissions.A {
 			t.Error(result)
 			return
 		}
@@ -155,7 +180,7 @@ func sendSimpleRequest(apiurl string, result interface{}, functionId string, dev
 
 func sendJsonRequest(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, blockList string) func(t *testing.T) {
 	return func(t *testing.T) {
-		jsonStr, err := json.Marshal(devicemodel.DeviceTypesFilter{{
+		jsonStr, err := json.Marshal(model.DeviceTypesFilter{{
 			FunctionId:    functionId,
 			DeviceClassId: deviceClassId,
 			AspectId:      aspectId,
@@ -179,7 +204,7 @@ func sendJsonRequest(apiurl string, result interface{}, functionId string, devic
 
 func sendBase64Request(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, blockList string) func(t *testing.T) {
 	return func(t *testing.T) {
-		jsonStr, err := json.Marshal(devicemodel.DeviceTypesFilter{{
+		jsonStr, err := json.Marshal(model.DeviceTypesFilter{{
 			FunctionId:    functionId,
 			DeviceClassId: deviceClassId,
 			AspectId:      aspectId,
@@ -234,23 +259,43 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 
 	searchmock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/jwt/select/devices/device_type_id/dt1/x" {
-			json.NewEncoder(w).Encode([]devices.PermSearchDevice{
-				{Id: "1", Name: "1", DeviceType: "dt1"},
+			json.NewEncoder(w).Encode([]TestPermSearchDevice{
+				{Id: "1", Name: "1", DeviceType: "dt1", Permissions: model.Permissions{
+					R: true,
+					W: false,
+					X: true,
+					A: false,
+				}},
 			})
 		}
 		if r.URL.Path == "/jwt/select/devices/device_type_id/dt2/x" {
-			json.NewEncoder(w).Encode([]devices.PermSearchDevice{
-				{Id: "2", Name: "2", DeviceType: "dt2"},
+			json.NewEncoder(w).Encode([]TestPermSearchDevice{
+				{Id: "2", Name: "2", DeviceType: "dt2", Permissions: model.Permissions{
+					R: true,
+					W: false,
+					X: true,
+					A: false,
+				}},
 			})
 		}
 		if r.URL.Path == "/jwt/select/devices/device_type_id/dt3/x" {
-			json.NewEncoder(w).Encode([]devices.PermSearchDevice{
-				{Id: "3", Name: "3", DeviceType: "dt3"},
+			json.NewEncoder(w).Encode([]TestPermSearchDevice{
+				{Id: "3", Name: "3", DeviceType: "dt3", Permissions: model.Permissions{
+					R: true,
+					W: false,
+					X: true,
+					A: false,
+				}},
 			})
 		}
 		if r.URL.Path == "/jwt/select/devices/device_type_id/dt4/x" {
-			json.NewEncoder(w).Encode([]devices.PermSearchDevice{
-				{Id: "4", Name: "4", DeviceType: "dt4"},
+			json.NewEncoder(w).Encode([]TestPermSearchDevice{
+				{Id: "4", Name: "4", DeviceType: "dt4", Permissions: model.Permissions{
+					R: true,
+					W: false,
+					X: true,
+					A: false,
+				}},
 			})
 		}
 	}))
@@ -294,9 +339,9 @@ type DeviceDescription struct {
 	Aspect           *devicemodel.Aspect      `json:"aspect,omitempty"`
 }
 
-func (this DeviceDescriptions) ToFilter() (result devicemodel.DeviceTypesFilter) {
+func (this DeviceDescriptions) ToFilter() (result model.DeviceTypesFilter) {
 	for _, element := range this {
-		newElement := devicemodel.DeviceTypeFilterElement{
+		newElement := model.DeviceTypeFilterElement{
 			FunctionId: element.Function.Id,
 		}
 		if element.DeviceClass != nil {
@@ -314,4 +359,14 @@ func (this DeviceDescriptions) ToFilter() (result devicemodel.DeviceTypesFilter)
 
 func IsZero(x interface{}) bool {
 	return x == reflect.Zero(reflect.TypeOf(x)).Interface()
+}
+
+type TestPermSearchDevice struct {
+	Id          string            `json:"id"`
+	LocalId     string            `json:"local_id,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	DeviceType  string            `json:"device_type_id,omitempty"`
+	Permissions model.Permissions `json:"permissions"`
+	Shared      bool              `json:"shared"`
+	Creator     string            `json:"creator"`
 }

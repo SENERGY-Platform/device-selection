@@ -18,22 +18,25 @@ GET /selectables?function_id=someId1&aspect_id=someOtherId
 
 **response:**
 ```
-{
+[{
    "device":{
       "id":"example-id",
       "local_id":"example-local-id",
       "name":"example-name",
       "device_type_id":"example-device-type"
-      ...
+      "creator": "creator",
+      "shared": true,
+      "permission": {"r": true, "w": false, "x": true", "a": false"}
    },
    "services":[
       {
          "id":"example-service-id",
          "local_id":"example-local-id",
-         "name":"example-name"
+         "name":"example-name",
+         ...
       }
    ]
-}
+}]
 ```
 
 ## Filter By JSON

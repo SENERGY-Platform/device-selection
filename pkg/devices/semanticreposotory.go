@@ -17,7 +17,8 @@
 package devices
 
 import (
-	"device-selection/pkg/devicemodel"
+	"device-selection/pkg/model"
+	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -28,7 +29,7 @@ import (
 
 type SemanticRepoFactory struct{}
 
-func (this *Devices) GetFilteredDeviceTypes(token string, descriptions devicemodel.DeviceTypesFilter) (result []devicemodel.DeviceType, err error, code int) {
+func (this *Devices) GetFilteredDeviceTypes(token string, descriptions model.DeviceTypesFilter) (result []devicemodel.DeviceType, err error, code int) {
 	client := http.Client{
 		Timeout: 5 * time.Second,
 	}
