@@ -38,7 +38,12 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 
 	router.GET("/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		token := request.Header.Get("Authorization")
-		criteria, blocklist, err, code := getCriteriaFromRequest(ctrl, request, token)
+		criteria, err := getCriteriaFromRequest(request)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		blocklist, err, code := getBlockListFromRequest(ctrl, request, token)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return
@@ -57,7 +62,7 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 	})
 }
 
-func getCriteriaFromRequest(ctrl *devices.Devices, request *http.Request, token string) (descriptions model.DeviceTypesFilter, protocolBlockList []string, err error, code int) {
+func getBlockListFromRequest(ctrl *devices.Devices, request *http.Request, token string) (protocolBlockList []string, err error, code int) {
 	if filterProtocols := request.URL.Query().Get("filter_protocols"); filterProtocols != "" {
 		protocolBlockList = strings.Split(filterProtocols, ",")
 		for i, protocol := range protocolBlockList {
@@ -71,44 +76,40 @@ func getCriteriaFromRequest(ctrl *devices.Devices, request *http.Request, token 
 			return
 		}
 	}
+	return
+}
 
+func getCriteriaFromRequest(request *http.Request) (descriptions model.FilterCriteriaAndSet, err error) {
 	if b64 := request.URL.Query().Get("base64"); b64 != "" {
-		descriptions, err, code = getCriteriaFromBase64(b64)
+		descriptions, err = getCriteriaFromBase64(b64)
 		return
 	}
 
 	if jsonStr := request.URL.Query().Get("json"); jsonStr != "" {
 		err = json.Unmarshal([]byte(jsonStr), &descriptions)
-		if err != nil {
-			code = http.StatusBadRequest
-		}
 		return
 	}
 
-	descriptions = []model.DeviceTypeFilterElement{{
+	descriptions = []model.FilterCriteria{{
 		FunctionId:    request.URL.Query().Get("function_id"),
 		DeviceClassId: request.URL.Query().Get("device_class_id"),
 		AspectId:      request.URL.Query().Get("aspect_id"),
 	}}
-	code = http.StatusOK
 
 	return
 }
 
-func getCriteriaFromBase64(b64 string) (descriptions model.DeviceTypesFilter, err error, code int) {
+func getCriteriaFromBase64(b64 string) (descriptions model.FilterCriteriaAndSet, err error) {
 	var jsonByte []byte
 	jsonByte, err = base64.StdEncoding.DecodeString(b64)
 	if err != nil {
-		code = http.StatusBadRequest
 		return
 	}
 
 	err = json.Unmarshal(jsonByte, &descriptions)
 	if err != nil {
-		code = http.StatusBadRequest
 		return
 	}
 
-	code = http.StatusOK
 	return
 }

@@ -22,6 +22,7 @@ import (
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"log"
+	"net/http"
 )
 
 type Devices struct {
@@ -34,25 +35,55 @@ func New(ctx context.Context, config configuration.Config) (*Devices, error) {
 	}, nil
 }
 
-func (this *Devices) GetBlockedProtocols(token string, interaction devicemodel.Interaction) (result []string, err error, code int) {
-	protocols, err, _ := this.GetProtocols(token)
+func (this *Devices) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string) (result []model.Selectable, err error, code int) {
+	return this.getFilteredDevices(token, descriptions, protocolBlockList, nil, nil)
+}
+
+func (this *Devices) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
+	deviceTypesByCriteriaCache := map[string][]devicemodel.DeviceType{}
+	devicesByDeviceTypeCache := map[string][]model.PermSearchDevice{}
+	protocols, err, code := this.GetProtocols(token)
 	if err != nil {
 		return result, err, code
 	}
-	result = this.FilterProtocols(protocols, interaction)
-	return result, nil, 200
-}
-
-func (this *Devices) FilterProtocols(protocols []devicemodel.Protocol, filterBy devicemodel.Interaction) (result []string) {
-	for _, protocol := range protocols {
-		if protocol.Interaction == filterBy {
-			result = append(result, protocol.Id)
+	for _, request := range requests {
+		resultElement, err, code := this.handleBulkRequestElement(token, request, protocols, &deviceTypesByCriteriaCache, &devicesByDeviceTypeCache)
+		if err != nil {
+			return result, err, code
 		}
+		result = append(result, resultElement)
 	}
-	return result
+	return result, nil, http.StatusOK
 }
 
-func (this *Devices) GetFilteredDevices(token string, descriptions model.DeviceTypesFilter, protocolBlockList []string) (result []model.Selectable, err error, code int) {
+func (this *Devices) handleBulkRequestElement(
+	token string,
+	request model.BulkRequestElement,
+	protocols []devicemodel.Protocol,
+	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
+	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice) (result model.BulkResultElement, err error, code int) {
+
+	protocolBlockList := request.FilterProtocols
+	if request.FilterInteraction != nil {
+		protocolBlockList = this.FilterProtocols(protocols, *request.FilterInteraction)
+	}
+	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, deviceTypesByCriteriaCache, devicesByDeviceTypeCache)
+	if err != nil {
+		return result, err, code
+	}
+	return model.BulkResultElement{
+		Id:          request.Id,
+		Selectables: selectables,
+	}, nil, http.StatusOK
+}
+
+func (this *Devices) getFilteredDevices(
+	token string,
+	descriptions model.FilterCriteriaAndSet,
+	protocolBlockList []string,
+	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
+	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice) (result []model.Selectable, err error, code int) {
+
 	if len(descriptions) == 0 {
 		return []model.Selectable{}, nil, 200
 	}
@@ -60,12 +91,12 @@ func (this *Devices) GetFilteredDevices(token string, descriptions model.DeviceT
 	for _, protocolId := range protocolBlockList {
 		filteredProtocols[protocolId] = true
 	}
-	deviceTypes, err, code := this.GetFilteredDeviceTypes(token, descriptions)
+	deviceTypes, err, code := this.getCachedFilteredDeviceTypes(token, descriptions, deviceTypesByCriteriaCache)
 	if err != nil {
 		return result, err, code
 	}
 	if this.config.Debug {
-		log.Println("DEBUG: GetFilteredDevices()::GetFilteredDeviceTypes()", deviceTypes)
+		log.Println("DEBUG: GetFilteredDevices()::getCachedFilteredDeviceTypes()", deviceTypes)
 	}
 	for _, dt := range deviceTypes {
 		services := []devicemodel.Service{}
@@ -93,12 +124,12 @@ func (this *Devices) GetFilteredDevices(token string, descriptions model.DeviceT
 			services = append(services, service)
 		}
 		if len(services) > 0 {
-			devices, err, code := this.GetDevicesOfType(token, dt.Id)
+			devices, err, code := this.getCachedDevicesOfType(token, dt.Id, devicesByDeviceTypeCache)
 			if err != nil {
 				return result, err, code
 			}
 			if this.config.Debug {
-				log.Println("DEBUG: GetFilteredDevices()::GetDevicesOfType()", dt.Id, devices)
+				log.Println("DEBUG: GetFilteredDevices()::getDevicesOfType()", dt.Id, devices)
 			}
 			for _, device := range devices {
 				result = append(result, model.Selectable{

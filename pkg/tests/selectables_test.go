@@ -34,13 +34,15 @@ import (
 )
 
 func TestApiSimpleGet(t *testing.T) {
-	mux, calls, semanticmock, selectionApi, err := testenv()
+	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	defer semanticmock.Close()
 	defer selectionApi.Close()
+	defer searchmock.Close()
+	defer devicerepomock.Close()
 
 	result := []model.Selectable{}
 
@@ -76,13 +78,15 @@ func TestApiSimpleGet(t *testing.T) {
 }
 
 func TestApiJsonGet(t *testing.T) {
-	mux, calls, semanticmock, selectionApi, err := testenv()
+	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	defer semanticmock.Close()
 	defer selectionApi.Close()
+	defer searchmock.Close()
+	defer devicerepomock.Close()
 
 	result := []model.Selectable{}
 
@@ -118,13 +122,15 @@ func TestApiJsonGet(t *testing.T) {
 }
 
 func TestApiBase64Get(t *testing.T) {
-	mux, calls, semanticmock, selectionApi, err := testenv()
+	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	defer semanticmock.Close()
 	defer selectionApi.Close()
+	defer searchmock.Close()
+	defer devicerepomock.Close()
 
 	result := []model.Selectable{}
 
@@ -180,11 +186,15 @@ func sendSimpleRequest(apiurl string, result interface{}, functionId string, dev
 
 func sendJsonRequest(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, blockList string) func(t *testing.T) {
 	return func(t *testing.T) {
-		jsonStr, err := json.Marshal(model.DeviceTypesFilter{{
+		jsonStr, err := json.Marshal(model.FilterCriteriaAndSet{{
 			FunctionId:    functionId,
 			DeviceClassId: deviceClassId,
 			AspectId:      aspectId,
 		}})
+		if err != nil {
+			t.Error(err)
+			return
+		}
 		resp, err := http.Get(apiurl + "/selectables?json=" + url.QueryEscape(string(jsonStr)) + "&filter_protocols=" + url.QueryEscape(blockList))
 		if err != nil {
 			t.Error(err)
@@ -204,11 +214,15 @@ func sendJsonRequest(apiurl string, result interface{}, functionId string, devic
 
 func sendBase64Request(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, blockList string) func(t *testing.T) {
 	return func(t *testing.T) {
-		jsonStr, err := json.Marshal(model.DeviceTypesFilter{{
+		jsonStr, err := json.Marshal(model.FilterCriteriaAndSet{{
 			FunctionId:    functionId,
 			DeviceClassId: deviceClassId,
 			AspectId:      aspectId,
 		}})
+		if err != nil {
+			t.Error(err)
+			return
+		}
 		b64Str := base64.StdEncoding.EncodeToString(jsonStr)
 		resp, err := http.Get(apiurl + "/selectables?base64=" + b64Str + "&filter_protocols=" + url.QueryEscape(blockList))
 		if err != nil {
@@ -227,7 +241,7 @@ func sendBase64Request(apiurl string, result interface{}, functionId string, dev
 	}
 }
 
-func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest.Server, selectionApi *httptest.Server, err error) {
+func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest.Server, searchmock *httptest.Server, devicerepomock *httptest.Server, selectionApi *httptest.Server, err error) {
 	mux = &sync.Mutex{}
 	calls := []string{}
 	semanticCalls = &calls
@@ -257,7 +271,20 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 		})
 	}))
 
-	searchmock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	devicerepomock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode([]devicemodel.Protocol{
+			{
+				Id:          "pid",
+				Interaction: devicemodel.REQUEST,
+			},
+			{
+				Id:          "mqtt",
+				Interaction: devicemodel.EVENT,
+			},
+		})
+	}))
+
+	searchmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/jwt/select/devices/device_type_id/dt1/x" {
 			json.NewEncoder(w).Encode([]TestPermSearchDevice{
 				{Id: "1", Name: "1", DeviceType: "dt1", Permissions: model.Permissions{
@@ -303,6 +330,7 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 	c := &configuration.ConfigStruct{
 		SemanticRepoUrl: semanticmock.URL,
 		PermSearchUrl:   searchmock.URL,
+		DeviceRepoUrl:   devicerepomock.URL,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -311,7 +339,9 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 	if err != nil {
 		searchmock.Close()
 		selectionApi.Close()
-		return mux, semanticCalls, semanticmock, selectionApi, err
+		semanticmock.Close()
+		devicerepomock.Close()
+		return mux, semanticCalls, semanticmock, searchmock, devicerepomock, selectionApi, err
 	}
 
 	router := api.Router(c, repo)
@@ -339,9 +369,9 @@ type DeviceDescription struct {
 	Aspect           *devicemodel.Aspect      `json:"aspect,omitempty"`
 }
 
-func (this DeviceDescriptions) ToFilter() (result model.DeviceTypesFilter) {
+func (this DeviceDescriptions) ToFilter() (result model.FilterCriteriaAndSet) {
 	for _, element := range this {
-		newElement := model.DeviceTypeFilterElement{
+		newElement := model.FilterCriteria{
 			FunctionId: element.Function.Id,
 		}
 		if element.DeviceClass != nil {

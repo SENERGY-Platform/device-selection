@@ -91,3 +91,150 @@ the value of 'filter_interaction' may be one of the following values:
 ```
 GET /selectables?function_id=someId1&aspect_id=someOtherId&filter_interaction=event
 ```
+
+## Bulk Request
+
+**request:**
+```
+POST /bulk/selectables
+[
+   {
+      "id":"1",
+      "filter_interaction":null,
+      "filter_protocols":[
+         "mqtt"
+      ],
+      "criteria":[
+         {
+            "function_id":"https://senergy.infai.org/ontology/MeasuringFunction_1",
+            "device_class_id":"dc1",
+            "aspect_id":"a1"
+         }
+      ]
+   },
+   {
+      "id":"2",
+      "filter_interaction":"event",
+      "filter_protocols":null,
+      "criteria":[
+         {
+            "function_id":"https://senergy.infai.org/ontology/MeasuringFunction_1",
+            "device_class_id":"dc1",
+            "aspect_id":"a1"
+         }
+      ]
+   },
+   {
+      "id":"3",
+      "filter_interaction":null,
+      "filter_protocols":[
+         "mqtt",
+         "pid"
+      ],
+      "criteria":[
+         {
+            "function_id":"https://senergy.infai.org/ontology/MeasuringFunction_1",
+            "device_class_id":"unknown",
+            "aspect_id":"a1"
+         }
+      ]
+   }
+]
+```
+
+
+**response:**
+```
+[
+   {
+      "id":"1",
+      "selectables":[
+         {
+            "device":{
+               "id":"1",
+               "name":"1",
+               "device_type_id":"dt1",
+               "permissions":{
+                  "r":true,
+                  "w":false,
+                  "x":true,
+                  "a":false
+               },
+               "shared":false,
+               "creator":""
+            },
+            "services":[
+               {
+                  "id":"11",
+                  "local_id":"11_l",
+                  "name":"11_name",
+                  "aspects":[
+                     {
+                        "id":"a1",
+                        "name":"",
+                        "rdf_type":""
+                     }
+                  ],
+                  "protocol_id":"pid",
+                  "functions":[
+                     {
+                        "id":"https://senergy.infai.org/ontology/MeasuringFunction_1",
+                        "name":"",
+                        "concept_id":"",
+                        "rdf_type":"https://senergy.infai.org/ontology/MeasuringFunction"
+                     }
+                  ]
+               }
+            ]
+         }
+      ]
+   },
+   {
+      "id":"2",
+      "selectables":[
+         {
+            "device":{
+               "id":"1",
+               "name":"1",
+               "device_type_id":"dt1",
+               "permissions":{
+                  "r":true,
+                  "w":false,
+                  "x":true,
+                  "a":false
+               },
+               "shared":false,
+               "creator":""
+            },
+            "services":[
+               {
+                  "id":"11",
+                  "local_id":"11_l",
+                  "name":"11_name",
+                  "aspects":[
+                     {
+                        "id":"a1",
+                        "name":"",
+                        "rdf_type":""
+                     }
+                  ],
+                  "protocol_id":"pid",
+                  "functions":[
+                     {
+                        "id":"https://senergy.infai.org/ontology/MeasuringFunction_1",
+                        "name":"",
+                        "concept_id":"",
+                        "rdf_type":"https://senergy.infai.org/ontology/MeasuringFunction"
+                     }
+                  ]
+               }
+            ]
+         }
+      ]
+   },
+   {
+      "id":"3",
+      "selectables":null
+   }
+]
+```

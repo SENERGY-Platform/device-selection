@@ -37,10 +37,28 @@ type Selectable struct {
 	Services []devicemodel.Service `json:"services"`
 }
 
-type DeviceTypesFilter []DeviceTypeFilterElement
+type FilterCriteriaAndSet []FilterCriteria
 
-type DeviceTypeFilterElement struct {
+type FilterCriteriaOrSet []FilterCriteria
+
+type FilterCriteria struct {
 	FunctionId    string `json:"function_id"`
 	DeviceClassId string `json:"device_class_id"`
 	AspectId      string `json:"aspect_id"`
+}
+
+type BulkRequestElement struct {
+	Id                string                   `json:"id"`
+	FilterInteraction *devicemodel.Interaction `json:"filter_interaction"`
+	FilterProtocols   []string                 `json:"filter_protocols"`
+	Criteria          FilterCriteriaAndSet     `json:"criteria"`
+}
+
+type BulkRequest []BulkRequestElement
+
+type BulkResult []BulkResultElement
+
+type BulkResultElement struct {
+	Id          string       `json:"id"`
+	Selectables []Selectable `json:"selectables"`
 }

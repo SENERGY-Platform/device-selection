@@ -25,6 +25,24 @@ import (
 	"time"
 )
 
+func (this *Devices) GetBlockedProtocols(token string, interaction devicemodel.Interaction) (result []string, err error, code int) {
+	protocols, err, _ := this.GetProtocols(token)
+	if err != nil {
+		return result, err, code
+	}
+	result = this.FilterProtocols(protocols, interaction)
+	return result, nil, 200
+}
+
+func (this *Devices) FilterProtocols(protocols []devicemodel.Protocol, filterBy devicemodel.Interaction) (result []string) {
+	for _, protocol := range protocols {
+		if protocol.Interaction == filterBy {
+			result = append(result, protocol.Id)
+		}
+	}
+	return result
+}
+
 func (this *Devices) GetProtocols(token string) (result []devicemodel.Protocol, err error, code int) {
 	err, code = this.getUncachedList(token, "protocols", &result)
 	return

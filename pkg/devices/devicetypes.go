@@ -21,15 +21,26 @@ import (
 	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"runtime/debug"
+	"sort"
 	"time"
 )
 
-type SemanticRepoFactory struct{}
+func (this *Devices) getFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceType, err error, code int) {
+	return this.getCachedFilteredDeviceTypes(token, descriptions, nil)
+}
 
-func (this *Devices) GetFilteredDeviceTypes(token string, descriptions model.DeviceTypesFilter) (result []devicemodel.DeviceType, err error, code int) {
+func (this *Devices) getCachedFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, cache *map[string][]devicemodel.DeviceType) (result []devicemodel.DeviceType, err error, code int) {
+	hash := hashCriteria(descriptions)
+	if cache != nil {
+		if cacheResult, ok := (*cache)[hash]; ok {
+			return cacheResult, nil, http.StatusOK
+		}
+	}
+
 	client := http.Client{
 		Timeout: 5 * time.Second,
 	}
@@ -57,5 +68,22 @@ func (this *Devices) GetFilteredDeviceTypes(token string, descriptions model.Dev
 		return result, errors.New("unexpected statuscode"), resp.StatusCode
 	}
 	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		debug.PrintStack()
+		return result, err, http.StatusInternalServerError
+	}
+
+	if cache != nil {
+		(*cache)[hash] = result
+	}
+
 	return result, err, resp.StatusCode
+}
+
+func hashCriteria(criteria model.FilterCriteriaAndSet) string {
+	arr := append([]model.FilterCriteria{}, criteria...) //make copy to prevent sorting to effect original
+	sort.SliceStable(arr, func(i, j int) bool {
+		return fmt.Sprint(arr[i]) < fmt.Sprint(arr[j])
+	})
+	return fmt.Sprint(arr)
 }

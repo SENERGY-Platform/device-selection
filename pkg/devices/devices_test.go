@@ -56,7 +56,7 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 		return
 	}
 
-	_, err, _ = repo.GetFilteredDeviceTypes("token", DeviceDescriptions{{
+	_, err, _ = repo.getFilteredDeviceTypes("token", DeviceDescriptions{{
 		CharacteristicId: "chid1",
 		Function:         devicemodel.Function{Id: "fid"},
 		DeviceClass:      nil,
@@ -68,7 +68,7 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 		return
 	}
 
-	dt, err, _ := repo.GetFilteredDeviceTypes("token", DeviceDescriptions{{
+	dt, err, _ := repo.getFilteredDeviceTypes("token", DeviceDescriptions{{
 		CharacteristicId: "chid1",
 		Function:         devicemodel.Function{Id: "fid"},
 		DeviceClass:      &devicemodel.DeviceClass{Id: "dc1"},
@@ -212,9 +212,9 @@ type DeviceDescription struct {
 	Aspect           *devicemodel.Aspect      `json:"aspect,omitempty"`
 }
 
-func (this DeviceDescriptions) ToFilter() (result model.DeviceTypesFilter) {
+func (this DeviceDescriptions) ToFilter() (result model.FilterCriteriaAndSet) {
 	for _, element := range this {
-		newElement := model.DeviceTypeFilterElement{
+		newElement := model.FilterCriteria{
 			FunctionId: element.Function.Id,
 		}
 		if element.DeviceClass != nil {

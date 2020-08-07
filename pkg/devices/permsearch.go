@@ -26,7 +26,16 @@ import (
 	"runtime/debug"
 )
 
-func (this *Devices) GetDevicesOfType(token string, deviceTypeId string) (result []model.PermSearchDevice, err error, code int) {
+func (this *Devices) getDevicesOfType(token string, deviceTypeId string) (result []model.PermSearchDevice, err error, code int) {
+	return this.getCachedDevicesOfType(token, deviceTypeId, nil)
+}
+
+func (this *Devices) getCachedDevicesOfType(token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice) (result []model.PermSearchDevice, err error, code int) {
+	if cache != nil {
+		if cacheResult, ok := (*cache)[deviceTypeId]; ok {
+			return cacheResult, nil, http.StatusOK
+		}
+	}
 	req, err := http.NewRequest("GET", this.config.PermSearchUrl+"/jwt/select/devices/device_type_id/"+url.PathEscape(deviceTypeId)+"/x", nil)
 	if err != nil {
 		debug.PrintStack()
@@ -50,5 +59,10 @@ func (this *Devices) GetDevicesOfType(token string, deviceTypeId string) (result
 		debug.PrintStack()
 		return result, err, http.StatusInternalServerError
 	}
+
+	if cache != nil {
+		(*cache)[deviceTypeId] = result
+	}
+
 	return result, nil, http.StatusOK
 }
