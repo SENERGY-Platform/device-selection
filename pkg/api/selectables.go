@@ -53,6 +53,13 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 			http.Error(writer, err.Error(), code)
 			return
 		}
+		if request.URL.Query().Get("complete_services") == "true" {
+			result, err = ctrl.CompleteServices(token, result)
+			if err != nil {
+				http.Error(writer, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {

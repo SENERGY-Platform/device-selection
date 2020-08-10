@@ -29,6 +29,51 @@ import (
 	"time"
 )
 
+func (this *Devices) getCachedTechnicalDeviceType(token string, id string, cache *map[string]devicemodel.DeviceType) (result devicemodel.DeviceType, err error) {
+	if cache != nil {
+		if cacheResult, ok := (*cache)[id]; ok {
+			return cacheResult, nil
+		}
+	}
+
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	req, err := http.NewRequest(
+		"GET",
+		this.config.DeviceRepoUrl+"/device-types/"+url.QueryEscape(id),
+		nil,
+	)
+	if err != nil {
+		debug.PrintStack()
+		return result, err
+	}
+	req.Header.Set("Authorization", string(token))
+
+	resp, err := client.Do(req)
+	if err != nil {
+		debug.PrintStack()
+		return result, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		debug.PrintStack()
+		return result, errors.New("unexpected statuscode")
+	}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		debug.PrintStack()
+		return result, err
+	}
+
+	if cache != nil {
+		(*cache)[id] = result
+	}
+
+	return result, err
+}
+
 func (this *Devices) getFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceType, err error, code int) {
 	return this.getCachedFilteredDeviceTypes(token, descriptions, nil)
 }

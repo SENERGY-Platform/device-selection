@@ -77,6 +77,52 @@ func TestApiSimpleGet(t *testing.T) {
 	})
 }
 
+func TestApiCompleteSimpledGet(t *testing.T) {
+	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer semanticmock.Close()
+	defer selectionApi.Close()
+	defer searchmock.Close()
+	defer devicerepomock.Close()
+
+	result := []model.Selectable{}
+
+	t.Run("send simple request", sendCompletedSimpleRequest(selectionApi.URL, &result, devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION+"_1", "dc1", "a1", "mqtt"))
+
+	t.Run("check result", func(t *testing.T) {
+		if len(result) != 1 ||
+			result[0].Device.Name != "1" ||
+			result[0].Device.Id != "1" ||
+			len(result[0].Services) != 1 ||
+			result[0].Services[0].Id != "11" ||
+			len(result[0].Services[0].Outputs) != 1 ||
+			result[0].Services[0].Outputs[0].Id != "content1" ||
+			!result[0].Device.Permissions.R ||
+			result[0].Device.Permissions.W ||
+			!result[0].Device.Permissions.X ||
+			result[0].Device.Permissions.A {
+			t.Error(result)
+			return
+		}
+	})
+
+	t.Run("check semantic calls", func(t *testing.T) {
+		mux.Lock()
+		defer mux.Unlock()
+		expected := []string{
+			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION+`_1","device_class_id":"dc1","aspect_id":"a1"}]`),
+		}
+		if !reflect.DeepEqual(*calls, expected) {
+			actualStr, _ := json.Marshal(calls)
+			expectedStr, _ := json.Marshal(expected)
+			t.Error(string(actualStr), string(expectedStr))
+		}
+	})
+}
+
 func TestApiJsonGet(t *testing.T) {
 	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
 	if err != nil {
@@ -184,6 +230,25 @@ func sendSimpleRequest(apiurl string, result interface{}, functionId string, dev
 	}
 }
 
+func sendCompletedSimpleRequest(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, blockList string) func(t *testing.T) {
+	return func(t *testing.T) {
+		resp, err := http.Get(apiurl + "/selectables?complete_services=true&function_id=" + url.QueryEscape(functionId) + "&device_class_id=" + url.QueryEscape(deviceClassId) + "&aspect_id=" + url.QueryEscape(aspectId) + "&filter_protocols=" + url.QueryEscape(blockList))
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if resp.StatusCode != 200 {
+			t.Error(resp.StatusCode)
+			return
+		}
+		err = json.NewDecoder(resp.Body).Decode(result)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+}
+
 func sendJsonRequest(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, blockList string) func(t *testing.T) {
 	return func(t *testing.T) {
 		jsonStr, err := json.Marshal(model.FilterCriteriaAndSet{{
@@ -272,16 +337,66 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 	}))
 
 	devicerepomock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode([]devicemodel.Protocol{
-			{
-				Id:          "pid",
-				Interaction: devicemodel.REQUEST,
-			},
-			{
-				Id:          "mqtt",
-				Interaction: devicemodel.EVENT,
-			},
-		})
+		if r.URL.Path == "/protocols" {
+			json.NewEncoder(w).Encode([]devicemodel.Protocol{
+				{
+					Id:          "pid",
+					Interaction: devicemodel.REQUEST,
+				},
+				{
+					Id:          "mqtt",
+					Interaction: devicemodel.EVENT,
+				},
+			})
+			return
+		}
+
+		if r.URL.Path == "/device-types/dt1" {
+			json.NewEncoder(w).Encode(devicemodel.DeviceType{Id: "dt1", Name: "dt1name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
+				testTechnicalService("11", "pid", []devicemodel.Content{{
+					Id: "content1",
+					ContentVariable: devicemodel.ContentVariable{
+						Id:   "variable1",
+						Name: "variable1",
+					},
+				}}),
+				testTechnicalService("11_b", "mqtt", []devicemodel.Content{{
+					Id: "content2",
+					ContentVariable: devicemodel.ContentVariable{
+						Id:   "variable2",
+						Name: "variable2",
+					},
+				}}),
+				testTechnicalService("12", "pid", []devicemodel.Content{{
+					Id: "content3",
+					ContentVariable: devicemodel.ContentVariable{
+						Id:   "variable3",
+						Name: "variable3",
+					},
+				}}),
+			}})
+			return
+		}
+
+		if r.URL.Path == "/device-types/dt2" {
+			json.NewEncoder(w).Encode(devicemodel.DeviceType{Id: "dt2", Name: "dt2name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
+				testTechnicalService("21", "pid", []devicemodel.Content{{
+					Id: "content4",
+					ContentVariable: devicemodel.ContentVariable{
+						Id:   "variable4",
+						Name: "variable4",
+					},
+				}}),
+				testTechnicalService("22", "pid", []devicemodel.Content{{
+					Id: "content5",
+					ContentVariable: devicemodel.ContentVariable{
+						Id:   "variable5",
+						Name: "variable5",
+					},
+				}}),
+			}})
+			return
+		}
 	}))
 
 	searchmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -358,6 +473,16 @@ func testService(id string, protocolId string, functionType string) devicemodel.
 		Aspects:    []devicemodel.Aspect{{Id: "a1"}},
 		ProtocolId: protocolId,
 		Functions:  []devicemodel.Function{{Id: functionType + "_1", RdfType: functionType}},
+	}
+}
+
+func testTechnicalService(id string, protocolId string, outputs []devicemodel.Content) devicemodel.Service {
+	return devicemodel.Service{
+		Id:         id,
+		LocalId:    id + "_l",
+		Name:       id + "_name",
+		ProtocolId: protocolId,
+		Outputs:    outputs,
 	}
 }
 

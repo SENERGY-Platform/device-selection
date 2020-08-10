@@ -296,3 +296,17 @@ POST /bulk/selectables/combined/devices
    }
 ]
 ```
+
+## Completed Services
+
+by default the '/selectables' and '/bulk/selectables' endpoints return the services as known by the semantic repository. For completed services the query-parameter 'complete_services' can be set to true.
+
+**examples:**
+```
+GET /selectables?complete_services=true&function_id=someId1&aspect_id=someOtherId
+```
+
+```
+POST /bulk/selectables/combined/devices?complete_services=true
+...
+```
