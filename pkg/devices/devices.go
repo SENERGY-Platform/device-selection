@@ -144,3 +144,16 @@ func (this *Devices) getFilteredDevices(
 	}
 	return result, nil, 200
 }
+
+func (this *Devices) CombinedDevices(bulk model.BulkResult) (result []model.PermSearchDevice) {
+	seen := map[string]bool{}
+	for _, bulkElement := range bulk {
+		for _, selectable := range bulkElement.Selectables {
+			if !seen[selectable.Device.Id] {
+				seen[selectable.Device.Id] = true
+				result = append(result, selectable.Device)
+			}
+		}
+	}
+	return
+}

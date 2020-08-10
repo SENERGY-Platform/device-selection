@@ -56,4 +56,26 @@ func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl 
 		}
 	})
 
+	router.POST("/bulk/selectables/combined/devices", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		token := request.Header.Get("Authorization")
+		criteria := model.BulkRequest{}
+		err := json.NewDecoder(request.Body).Decode(&criteria)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		temp, err, code := ctrl.BulkGetFilteredDevices(token, criteria)
+		if err != nil {
+			http.Error(writer, err.Error(), code)
+			return
+		}
+		result := ctrl.CombinedDevices(temp)
+		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+		err = json.NewEncoder(writer).Encode(result)
+		if err != nil {
+			log.Println("ERROR:", err)
+			debug.PrintStack()
+		}
+	})
+
 }

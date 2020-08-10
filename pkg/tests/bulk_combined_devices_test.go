@@ -27,7 +27,7 @@ import (
 	"testing"
 )
 
-func TestApiBulkSelectables(t *testing.T) {
+func TestApiBulkCombinedDevices(t *testing.T) {
 	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
 	if err != nil {
 		t.Error(err)
@@ -38,7 +38,7 @@ func TestApiBulkSelectables(t *testing.T) {
 	defer searchmock.Close()
 	defer devicerepomock.Close()
 
-	result := model.BulkResult{}
+	result := []model.PermSearchDevice{}
 
 	eventInteraction := devicemodel.EVENT
 
@@ -61,66 +61,28 @@ func TestApiBulkSelectables(t *testing.T) {
 				AspectId:      "a1",
 			}},
 		},
-		{
-			Id:              "3",
-			FilterProtocols: []string{"mqtt", "pid"},
-			Criteria: []model.FilterCriteria{{
-				FunctionId:    devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION + "_1",
-				DeviceClassId: "unknown",
-				AspectId:      "a1",
-			}},
-		},
 	}
 
 	temp, _ := json.Marshal(request)
 	t.Log("request:", string(temp))
 
-	t.Run("send bulk request", sendBulkRequest(selectionApi.URL, &result, request))
+	t.Run("send request", sendBulkCombinedDevicesRequest(selectionApi.URL, &result, request))
 
 	temp, _ = json.Marshal(result)
 	t.Log("response:", string(temp))
 
 	t.Run("check bulk result", func(t *testing.T) {
-		if len(result) != 3 {
+		if len(result) != 1 {
 			t.Error(result)
 			return
 		}
-		if result[0].Id != "1" {
+		if result[0].Name != "1" ||
+			result[0].Id != "1" ||
+			!result[0].Permissions.R ||
+			result[0].Permissions.W ||
+			!result[0].Permissions.X ||
+			result[0].Permissions.A {
 			t.Error(result[0])
-			return
-		}
-		if result[1].Id != "2" {
-			t.Error(result[1])
-			return
-		}
-		if result[2].Id != "3" {
-			t.Error(result[2])
-			return
-		}
-		if len(result[0].Selectables) != 1 {
-			t.Error(result[0].Selectables)
-			return
-		}
-		if result[0].Selectables[0].Device.Name != "1" ||
-			result[0].Selectables[0].Device.Id != "1" ||
-			len(result[0].Selectables[0].Services) != 1 ||
-			result[0].Selectables[0].Services[0].Id != "11" ||
-			!result[0].Selectables[0].Device.Permissions.R ||
-			result[0].Selectables[0].Device.Permissions.W ||
-			!result[0].Selectables[0].Device.Permissions.X ||
-			result[0].Selectables[0].Device.Permissions.A {
-			t.Error(result[0].Selectables[0])
-			return
-		}
-		if len(result[1].Selectables) != 1 {
-			t.Error(result[1].Selectables)
-			return
-		}
-		if !reflect.DeepEqual(result[0].Selectables[0], result[1].Selectables[0]) {
-			t.Error(result[1].Selectables[0])
-		}
-		if len(result[2].Selectables) != 0 {
-			t.Error(result[2].Selectables)
 			return
 		}
 	})
@@ -130,7 +92,6 @@ func TestApiBulkSelectables(t *testing.T) {
 		defer mux.Unlock()
 		expected := []string{
 			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION+`_1","device_class_id":"dc1","aspect_id":"a1"}]`),
-			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION+`_1","device_class_id":"unknown","aspect_id":"a1"}]`),
 		}
 		if !reflect.DeepEqual(*calls, expected) {
 			actualStr, _ := json.Marshal(calls)
@@ -140,7 +101,7 @@ func TestApiBulkSelectables(t *testing.T) {
 	})
 }
 
-func sendBulkRequest(apiurl string, result interface{}, request model.BulkRequest) func(t *testing.T) {
+func sendBulkCombinedDevicesRequest(apiurl string, result interface{}, request model.BulkRequest) func(t *testing.T) {
 	return func(t *testing.T) {
 		buff := new(bytes.Buffer)
 		err := json.NewEncoder(buff).Encode(request)
@@ -148,7 +109,7 @@ func sendBulkRequest(apiurl string, result interface{}, request model.BulkReques
 			t.Error(err)
 			return
 		}
-		req, err := http.NewRequest("POST", apiurl+"/bulk/selectables", buff)
+		req, err := http.NewRequest("POST", apiurl+"/bulk/selectables/combined/devices", buff)
 		if err != nil {
 			t.Error(err)
 			return

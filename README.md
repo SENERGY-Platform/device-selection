@@ -238,3 +238,61 @@ POST /bulk/selectables
    }
 ]
 ```
+
+
+## Bulk Request Combined Devices
+
+similar to a request to '/bulk/selectables' but returns only the found (distinct) devices of all found selectables.
+
+**request:**
+```
+POST /bulk/selectables/combined/devices
+[
+   {
+      "id":"1",
+      "filter_interaction":null,
+      "filter_protocols":[
+         "mqtt"
+      ],
+      "criteria":[
+         {
+            "function_id":"https://senergy.infai.org/ontology/MeasuringFunction_1",
+            "device_class_id":"dc1",
+            "aspect_id":"a1"
+         }
+      ]
+   },
+   {
+      "id":"2",
+      "filter_interaction":"event",
+      "filter_protocols":null,
+      "criteria":[
+         {
+            "function_id":"https://senergy.infai.org/ontology/MeasuringFunction_1",
+            "device_class_id":"dc1",
+            "aspect_id":"a1"
+         }
+      ]
+   }
+]
+```
+
+
+**response:**
+```
+[
+   {
+      "id":"1",
+      "name":"1",
+      "device_type_id":"dt1",
+      "permissions":{
+         "r":true,
+         "w":false,
+         "x":true,
+         "a":false
+      },
+      "shared":false,
+      "creator":""
+   }
+]
+```
