@@ -23,11 +23,6 @@ type Hub struct {
 	DeviceLocalIds []string `json:"device_local_ids"`
 }
 
-type ProtocolSegment struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
 type Content struct {
 	Id                string          `json:"id"`
 	ContentVariable   ContentVariable `json:"content_variable"`
@@ -55,4 +50,5 @@ type ContentVariable struct {
 	CharacteristicId     string            `json:"characteristic_id"`
 	Value                interface{}       `json:"value"`
 	SerializationOptions []string          `json:"serialization_options"`
+	UnitReference        string            `json:"unit_reference,omitempty"`
 }
