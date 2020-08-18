@@ -38,17 +38,12 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 
 	router.GET("/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		token := request.Header.Get("Authorization")
-		criteria, err := getCriteriaFromRequest(request)
+		criteria, blockedProtocols, blockedInteraction, err := getCriteriaFromRequest(request)
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
-		blocklist, err, code := getBlockListFromRequest(ctrl, request, token)
-		if err != nil {
-			http.Error(writer, err.Error(), code)
-			return
-		}
-		result, err, code := ctrl.GetFilteredDevices(token, criteria, blocklist)
+		result, err, code := ctrl.GetFilteredDevices(token, criteria, blockedProtocols, blockedInteraction)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return
@@ -69,7 +64,7 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 	})
 }
 
-func getBlockListFromRequest(ctrl *devices.Devices, request *http.Request, token string) (protocolBlockList []string, err error, code int) {
+func getCriteriaFromRequest(request *http.Request) (criteria model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, err error) {
 	if filterProtocols := request.URL.Query().Get("filter_protocols"); filterProtocols != "" {
 		protocolBlockList = strings.Split(filterProtocols, ",")
 		for i, protocol := range protocolBlockList {
@@ -78,31 +73,24 @@ func getBlockListFromRequest(ctrl *devices.Devices, request *http.Request, token
 	}
 
 	if interaction := request.URL.Query().Get("filter_interaction"); interaction != "" {
-		protocolBlockList, err, code = ctrl.GetBlockedProtocols(token, devicemodel.Interaction(interaction))
-		if err != nil {
-			return
-		}
+		blockedInteraction = devicemodel.Interaction(interaction)
 	}
-	return
-}
 
-func getCriteriaFromRequest(request *http.Request) (descriptions model.FilterCriteriaAndSet, err error) {
 	if b64 := request.URL.Query().Get("base64"); b64 != "" {
-		descriptions, err = getCriteriaFromBase64(b64)
+		criteria, err = getCriteriaFromBase64(b64)
 		return
 	}
 
 	if jsonStr := request.URL.Query().Get("json"); jsonStr != "" {
-		err = json.Unmarshal([]byte(jsonStr), &descriptions)
+		err = json.Unmarshal([]byte(jsonStr), &criteria)
 		return
 	}
 
-	descriptions = []model.FilterCriteria{{
+	criteria = []model.FilterCriteria{{
 		FunctionId:    request.URL.Query().Get("function_id"),
 		DeviceClassId: request.URL.Query().Get("device_class_id"),
 		AspectId:      request.URL.Query().Get("aspect_id"),
 	}}
-
 	return
 }
 

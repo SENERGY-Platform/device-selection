@@ -317,40 +317,26 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 		calls = append(calls, r.URL.Path+"?"+r.URL.RawQuery)
 		json.NewEncoder(w).Encode([]devicemodel.DeviceType{
 			{Id: "dt1", Name: "dt1name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
-				testService("11", "pid", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
-				testService("11_b", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
-				testService("12", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
+				testService("11", "pid", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.REQUEST),
+				testService("11_b", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.EVENT),
+				testService("12", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
 			}},
 			{Id: "dt2", Name: "dt2name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
-				testService("21", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-				testService("22", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
+				testService("21", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
+				testService("22", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
 			}},
 			{Id: "dt3", Name: "dt1name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
-				testService("31", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
-				testService("32", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
+				testService("31", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.EVENT),
+				testService("32", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
 			}},
 			{Id: "dt4", Name: "dt2name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
-				testService("41", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-				testService("42", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
+				testService("41", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
+				testService("42", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
 			}},
 		})
 	}))
 
 	devicerepomock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/protocols" {
-			json.NewEncoder(w).Encode([]devicemodel.Protocol{
-				{
-					Id:          "pid",
-					Interaction: devicemodel.REQUEST,
-				},
-				{
-					Id:          "mqtt",
-					Interaction: devicemodel.EVENT,
-				},
-			})
-			return
-		}
-
 		if r.URL.Path == "/device-types/dt1" {
 			json.NewEncoder(w).Encode(devicemodel.DeviceType{Id: "dt1", Name: "dt1name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
 				testTechnicalService("11", "pid", []devicemodel.Content{{
@@ -359,21 +345,21 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 						Id:   "variable1",
 						Name: "variable1",
 					},
-				}}),
+				}}, devicemodel.REQUEST),
 				testTechnicalService("11_b", "mqtt", []devicemodel.Content{{
 					Id: "content2",
 					ContentVariable: devicemodel.ContentVariable{
 						Id:   "variable2",
 						Name: "variable2",
 					},
-				}}),
+				}}, devicemodel.EVENT),
 				testTechnicalService("12", "pid", []devicemodel.Content{{
 					Id: "content3",
 					ContentVariable: devicemodel.ContentVariable{
 						Id:   "variable3",
 						Name: "variable3",
 					},
-				}}),
+				}}, devicemodel.REQUEST),
 			}})
 			return
 		}
@@ -386,14 +372,14 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 						Id:   "variable4",
 						Name: "variable4",
 					},
-				}}),
+				}}, devicemodel.REQUEST),
 				testTechnicalService("22", "pid", []devicemodel.Content{{
 					Id: "content5",
 					ContentVariable: devicemodel.ContentVariable{
 						Id:   "variable5",
 						Name: "variable5",
 					},
-				}}),
+				}}, devicemodel.REQUEST),
 			}})
 			return
 		}
@@ -465,24 +451,26 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 	return
 }
 
-func testService(id string, protocolId string, functionType string) devicemodel.Service {
+func testService(id string, protocolId string, functionType string, interaction devicemodel.Interaction) devicemodel.Service {
 	return devicemodel.Service{
-		Id:         id,
-		LocalId:    id + "_l",
-		Name:       id + "_name",
-		Aspects:    []devicemodel.Aspect{{Id: "a1"}},
-		ProtocolId: protocolId,
-		Functions:  []devicemodel.Function{{Id: functionType + "_1", RdfType: functionType}},
+		Id:          id,
+		LocalId:     id + "_l",
+		Name:        id + "_name",
+		Aspects:     []devicemodel.Aspect{{Id: "a1"}},
+		ProtocolId:  protocolId,
+		Functions:   []devicemodel.Function{{Id: functionType + "_1", RdfType: functionType}},
+		Interaction: interaction,
 	}
 }
 
-func testTechnicalService(id string, protocolId string, outputs []devicemodel.Content) devicemodel.Service {
+func testTechnicalService(id string, protocolId string, outputs []devicemodel.Content, interaction devicemodel.Interaction) devicemodel.Service {
 	return devicemodel.Service{
-		Id:         id,
-		LocalId:    id + "_l",
-		Name:       id + "_name",
-		ProtocolId: protocolId,
-		Outputs:    outputs,
+		Id:          id,
+		LocalId:     id + "_l",
+		Name:        id + "_name",
+		ProtocolId:  protocolId,
+		Outputs:     outputs,
+		Interaction: interaction,
 	}
 }
 

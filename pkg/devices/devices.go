@@ -35,19 +35,18 @@ func New(ctx context.Context, config configuration.Config) (*Devices, error) {
 	}, nil
 }
 
-func (this *Devices) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string) (result []model.Selectable, err error, code int) {
-	return this.getFilteredDevices(token, descriptions, protocolBlockList, nil, nil)
+func (this *Devices) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction) (result []model.Selectable, err error, code int) {
+	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, nil)
 }
 
 func (this *Devices) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
 	deviceTypesByCriteriaCache := map[string][]devicemodel.DeviceType{}
 	devicesByDeviceTypeCache := map[string][]model.PermSearchDevice{}
-	protocols, err, code := this.GetProtocols(token)
 	if err != nil {
 		return result, err, code
 	}
 	for _, request := range requests {
-		resultElement, err, code := this.handleBulkRequestElement(token, request, protocols, &deviceTypesByCriteriaCache, &devicesByDeviceTypeCache)
+		resultElement, err, code := this.handleBulkRequestElement(token, request, &deviceTypesByCriteriaCache, &devicesByDeviceTypeCache)
 		if err != nil {
 			return result, err, code
 		}
@@ -59,15 +58,16 @@ func (this *Devices) BulkGetFilteredDevices(token string, requests model.BulkReq
 func (this *Devices) handleBulkRequestElement(
 	token string,
 	request model.BulkRequestElement,
-	protocols []devicemodel.Protocol,
 	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
 	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice) (result model.BulkResultElement, err error, code int) {
 
-	protocolBlockList := request.FilterProtocols
+	var blockedInteraction devicemodel.Interaction = ""
 	if request.FilterInteraction != nil {
-		protocolBlockList = this.FilterProtocols(protocols, *request.FilterInteraction)
+		blockedInteraction = *request.FilterInteraction
 	}
-	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, deviceTypesByCriteriaCache, devicesByDeviceTypeCache)
+
+	protocolBlockList := request.FilterProtocols
+	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, deviceTypesByCriteriaCache, devicesByDeviceTypeCache)
 	if err != nil {
 		return result, err, code
 	}
@@ -81,6 +81,7 @@ func (this *Devices) getFilteredDevices(
 	token string,
 	descriptions model.FilterCriteriaAndSet,
 	protocolBlockList []string,
+	blockedInteraction devicemodel.Interaction,
 	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
 	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice) (result []model.Selectable, err error, code int) {
 
@@ -102,16 +103,18 @@ func (this *Devices) getFilteredDevices(
 		services := []devicemodel.Service{}
 		serviceIndex := map[string]devicemodel.Service{}
 		for _, service := range dt.Services {
-			for _, desc := range descriptions {
-				for _, function := range service.Functions {
-					if !(function.RdfType == devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION && filteredProtocols[service.ProtocolId]) {
-						if function.Id == desc.FunctionId {
-							if desc.AspectId == "" {
-								serviceIndex[service.Id] = service
-							} else {
-								for _, aspect := range service.Aspects {
-									if aspect.Id == desc.AspectId {
-										serviceIndex[service.Id] = service
+			if blockedInteraction == "" || blockedInteraction != service.Interaction {
+				for _, desc := range descriptions {
+					for _, function := range service.Functions {
+						if !(function.RdfType == devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION && filteredProtocols[service.ProtocolId]) {
+							if function.Id == desc.FunctionId {
+								if desc.AspectId == "" {
+									serviceIndex[service.Id] = service
+								} else {
+									for _, aspect := range service.Aspects {
+										if aspect.Id == desc.AspectId {
+											serviceIndex[service.Id] = service
+										}
 									}
 								}
 							}
