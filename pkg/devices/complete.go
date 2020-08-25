@@ -49,8 +49,8 @@ func (this *Devices) completeServices(token string, selectables []model.Selectab
 		for serviceIndex, service := range selectable.Services {
 			//merge technical and semantic device-type information
 			tdt := dtServices[service.Id]
-			tdt.Functions = service.Functions
-			tdt.Aspects = service.Aspects
+			tdt.FunctionIds = service.FunctionIds
+			tdt.AspectIds = service.AspectIds
 			selectable.Services[serviceIndex] = dtServices[service.Id]
 		}
 		selectables[selectableIndex] = selectable

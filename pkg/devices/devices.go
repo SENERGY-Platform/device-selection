@@ -23,6 +23,7 @@ import (
 	"device-selection/pkg/model/devicemodel"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type Devices struct {
@@ -105,14 +106,14 @@ func (this *Devices) getFilteredDevices(
 		for _, service := range dt.Services {
 			if blockedInteraction == "" || blockedInteraction != service.Interaction {
 				for _, desc := range descriptions {
-					for _, function := range service.Functions {
-						if !(function.RdfType == devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION && filteredProtocols[service.ProtocolId]) {
-							if function.Id == desc.FunctionId {
+					for _, functionId := range service.FunctionIds {
+						if !(isMeasuringFunctionId(functionId) && filteredProtocols[service.ProtocolId]) { //mqtt cannot be measured in a task
+							if functionId == desc.FunctionId {
 								if desc.AspectId == "" {
 									serviceIndex[service.Id] = service
 								} else {
-									for _, aspect := range service.Aspects {
-										if aspect.Id == desc.AspectId {
+									for _, aspect := range service.AspectIds {
+										if aspect == desc.AspectId {
 											serviceIndex[service.Id] = service
 										}
 									}
@@ -159,4 +160,11 @@ func (this *Devices) CombinedDevices(bulk model.BulkResult) (result []model.Perm
 		}
 	}
 	return
+}
+
+func isMeasuringFunctionId(id string) bool {
+	if strings.HasPrefix(id, devicemodel.MEASURING_FUNCTION_PREFIX) {
+		return true
+	}
+	return false
 }

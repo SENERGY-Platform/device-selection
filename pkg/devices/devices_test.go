@@ -106,20 +106,20 @@ func TestGetFilteredDevices(t *testing.T) {
 		defer mux.Unlock()
 		calls = append(calls, r.URL.Path+"?"+r.URL.RawQuery)
 		json.NewEncoder(w).Encode([]devicemodel.DeviceType{
-			{Id: "dt1", Name: "dt1name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
+			{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
 				testService("11", "pid", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
 				testService("11_b", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
 				testService("12", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
 			}},
-			{Id: "dt2", Name: "dt2name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
+			{Id: "dt2", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
 				testService("21", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
 				testService("22", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
 			}},
-			{Id: "dt3", Name: "dt1name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
+			{Id: "dt3", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
 				testService("31", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
 				testService("32", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
 			}},
-			{Id: "dt4", Name: "dt2name", DeviceClass: devicemodel.DeviceClass{Id: "dc1"}, Services: []devicemodel.Service{
+			{Id: "dt4", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
 				testService("41", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
 				testService("42", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
 			}},
@@ -168,7 +168,7 @@ func TestGetFilteredDevices(t *testing.T) {
 
 	d, err, _ := repo.GetFilteredDevices("token", DeviceDescriptions{{
 		CharacteristicId: "chid1",
-		Function:         devicemodel.Function{Id: devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION + "_1"},
+		Function:         devicemodel.Function{Id: devicemodel.MEASURING_FUNCTION_PREFIX + "_1"},
 		DeviceClass:      &devicemodel.DeviceClass{Id: "dc1"},
 		Aspect:           &devicemodel.Aspect{Id: "a1"},
 	}}.ToFilter(), []string{"mqtt"}, "")
@@ -179,14 +179,14 @@ func TestGetFilteredDevices(t *testing.T) {
 	}
 
 	if len(d) != 1 || d[0].Device.Name != "1" || d[0].Device.Id != "1" || len(d[0].Services) != 1 || d[0].Services[0].Id != "11" {
-		t.Error(d)
+		t.Error(len(d), d)
 		return
 	}
 
 	mux.Lock()
 	defer mux.Unlock()
 	if !reflect.DeepEqual(calls, []string{
-		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION+`_1","device_class_id":"dc1","aspect_id":"a1"}]`),
+		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","device_class_id":"dc1","aspect_id":"a1"}]`),
 	}) {
 		temp, _ := json.Marshal(calls)
 		t.Error(string(temp))
@@ -194,14 +194,19 @@ func TestGetFilteredDevices(t *testing.T) {
 }
 
 func testService(id string, protocolId string, functionType string) devicemodel.Service {
-	return devicemodel.Service{
+	result := devicemodel.Service{
 		Id:         id,
 		LocalId:    id + "_l",
 		Name:       id + "_name",
-		Aspects:    []devicemodel.Aspect{{Id: "a1"}},
+		AspectIds:  []string{"a1"},
 		ProtocolId: protocolId,
-		Functions:  []devicemodel.Function{{Id: functionType + "_1", RdfType: functionType}},
 	}
+	if functionType == devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION {
+		result.FunctionIds = []string{devicemodel.MEASURING_FUNCTION_PREFIX + "_1"}
+	} else {
+		result.FunctionIds = []string{devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1"}
+	}
+	return result
 }
 
 type DeviceDescriptions []DeviceDescription

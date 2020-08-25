@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 InfAI (CC SES)
+ * Copyright 2019 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package devicemodel
 type DeviceClass struct {
 	Id      string `json:"id"`
 	Name    string `json:"name"`
+	Image   string `json:"image"`
 	RdfType string `json:"rdf_type"`
 }
 

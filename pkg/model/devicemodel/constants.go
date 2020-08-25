@@ -46,3 +46,6 @@ const RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 // PREFIXES
 const PREFIX_SES = "PREFIX ses: <https://senergy.infai.org/ontology/> "
 const PREFIX_RDF = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+
+const MEASURING_FUNCTION_PREFIX = "urn:infai:ses:measuring-function:"
+const CONTROLLING_FUNCTION_PREFIX = "urn:infai:ses:controlling-function:"
