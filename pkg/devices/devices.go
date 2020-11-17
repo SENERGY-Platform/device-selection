@@ -43,9 +43,6 @@ func (this *Devices) GetFilteredDevices(token string, descriptions model.FilterC
 func (this *Devices) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
 	deviceTypesByCriteriaCache := map[string][]devicemodel.DeviceType{}
 	devicesByDeviceTypeCache := map[string][]model.PermSearchDevice{}
-	if err != nil {
-		return result, err, code
-	}
 	for _, request := range requests {
 		resultElement, err, code := this.handleBulkRequestElement(token, request, &deviceTypesByCriteriaCache, &devicesByDeviceTypeCache)
 		if err != nil {

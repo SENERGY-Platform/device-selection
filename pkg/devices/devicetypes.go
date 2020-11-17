@@ -79,7 +79,7 @@ func (this *Devices) getFilteredDeviceTypes(token string, descriptions model.Fil
 }
 
 func (this *Devices) getCachedFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, cache *map[string][]devicemodel.DeviceType) (result []devicemodel.DeviceType, err error, code int) {
-	hash := hashCriteria(descriptions)
+	hash := hashCriteriaAndSet(descriptions)
 	if cache != nil {
 		if cacheResult, ok := (*cache)[hash]; ok {
 			return cacheResult, nil, http.StatusOK
@@ -125,10 +125,55 @@ func (this *Devices) getCachedFilteredDeviceTypes(token string, descriptions mod
 	return result, err, resp.StatusCode
 }
 
-func hashCriteria(criteria model.FilterCriteriaAndSet) string {
+func hashCriteriaAndSet(criteria model.FilterCriteriaAndSet) string {
 	arr := append([]model.FilterCriteria{}, criteria...) //make copy to prevent sorting to effect original
 	sort.SliceStable(arr, func(i, j int) bool {
 		return fmt.Sprint(arr[i]) < fmt.Sprint(arr[j])
 	})
 	return fmt.Sprint(arr)
+}
+
+func (this *Devices) getCachedTechnicalDevice(token string, id string, cache *map[string]devicemodel.Device) (result devicemodel.Device, err error, code int) {
+	if cache != nil {
+		if cacheResult, ok := (*cache)[id]; ok {
+			return cacheResult, nil, http.StatusOK
+		}
+	}
+
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	req, err := http.NewRequest(
+		"GET",
+		this.config.DeviceRepoUrl+"/devices/"+url.QueryEscape(id),
+		nil,
+	)
+	if err != nil {
+		debug.PrintStack()
+		return result, err, http.StatusInternalServerError
+	}
+	req.Header.Set("Authorization", token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		debug.PrintStack()
+		return result, err, http.StatusInternalServerError
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		debug.PrintStack()
+		return result, errors.New("unable to load device: " + resp.Status), resp.StatusCode
+	}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		debug.PrintStack()
+		return result, err, http.StatusInternalServerError
+	}
+
+	if cache != nil {
+		(*cache)[id] = result
+	}
+
+	return result, nil, http.StatusOK
 }

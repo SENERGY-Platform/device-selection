@@ -62,3 +62,13 @@ type BulkResultElement struct {
 	Id          string       `json:"id"`
 	Selectables []Selectable `json:"selectables"`
 }
+
+type DeviceGroupHelperResult struct {
+	Criteria []FilterCriteria    `json:"criteria"`
+	Options  []DeviceGroupOption `json:"options"`
+}
+
+type DeviceGroupOption struct {
+	Device          devicemodel.Device `json:"device"`
+	RemovesCriteria []FilterCriteria   `json:"removes_criteria"`
+}
