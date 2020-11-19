@@ -22,14 +22,14 @@ import (
 	"net/http"
 )
 
-func (this *Devices) DeviceGroupHelper(token string, deviceIds []string, filterByInteraction string) (result model.DeviceGroupHelperResult, err error, code int) {
+func (this *Devices) DeviceGroupHelper(token string, deviceIds []string, filterByInteraction string, search model.QueryFind) (result model.DeviceGroupHelperResult, err error, code int) {
 	deviceCache := &map[string]devicemodel.Device{}
 	deviceTypeCache := &map[string]devicemodel.DeviceType{}
 	result.Criteria, err, code = this.getDeviceGroupCriteria(token, deviceTypeCache, deviceCache, devicemodel.Interaction(filterByInteraction), deviceIds)
 	if err != nil {
 		return
 	}
-	result.Options, err, code = this.getDeviceGroupOptions(token, deviceTypeCache, deviceCache, devicemodel.Interaction(filterByInteraction), deviceIds, result.Criteria)
+	result.Options, err, code = this.getDeviceGroupOptions(token, deviceTypeCache, deviceCache, devicemodel.Interaction(filterByInteraction), deviceIds, result.Criteria, search)
 	return result, err, code
 }
 
@@ -98,77 +98,82 @@ func criteriaHash(criteria model.FilterCriteria) string {
 	return criteria.FunctionId + "_" + criteria.AspectId + "_" + criteria.DeviceClassId
 }
 
-func (this *Devices) getDeviceGroupOptions(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, interaction devicemodel.Interaction, currentDeviceIds []string, criteria []model.FilterCriteria) (result []model.DeviceGroupOption, err error, code int) {
+func (this *Devices) getDeviceGroupOptions(
+	token string,
+	deviceTypeCache *map[string]devicemodel.DeviceType,
+	deviceCache *map[string]devicemodel.Device,
+	interaction devicemodel.Interaction,
+	currentDeviceIds []string,
+	criteria []model.FilterCriteria,
+	search model.QueryFind,
+) (
+	result []model.DeviceGroupOption,
+	err error,
+	code int,
+) {
+
 	devices := []model.PermSearchDevice{}
 
-	if len(criteria) > 0 {
-		bulkRequest := model.BulkRequest{}
-		for _, element := range criteria {
-			bulkRequest = append(bulkRequest, model.BulkRequestElement{
-				Id:                criteriaHash(element),
-				FilterInteraction: &interaction,
-				Criteria:          []model.FilterCriteria{element},
-			})
-		}
-		bulkResult, err, code := this.BulkGetFilteredDevices(token, bulkRequest)
-		if err != nil {
-			return result, err, code
-		}
-		deviceIsUsed := map[string]bool{}
-		for _, device := range currentDeviceIds {
-			deviceIsUsed[device] = true
-		}
-		for _, bulkElement := range bulkResult {
-			for _, selectable := range bulkElement.Selectables {
-				if !deviceIsUsed[selectable.Device.Id] {
-					deviceIsUsed[selectable.Device.Id] = true
-					devices = append(devices, selectable.Device)
-				}
-			}
-		}
-	} else {
-		err, code = this.Search(token, model.QueryMessage{
-			Resource: "devices",
-			Find:     &model.QueryFind{},
-		}, &devices)
-		if err != nil {
-			return result, err, code
-		}
+	search.Filter = &model.Selection{
+		Not: &model.Selection{
+			Condition: model.ConditionConfig{
+				Feature:   "id",
+				Operation: model.QueryAnyValueInFeatureOperation,
+				Value:     currentDeviceIds,
+			},
+		},
+	}
+
+	err, code = this.Search(token, model.QueryMessage{
+		Resource: "devices",
+		Find:     &search,
+	}, &devices)
+	if err != nil {
+		return result, err, code
 	}
 
 	deviceTypeToRemoveCache := map[string][]model.FilterCriteria{}
-	for _, currentDevice := range currentDeviceIds {
-		device, err, code := this.getCachedTechnicalDevice(token, currentDevice, deviceCache)
-		if err != nil {
-			return result, err, code
-		}
-		deviceTypeToRemoveCache[device.DeviceTypeId] = []model.FilterCriteria{}
-	}
-
+	deviceTypeToCriteriaCache := map[string][]model.FilterCriteria{}
 	for _, device := range devices {
 		option := model.DeviceGroupOption{
 			Device:          device.Device,
 			RemovesCriteria: []model.FilterCriteria{},
 		}
+		deviceCriteria := []model.FilterCriteria{}
 		if cached, ok := deviceTypeToRemoveCache[device.DeviceTypeId]; ok {
 			option.RemovesCriteria = cached
+			deviceCriteria = deviceTypeToCriteriaCache[device.DeviceTypeId]
 		} else {
-			option.RemovesCriteria, err, code = this.getDeviceGroupOptionRemove(token, deviceTypeCache, deviceCache, interaction, criteria, option.Device.Id)
+			option.RemovesCriteria, deviceCriteria, err, code = this.getDeviceGroupOptionCriteria(token, deviceTypeCache, deviceCache, interaction, criteria, option.Device.Id)
 			if err != nil {
 				return result, err, code
 			}
 			deviceTypeToRemoveCache[device.DeviceTypeId] = option.RemovesCriteria
+			deviceTypeToCriteriaCache[device.DeviceTypeId] = deviceCriteria
 		}
+		option.MaintainsGroupUsability = len(criteria) > len(option.RemovesCriteria) || (len(currentDeviceIds) == 0 && len(deviceCriteria) > 0)
 		result = append(result, option)
 	}
 	return result, nil, http.StatusOK
 }
 
-func (this *Devices) getDeviceGroupOptionRemove(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, interaction devicemodel.Interaction, currentCriteria []model.FilterCriteria, deviceId string) (result []model.FilterCriteria, err error, code int) {
+func (this *Devices) getDeviceGroupOptionCriteria(
+	token string,
+	deviceTypeCache *map[string]devicemodel.DeviceType,
+	deviceCache *map[string]devicemodel.Device,
+	interaction devicemodel.Interaction,
+	currentCriteria []model.FilterCriteria,
+	deviceId string,
+) (
+	result []model.FilterCriteria,
+	deviceCriteria []model.FilterCriteria,
+	err error,
+	code int,
+) {
 	result = []model.FilterCriteria{}
-	deviceCriteria, err, code := this.getDeviceCriteria(token, deviceTypeCache, deviceCache, interaction, deviceId)
+	deviceCriteria, err, code = this.getDeviceCriteria(token, deviceTypeCache, deviceCache, interaction, deviceId)
 	if err != nil {
-		return result, err, code
+		return result, deviceCriteria, err, code
 	}
 	deviceCriteriaSet := map[string]model.FilterCriteria{}
 	for _, criteria := range deviceCriteria {

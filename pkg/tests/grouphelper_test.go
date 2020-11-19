@@ -30,6 +30,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"reflect"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"testing"
@@ -138,7 +139,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -146,7 +148,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -154,7 +157,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -162,7 +166,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -170,7 +175,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "plug1",
 					DeviceTypeId: "plug",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -178,7 +184,17 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "plug2",
 					DeviceTypeId: "plug",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
+			},
+			{
+				Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+				},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: false,
 			},
 		},
 	}, devicemodel.EVENT))
@@ -188,11 +204,66 @@ func TestGroupHelper(t *testing.T) {
 		Options: []model.DeviceGroupOption{
 			{
 				Device: devicemodel.Device{
+					Id:           "lamp1",
+					Name:         "lamp1",
+					DeviceTypeId: "lamp",
+				},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
+					Id:           "lamp2",
+					Name:         "lamp2",
+					DeviceTypeId: "lamp",
+				},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
+					Id:           "colorlamp1",
+					Name:         "colorlamp1",
+					DeviceTypeId: "colorlamp",
+				},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
+					Id:           "colorlamp2",
+					Name:         "colorlamp2",
+					DeviceTypeId: "colorlamp",
+				},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
+					Id:           "plug1",
+					Name:         "plug1",
+					DeviceTypeId: "plug",
+				},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
+					Id:           "plug2",
+					Name:         "plug2",
+					DeviceTypeId: "plug",
+				},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 		},
 	}, devicemodel.REQUEST))
@@ -211,7 +282,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -219,7 +291,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -227,7 +300,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -235,7 +309,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -248,6 +323,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
 				},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -260,6 +336,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
 				},
+				MaintainsGroupUsability: true,
 			},
 		},
 	}, ""))
@@ -274,11 +351,26 @@ func TestGroupHelper(t *testing.T) {
 		Options: []model.DeviceGroupOption{
 			{
 				Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+				},
+				RemovesCriteria: []model.FilterCriteria{
+					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
+					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
+					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device"},
+					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light"},
+				},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -286,7 +378,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -294,7 +387,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -307,6 +401,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
 				},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -319,6 +414,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
 				},
+				MaintainsGroupUsability: true,
 			},
 		},
 	}, devicemodel.EVENT))
@@ -335,6 +431,22 @@ func TestGroupHelper(t *testing.T) {
 		Options: []model.DeviceGroupOption{
 			{
 				Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+				},
+				RemovesCriteria: []model.FilterCriteria{
+					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: ""},
+					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
+					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
+					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device"},
+					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light"},
+					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light"},
+				},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
@@ -343,6 +455,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: ""},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light"},
 				},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -354,6 +467,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: ""},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light"},
 				},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -361,7 +475,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -376,6 +491,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: ""},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light"},
 				},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -390,6 +506,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: ""},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light"},
 				},
+				MaintainsGroupUsability: true,
 			},
 		},
 	}, devicemodel.EVENT))
@@ -403,6 +520,19 @@ func TestGroupHelper(t *testing.T) {
 		Options: []model.DeviceGroupOption{
 			{
 				Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+				},
+				RemovesCriteria: []model.FilterCriteria{
+					{FunctionId: "setOn", DeviceClassId: "plug", AspectId: ""},
+					{FunctionId: "setOff", DeviceClassId: "plug", AspectId: ""},
+					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device"},
+				},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
@@ -411,6 +541,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOn", DeviceClassId: "plug", AspectId: ""},
 					{FunctionId: "setOff", DeviceClassId: "plug", AspectId: ""},
 				},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -422,6 +553,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOn", DeviceClassId: "plug", AspectId: ""},
 					{FunctionId: "setOff", DeviceClassId: "plug", AspectId: ""},
 				},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -433,6 +565,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOn", DeviceClassId: "plug", AspectId: ""},
 					{FunctionId: "setOff", DeviceClassId: "plug", AspectId: ""},
 				},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -444,6 +577,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOn", DeviceClassId: "plug", AspectId: ""},
 					{FunctionId: "setOff", DeviceClassId: "plug", AspectId: ""},
 				},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -451,7 +585,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "plug1",
 					DeviceTypeId: "plug",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 		},
 	}, devicemodel.EVENT))
@@ -466,11 +601,26 @@ func TestGroupHelper(t *testing.T) {
 		Options: []model.DeviceGroupOption{
 			{
 				Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+				},
+				RemovesCriteria: []model.FilterCriteria{
+					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
+					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
+					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device"},
+					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light"},
+				},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -478,7 +628,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -491,6 +642,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
 				},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -503,6 +655,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
 				},
+				MaintainsGroupUsability: true,
 			},
 		},
 	}, devicemodel.EVENT))
@@ -514,11 +667,23 @@ func TestGroupHelper(t *testing.T) {
 		Options: []model.DeviceGroupOption{
 			{
 				Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+				},
+				RemovesCriteria: []model.FilterCriteria{
+					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device"},
+				},
+				MaintainsGroupUsability: false,
+			},
+			{
+				Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -526,7 +691,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.Device{
@@ -534,7 +700,8 @@ func TestGroupHelper(t *testing.T) {
 					Name:         "plug2",
 					DeviceTypeId: "plug",
 				},
-				RemovesCriteria: []model.FilterCriteria{},
+				RemovesCriteria:         []model.FilterCriteria{},
+				MaintainsGroupUsability: true,
 			},
 		},
 	}, devicemodel.EVENT))
@@ -676,9 +843,44 @@ func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []
 			return
 		}
 		if r.URL.Path == "/v2/query" {
+			query := model.QueryMessage{}
+			err := json.NewDecoder(r.Body).Decode(&query)
+			if err != nil {
+				debug.PrintStack()
+				http.Error(w, "not implemented", http.StatusNotImplemented)
+				return
+			}
+			if query.Resource != "devices" ||
+				query.Find == nil ||
+				query.Find.Filter == nil ||
+				query.Find.Filter.Not == nil ||
+				query.Find.Filter.Not.Condition.Feature != "id" ||
+				query.Find.Filter.Not.Condition.Operation != model.QueryAnyValueInFeatureOperation {
+				debug.PrintStack()
+				http.Error(w, "not implemented", http.StatusNotImplemented)
+				return
+			}
+			notIdList, ok := query.Find.Filter.Not.Condition.Value.([]interface{})
+			if !ok {
+				debug.PrintStack()
+				http.Error(w, "not implemented", http.StatusNotImplemented)
+				return
+			}
+
 			result := []TestPermSearchDevice{}
 			for _, d := range deviceInstances {
-				result = append(result, TestPermSearchDevice{Id: d.Id, Name: d.Name, DeviceType: d.DeviceTypeId, Permissions: model.Permissions{R: true, W: true, X: true, A: true}})
+				if strings.Contains(d.Name, query.Find.Search) {
+					found := false
+					for _, notIdInterface := range notIdList {
+						if notId, ok := notIdInterface.(string); ok && d.Id == notId {
+							found = true
+							break
+						}
+					}
+					if !found {
+						result = append(result, TestPermSearchDevice{Id: d.Id, Name: d.Name, DeviceType: d.DeviceTypeId, Permissions: model.Permissions{R: true, W: true, X: true, A: true}})
+					}
+				}
 			}
 			json.NewEncoder(w).Encode(result)
 		}

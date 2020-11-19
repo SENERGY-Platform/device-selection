@@ -64,5 +64,6 @@ type ConditionConfig struct {
 type Selection struct {
 	And       []Selection     `json:"and"`
 	Or        []Selection     `json:"or"`
+	Not       *Selection      `json:"not"`
 	Condition ConditionConfig `json:"condition"`
 }

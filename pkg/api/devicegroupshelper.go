@@ -19,11 +19,13 @@ package api
 import (
 	"device-selection/pkg/configuration"
 	"device-selection/pkg/devices"
+	"device-selection/pkg/model"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 )
 
 func init() {
@@ -43,7 +45,13 @@ func DeviceGroupsHelper(router *httprouter.Router, config configuration.Config, 
 			return
 		}
 
-		result, err, code := ctrl.DeviceGroupHelper(token, deviceIds, filterByInteraction)
+		search := model.QueryFind{}
+		search.Search = request.URL.Query().Get("search")
+		search.Limit, _ = strconv.Atoi(request.URL.Query().Get("limit"))
+		search.Offset, _ = strconv.Atoi(request.URL.Query().Get("offset"))
+		search.Rights = "rx"
+
+		result, err, code := ctrl.DeviceGroupHelper(token, deviceIds, filterByInteraction, search)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return
