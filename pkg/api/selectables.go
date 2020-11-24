@@ -27,6 +27,7 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 	"strings"
 )
 
@@ -43,7 +44,10 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
-		result, err, code := ctrl.GetFilteredDevices(token, criteria, blockedProtocols, blockedInteraction)
+
+		includeGroups, _ := strconv.ParseBool(request.URL.Query().Get("include_groups"))
+
+		result, err, code := ctrl.GetFilteredDevices(token, criteria, blockedProtocols, blockedInteraction, includeGroups)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

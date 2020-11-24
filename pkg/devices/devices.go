@@ -36,15 +36,15 @@ func New(ctx context.Context, config configuration.Config) (*Devices, error) {
 	}, nil
 }
 
-func (this *Devices) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction) (result []model.Selectable, err error, code int) {
-	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, nil)
+func (this *Devices) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, includeGroups bool) (result []model.Selectable, err error, code int) {
+	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, nil, includeGroups)
 }
 
-func (this *Devices) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
+func (this *Devices) BulkGetFilteredDevices(token string, requests model.BulkRequest, includeGroups bool) (result model.BulkResult, err error, code int) {
 	deviceTypesByCriteriaCache := map[string][]devicemodel.DeviceType{}
 	devicesByDeviceTypeCache := map[string][]model.PermSearchDevice{}
 	for _, request := range requests {
-		resultElement, err, code := this.handleBulkRequestElement(token, request, &deviceTypesByCriteriaCache, &devicesByDeviceTypeCache)
+		resultElement, err, code := this.handleBulkRequestElement(token, request, &deviceTypesByCriteriaCache, &devicesByDeviceTypeCache, includeGroups)
 		if err != nil {
 			return result, err, code
 		}
@@ -57,7 +57,13 @@ func (this *Devices) handleBulkRequestElement(
 	token string,
 	request model.BulkRequestElement,
 	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
-	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice) (result model.BulkResultElement, err error, code int) {
+	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
+	includeGroups bool,
+) (
+	result model.BulkResultElement,
+	err error,
+	code int,
+) {
 
 	var blockedInteraction devicemodel.Interaction = ""
 	if request.FilterInteraction != nil {
@@ -65,7 +71,7 @@ func (this *Devices) handleBulkRequestElement(
 	}
 
 	protocolBlockList := request.FilterProtocols
-	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, deviceTypesByCriteriaCache, devicesByDeviceTypeCache)
+	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, deviceTypesByCriteriaCache, devicesByDeviceTypeCache, includeGroups)
 	if err != nil {
 		return result, err, code
 	}
@@ -81,7 +87,13 @@ func (this *Devices) getFilteredDevices(
 	protocolBlockList []string,
 	blockedInteraction devicemodel.Interaction,
 	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
-	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice) (result []model.Selectable, err error, code int) {
+	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
+	includeGroups bool,
+) (
+	result []model.Selectable,
+	err error,
+	code int,
+) {
 
 	if len(descriptions) == 0 {
 		return []model.Selectable{}, nil, 200
@@ -134,11 +146,18 @@ func (this *Devices) getFilteredDevices(
 			}
 			for _, device := range devices {
 				result = append(result, model.Selectable{
-					Device:   device,
+					Device:   &device,
 					Services: services,
 				})
 			}
 		}
+	}
+	if includeGroups {
+		groupResult, err, code := this.getFilteredDeviceGroups(token, descriptions, blockedInteraction)
+		if err != nil {
+			return result, err, code
+		}
+		result = append(result, groupResult...)
 	}
 	if this.config.Debug {
 		log.Println("DEBUG: GetFilteredDevices()", result)
@@ -150,9 +169,9 @@ func (this *Devices) CombinedDevices(bulk model.BulkResult) (result []model.Perm
 	seen := map[string]bool{}
 	for _, bulkElement := range bulk {
 		for _, selectable := range bulkElement.Selectables {
-			if !seen[selectable.Device.Id] {
+			if selectable.Device != nil && !seen[selectable.Device.Id] {
 				seen[selectable.Device.Id] = true
-				result = append(result, selectable.Device)
+				result = append(result, *selectable.Device)
 			}
 		}
 	}

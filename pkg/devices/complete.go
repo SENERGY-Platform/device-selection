@@ -38,22 +38,24 @@ func (this *Devices) CompleteBulkServices(token string, bulk model.BulkResult) (
 
 func (this *Devices) completeServices(token string, selectables []model.Selectable, cache *map[string]devicemodel.DeviceType) (_ []model.Selectable, err error) {
 	for selectableIndex, selectable := range selectables {
-		dt, err := this.getCachedTechnicalDeviceType(token, selectable.Device.DeviceTypeId, cache)
-		if err != nil {
-			return selectables, err
+		if selectable.Device != nil {
+			dt, err := this.getCachedTechnicalDeviceType(token, selectable.Device.DeviceTypeId, cache)
+			if err != nil {
+				return selectables, err
+			}
+			dtServices := map[string]devicemodel.Service{}
+			for _, service := range dt.Services {
+				dtServices[service.Id] = service
+			}
+			for serviceIndex, service := range selectable.Services {
+				//merge technical and semantic device-type information
+				tdt := dtServices[service.Id]
+				tdt.FunctionIds = service.FunctionIds
+				tdt.AspectIds = service.AspectIds
+				selectable.Services[serviceIndex] = dtServices[service.Id]
+			}
+			selectables[selectableIndex] = selectable
 		}
-		dtServices := map[string]devicemodel.Service{}
-		for _, service := range dt.Services {
-			dtServices[service.Id] = service
-		}
-		for serviceIndex, service := range selectable.Services {
-			//merge technical and semantic device-type information
-			tdt := dtServices[service.Id]
-			tdt.FunctionIds = service.FunctionIds
-			tdt.AspectIds = service.AspectIds
-			selectable.Services[serviceIndex] = dtServices[service.Id]
-		}
-		selectables[selectableIndex] = selectable
 	}
 	return selectables, nil
 }

@@ -171,7 +171,7 @@ func TestGetFilteredDevices(t *testing.T) {
 		Function:         devicemodel.Function{Id: devicemodel.MEASURING_FUNCTION_PREFIX + "_1"},
 		DeviceClass:      &devicemodel.DeviceClass{Id: "dc1"},
 		Aspect:           &devicemodel.Aspect{Id: "a1"},
-	}}.ToFilter(), []string{"mqtt"}, "")
+	}}.ToFilter(), []string{"mqtt"}, "", false)
 
 	if err != nil {
 		t.Error(err)

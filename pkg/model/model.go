@@ -33,8 +33,14 @@ type Permissions struct {
 }
 
 type Selectable struct {
-	Device   PermSearchDevice      `json:"device"`
-	Services []devicemodel.Service `json:"services"`
+	Device      *PermSearchDevice     `json:"device,omitempty"`
+	Services    []devicemodel.Service `json:"services,omitempty"`
+	DeviceGroup *DeviceGroup          `json:"device_group,omitempty"`
+}
+
+type DeviceGroup struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type FilterCriteriaAndSet []FilterCriteria
@@ -45,6 +51,10 @@ type FilterCriteria struct {
 	FunctionId    string `json:"function_id"`
 	DeviceClassId string `json:"device_class_id"`
 	AspectId      string `json:"aspect_id"`
+}
+
+func (this FilterCriteria) Short() string {
+	return this.FunctionId + "_" + this.AspectId + "_" + this.DeviceClassId
 }
 
 type BulkRequestElement struct {
