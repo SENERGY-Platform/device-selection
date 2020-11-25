@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 InfAI (CC SES)
+ * Copyright 2019 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package pkg
+package kafka
 
 import (
-	"context"
-	"device-selection/pkg/api"
-	"device-selection/pkg/configuration"
-	"device-selection/pkg/controller"
-	"sync"
+	"device-selection/pkg/tests/environment/kafka/topicconfig"
 )
 
-//starts services and goroutines; returns a waiting group which is done as soon as all go routines are stopped
-func Start(ctx context.Context, config configuration.Config) (wg *sync.WaitGroup, err error) {
-	wg = &sync.WaitGroup{}
-	d, err := controller.New(ctx, config)
-	if err != nil {
-		return wg, err
+func InitTopic(zkUrl string, topics ...string) (err error) {
+	for _, topic := range topics {
+		err = topicconfig.EnsureWithZk(zkUrl, topic, map[string]string{
+			"retention.ms":              "-1",
+			"retention.bytes":           "-1",
+			"cleanup.policy":            "compact",
+			"delete.retention.ms":       "86400000",
+			"segment.ms":                "604800000",
+			"min.cleanable.dirty.ratio": "0.1",
+		})
+		if err != nil {
+			return err
+		}
 	}
-	err = api.Start(ctx, wg, config, d)
-	return
+	return nil
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package devices
+package controller
 
 import (
 	"device-selection/pkg/model"
@@ -29,7 +29,7 @@ import (
 	"time"
 )
 
-func (this *Devices) getCachedTechnicalDeviceType(token string, id string, cache *map[string]devicemodel.DeviceType) (result devicemodel.DeviceType, err error) {
+func (this *Controller) getCachedTechnicalDeviceType(token string, id string, cache *map[string]devicemodel.DeviceType) (result devicemodel.DeviceType, err error) {
 	if cache != nil {
 		if cacheResult, ok := (*cache)[id]; ok {
 			return cacheResult, nil
@@ -74,11 +74,11 @@ func (this *Devices) getCachedTechnicalDeviceType(token string, id string, cache
 	return result, err
 }
 
-func (this *Devices) getFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceType, err error, code int) {
+func (this *Controller) getFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceType, err error, code int) {
 	return this.getCachedFilteredDeviceTypes(token, descriptions, nil)
 }
 
-func (this *Devices) getCachedFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, cache *map[string][]devicemodel.DeviceType) (result []devicemodel.DeviceType, err error, code int) {
+func (this *Controller) getCachedFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, cache *map[string][]devicemodel.DeviceType) (result []devicemodel.DeviceType, err error, code int) {
 	hash := hashCriteriaAndSet(descriptions)
 	if cache != nil {
 		if cacheResult, ok := (*cache)[hash]; ok {
@@ -133,7 +133,7 @@ func hashCriteriaAndSet(criteria model.FilterCriteriaAndSet) string {
 	return fmt.Sprint(arr)
 }
 
-func (this *Devices) getCachedTechnicalDevice(token string, id string, cache *map[string]devicemodel.Device) (result devicemodel.Device, err error, code int) {
+func (this *Controller) getCachedTechnicalDevice(token string, id string, cache *map[string]devicemodel.Device) (result devicemodel.Device, err error, code int) {
 	if cache != nil {
 		if cacheResult, ok := (*cache)[id]; ok {
 			return cacheResult, nil, http.StatusOK

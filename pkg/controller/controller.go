@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package devices
+package controller
 
 import (
 	"context"
@@ -26,21 +26,21 @@ import (
 	"strings"
 )
 
-type Devices struct {
+type Controller struct {
 	config configuration.Config
 }
 
-func New(ctx context.Context, config configuration.Config) (*Devices, error) {
-	return &Devices{
+func New(ctx context.Context, config configuration.Config) (*Controller, error) {
+	return &Controller{
 		config: config,
 	}, nil
 }
 
-func (this *Devices) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, includeGroups bool) (result []model.Selectable, err error, code int) {
+func (this *Controller) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, includeGroups bool) (result []model.Selectable, err error, code int) {
 	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, nil, includeGroups)
 }
 
-func (this *Devices) BulkGetFilteredDevices(token string, requests model.BulkRequest, includeGroups bool) (result model.BulkResult, err error, code int) {
+func (this *Controller) BulkGetFilteredDevices(token string, requests model.BulkRequest, includeGroups bool) (result model.BulkResult, err error, code int) {
 	deviceTypesByCriteriaCache := map[string][]devicemodel.DeviceType{}
 	devicesByDeviceTypeCache := map[string][]model.PermSearchDevice{}
 	for _, request := range requests {
@@ -53,7 +53,7 @@ func (this *Devices) BulkGetFilteredDevices(token string, requests model.BulkReq
 	return result, nil, http.StatusOK
 }
 
-func (this *Devices) handleBulkRequestElement(
+func (this *Controller) handleBulkRequestElement(
 	token string,
 	request model.BulkRequestElement,
 	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
@@ -81,7 +81,7 @@ func (this *Devices) handleBulkRequestElement(
 	}, nil, http.StatusOK
 }
 
-func (this *Devices) getFilteredDevices(
+func (this *Controller) getFilteredDevices(
 	token string,
 	descriptions model.FilterCriteriaAndSet,
 	protocolBlockList []string,
@@ -145,8 +145,9 @@ func (this *Devices) getFilteredDevices(
 				log.Println("DEBUG: GetFilteredDevices()::getDevicesOfType()", dt.Id, devices)
 			}
 			for _, device := range devices {
+				temp := device //make copy to prevent that Selectable.Device is the last element of devices every time
 				result = append(result, model.Selectable{
-					Device:   &device,
+					Device:   &temp,
 					Services: services,
 				})
 			}
@@ -165,7 +166,7 @@ func (this *Devices) getFilteredDevices(
 	return result, nil, 200
 }
 
-func (this *Devices) CombinedDevices(bulk model.BulkResult) (result []model.PermSearchDevice) {
+func (this *Controller) CombinedDevices(bulk model.BulkResult) (result []model.PermSearchDevice) {
 	seen := map[string]bool{}
 	for _, bulkElement := range bulk {
 		for _, selectable := range bulkElement.Selectables {

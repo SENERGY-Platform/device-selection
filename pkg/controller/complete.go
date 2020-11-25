@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package devices
+package controller
 
 import (
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 )
 
-func (this *Devices) CompleteServices(token string, selectables []model.Selectable) ([]model.Selectable, error) {
+func (this *Controller) CompleteServices(token string, selectables []model.Selectable) ([]model.Selectable, error) {
 	return this.completeServices(token, selectables, &map[string]devicemodel.DeviceType{})
 }
 
-func (this *Devices) CompleteBulkServices(token string, bulk model.BulkResult) (_ model.BulkResult, err error) {
+func (this *Controller) CompleteBulkServices(token string, bulk model.BulkResult) (_ model.BulkResult, err error) {
 	cache := &map[string]devicemodel.DeviceType{}
 	for index, element := range bulk {
 		bulk[index].Selectables, err = this.completeServices(token, element.Selectables, cache)
@@ -36,7 +36,7 @@ func (this *Devices) CompleteBulkServices(token string, bulk model.BulkResult) (
 	return bulk, nil
 }
 
-func (this *Devices) completeServices(token string, selectables []model.Selectable, cache *map[string]devicemodel.DeviceType) (_ []model.Selectable, err error) {
+func (this *Controller) completeServices(token string, selectables []model.Selectable, cache *map[string]devicemodel.DeviceType) (_ []model.Selectable, err error) {
 	for selectableIndex, selectable := range selectables {
 		if selectable.Device != nil {
 			dt, err := this.getCachedTechnicalDeviceType(token, selectable.Device.DeviceTypeId, cache)

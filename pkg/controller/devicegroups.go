@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package devices
+package controller
 
 import (
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 )
 
-func (this *Devices) getFilteredDeviceGroups(token string, descriptions model.FilterCriteriaAndSet, interaction devicemodel.Interaction) (result []model.Selectable, err error, code int) {
+func (this *Controller) getFilteredDeviceGroups(token string, descriptions model.FilterCriteriaAndSet, interaction devicemodel.Interaction) (result []model.Selectable, err error, code int) {
 	groups := []model.DeviceGroup{}
 	criteriaFilter := []model.Selection{}
 	for _, criteria := range descriptions {
@@ -48,12 +48,13 @@ func (this *Devices) getFilteredDeviceGroups(token string, descriptions model.Fi
 				And: criteriaFilter,
 			},
 		},
-	}, groups)
+	}, &groups)
 	if err != nil {
 		return
 	}
 	for _, group := range groups {
-		result = append(result, model.Selectable{DeviceGroup: &group})
+		temp := group //prevent that every result element becomes the last element of groups
+		result = append(result, model.Selectable{DeviceGroup: &temp})
 	}
 	return
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package devices
+package controller
 
 import (
 	"context"

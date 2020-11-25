@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package devices
+package controller
 
 import (
 	"context"
@@ -169,7 +169,7 @@ func TestGroupHelperCriteria(t *testing.T) {
 	}, devicemodel.EVENT))
 }
 
-func testGroupHelper(repo *Devices, deviceIds []string, expectedResult []model.FilterCriteria, filteredInteraction devicemodel.Interaction) func(t *testing.T) {
+func testGroupHelper(repo *Controller, deviceIds []string, expectedResult []model.FilterCriteria, filteredInteraction devicemodel.Interaction) func(t *testing.T) {
 	return func(t *testing.T) {
 		dtCache := &map[string]devicemodel.DeviceType{}
 		dCache := &map[string]devicemodel.Device{}
@@ -196,7 +196,7 @@ func normalizeCriteria(criteria []model.FilterCriteria) []model.FilterCriteria {
 	return criteria
 }
 
-func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (semanticmock *httptest.Server, searchmock *httptest.Server, devicerepomock *httptest.Server, repo *Devices, err error) {
+func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (semanticmock *httptest.Server, searchmock *httptest.Server, devicerepomock *httptest.Server, repo *Controller, err error) {
 
 	semanticmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("DEBUG: semantic call: " + r.URL.Path + "?" + r.URL.RawQuery)

@@ -20,7 +20,7 @@ import (
 	"context"
 	"device-selection/pkg/api"
 	"device-selection/pkg/configuration"
-	"device-selection/pkg/devices"
+	"device-selection/pkg/controller"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"encoding/base64"
@@ -439,7 +439,7 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	repo, err := devices.New(ctx, c)
+	repo, err := controller.New(ctx, c)
 	if err != nil {
 		searchmock.Close()
 		selectionApi.Close()

@@ -14,23 +14,8 @@
  * limitations under the License.
  */
 
-package pkg
+package mock
 
-import (
-	"context"
-	"device-selection/pkg/api"
-	"device-selection/pkg/configuration"
-	"device-selection/pkg/controller"
-	"sync"
-)
-
-//starts services and goroutines; returns a waiting group which is done as soon as all go routines are stopped
-func Start(ctx context.Context, config configuration.Config) (wg *sync.WaitGroup, err error) {
-	wg = &sync.WaitGroup{}
-	d, err := controller.New(ctx, config)
-	if err != nil {
-		return wg, err
-	}
-	err = api.Start(ctx, wg, config, d)
-	return
+type Consumer interface {
+	Subscribe(topic string, f func(msg []byte))
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package devices
+package controller
 
 import (
 	"bytes"
@@ -26,11 +26,11 @@ import (
 	"runtime/debug"
 )
 
-func (this *Devices) getDevicesOfType(token string, deviceTypeId string) (result []model.PermSearchDevice, err error, code int) {
+func (this *Controller) getDevicesOfType(token string, deviceTypeId string) (result []model.PermSearchDevice, err error, code int) {
 	return this.getCachedDevicesOfType(token, deviceTypeId, nil)
 }
 
-func (this *Devices) getCachedDevicesOfType(token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice) (result []model.PermSearchDevice, err error, code int) {
+func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice) (result []model.PermSearchDevice, err error, code int) {
 	if cache != nil {
 		if cacheResult, ok := (*cache)[deviceTypeId]; ok {
 			return cacheResult, nil, http.StatusOK
@@ -67,7 +67,7 @@ func (this *Devices) getCachedDevicesOfType(token string, deviceTypeId string, c
 	return result, nil, http.StatusOK
 }
 
-func (this *Devices) Search(token string, query model.QueryMessage, result interface{}) (err error, code int) {
+func (this *Controller) Search(token string, query model.QueryMessage, result interface{}) (err error, code int) {
 	requestBody := new(bytes.Buffer)
 	err = json.NewEncoder(requestBody).Encode(query)
 	if err != nil {

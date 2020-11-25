@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package devices
+package controller
 
 import (
 	"device-selection/pkg/model/devicemodel"
@@ -25,12 +25,12 @@ import (
 	"time"
 )
 
-func (this *Devices) GetProtocols(token string) (result []devicemodel.Protocol, err error, code int) {
+func (this *Controller) GetProtocols(token string) (result []devicemodel.Protocol, err error, code int) {
 	err, code = this.getUncachedList(token, "protocols", &result)
 	return
 }
 
-func (this *Devices) getUncachedList(token string, resource string, result interface{}) (error, int) {
+func (this *Controller) getUncachedList(token string, resource string, result interface{}) (error, int) {
 	client := http.Client{
 		Timeout: 5 * time.Second,
 	}

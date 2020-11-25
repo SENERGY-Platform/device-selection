@@ -43,19 +43,11 @@ type DeviceGroup struct {
 	Name string `json:"name"`
 }
 
-type FilterCriteriaAndSet []FilterCriteria
+type FilterCriteriaAndSet []devicemodel.FilterCriteria
 
-type FilterCriteriaOrSet []FilterCriteria
+type FilterCriteriaOrSet []devicemodel.FilterCriteria
 
-type FilterCriteria struct {
-	FunctionId    string `json:"function_id"`
-	DeviceClassId string `json:"device_class_id"`
-	AspectId      string `json:"aspect_id"`
-}
-
-func (this FilterCriteria) Short() string {
-	return this.FunctionId + "_" + this.AspectId + "_" + this.DeviceClassId
-}
+type FilterCriteria = devicemodel.FilterCriteria
 
 type BulkRequestElement struct {
 	Id                string                   `json:"id"`

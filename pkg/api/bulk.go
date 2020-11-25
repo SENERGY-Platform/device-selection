@@ -18,7 +18,7 @@ package api
 
 import (
 	"device-selection/pkg/configuration"
-	"device-selection/pkg/devices"
+	"device-selection/pkg/controller"
 	"device-selection/pkg/model"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
@@ -32,7 +32,7 @@ func init() {
 	endpoints = append(endpoints, BulkEndpoints)
 }
 
-func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl *devices.Devices) {
+func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl *controller.Controller) {
 
 	router.POST("/bulk/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		token := request.Header.Get("Authorization")

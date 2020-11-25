@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package devices
+package controller
 
 import (
 	"device-selection/pkg/model"
@@ -22,7 +22,7 @@ import (
 	"net/http"
 )
 
-func (this *Devices) DeviceGroupHelper(token string, deviceIds []string, filterByInteraction string, search model.QueryFind) (result model.DeviceGroupHelperResult, err error, code int) {
+func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, filterByInteraction string, search model.QueryFind) (result model.DeviceGroupHelperResult, err error, code int) {
 	deviceCache := &map[string]devicemodel.Device{}
 	deviceTypeCache := &map[string]devicemodel.DeviceType{}
 	result.Criteria, err, code = this.getDeviceGroupCriteria(token, deviceTypeCache, deviceCache, devicemodel.Interaction(filterByInteraction), deviceIds)
@@ -33,7 +33,7 @@ func (this *Devices) DeviceGroupHelper(token string, deviceIds []string, filterB
 	return result, err, code
 }
 
-func (this *Devices) getDeviceGroupCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, interaction devicemodel.Interaction, deviceIds []string) (result []model.FilterCriteria, err error, code int) {
+func (this *Controller) getDeviceGroupCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, interaction devicemodel.Interaction, deviceIds []string) (result []model.FilterCriteria, err error, code int) {
 	currentSet := map[string]model.FilterCriteria{}
 	for i, deviceId := range deviceIds {
 		deviceCriteris, err, code := this.getDeviceCriteria(token, deviceTypeCache, deviceCache, interaction, deviceId)
@@ -57,7 +57,7 @@ func (this *Devices) getDeviceGroupCriteria(token string, deviceTypeCache *map[s
 	return result, nil, http.StatusOK
 }
 
-func (this *Devices) getDeviceCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, interaction devicemodel.Interaction, deviceId string) (result []model.FilterCriteria, err error, code int) {
+func (this *Controller) getDeviceCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, interaction devicemodel.Interaction, deviceId string) (result []model.FilterCriteria, err error, code int) {
 	device, err, code := this.getCachedTechnicalDevice(token, deviceId, deviceCache)
 	if err != nil {
 		return result, err, code
@@ -98,7 +98,7 @@ func criteriaHash(criteria model.FilterCriteria) string {
 	return criteria.FunctionId + "_" + criteria.AspectId + "_" + criteria.DeviceClassId
 }
 
-func (this *Devices) getDeviceGroupOptions(
+func (this *Controller) getDeviceGroupOptions(
 	token string,
 	deviceTypeCache *map[string]devicemodel.DeviceType,
 	deviceCache *map[string]devicemodel.Device,
@@ -157,7 +157,7 @@ func (this *Devices) getDeviceGroupOptions(
 	return result, nil, http.StatusOK
 }
 
-func (this *Devices) getDeviceGroupOptionCriteria(
+func (this *Controller) getDeviceGroupOptionCriteria(
 	token string,
 	deviceTypeCache *map[string]devicemodel.DeviceType,
 	deviceCache *map[string]devicemodel.Device,

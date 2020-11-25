@@ -18,7 +18,7 @@ package api
 
 import (
 	"device-selection/pkg/configuration"
-	"device-selection/pkg/devices"
+	"device-selection/pkg/controller"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"encoding/base64"
@@ -35,7 +35,7 @@ func init() {
 	endpoints = append(endpoints, SelectablesEndpoints)
 }
 
-func SelectablesEndpoints(router *httprouter.Router, config configuration.Config, ctrl *devices.Devices) {
+func SelectablesEndpoints(router *httprouter.Router, config configuration.Config, ctrl *controller.Controller) {
 
 	router.GET("/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		token := request.Header.Get("Authorization")
