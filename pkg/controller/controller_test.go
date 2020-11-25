@@ -88,8 +88,8 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 	mux.Lock()
 	defer mux.Unlock()
 	if !reflect.DeepEqual(calls, []string{
-		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"fid","device_class_id":"","aspect_id":""}]`),
-		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"fid","device_class_id":"dc1","aspect_id":"a1"}]`),
+		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"fid","aspect_id":"","device_class_id":""}]`),
+		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"fid","aspect_id":"a1","device_class_id":"dc1"}]`),
 	}) {
 		temp, _ := json.Marshal(calls)
 		t.Error(string(temp))
@@ -186,7 +186,7 @@ func TestGetFilteredDevices(t *testing.T) {
 	mux.Lock()
 	defer mux.Unlock()
 	if !reflect.DeepEqual(calls, []string{
-		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","device_class_id":"dc1","aspect_id":"a1"}]`),
+		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"dc1"}]`),
 	}) {
 		temp, _ := json.Marshal(calls)
 		t.Error(string(temp))

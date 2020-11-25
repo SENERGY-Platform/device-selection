@@ -91,7 +91,7 @@ func TestApiBulkCombinedDevices(t *testing.T) {
 		mux.Lock()
 		defer mux.Unlock()
 		expected := []string{
-			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","device_class_id":"dc1","aspect_id":"a1"}]`),
+			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"dc1"}]`),
 		}
 		if !reflect.DeepEqual(*calls, expected) {
 			actualStr, _ := json.Marshal(calls)
