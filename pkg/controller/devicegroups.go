@@ -23,7 +23,13 @@ import (
 
 func (this *Controller) getFilteredDeviceGroups(token string, descriptions model.FilterCriteriaAndSet, interaction devicemodel.Interaction) (result []model.Selectable, err error, code int) {
 	groups := []model.DeviceGroup{}
-	criteriaFilter := []model.Selection{}
+	criteriaFilter := []model.Selection{{
+		Condition: model.ConditionConfig{
+			Feature:   "features.blocked_interaction",
+			Operation: model.QueryEqualOperation,
+			Value:     interaction,
+		},
+	}}
 	for _, criteria := range descriptions {
 		criteriaFilter = append(criteriaFilter, model.Selection{
 			Condition: model.ConditionConfig{
