@@ -40,11 +40,11 @@ func (this *Controller) GetFilteredDevices(token string, descriptions model.Filt
 	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, nil, includeGroups)
 }
 
-func (this *Controller) BulkGetFilteredDevices(token string, requests model.BulkRequest, includeGroups bool) (result model.BulkResult, err error, code int) {
+func (this *Controller) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
 	deviceTypesByCriteriaCache := map[string][]devicemodel.DeviceType{}
 	devicesByDeviceTypeCache := map[string][]model.PermSearchDevice{}
 	for _, request := range requests {
-		resultElement, err, code := this.handleBulkRequestElement(token, request, &deviceTypesByCriteriaCache, &devicesByDeviceTypeCache, includeGroups)
+		resultElement, err, code := this.handleBulkRequestElement(token, request, &deviceTypesByCriteriaCache, &devicesByDeviceTypeCache)
 		if err != nil {
 			return result, err, code
 		}
@@ -58,7 +58,6 @@ func (this *Controller) handleBulkRequestElement(
 	request model.BulkRequestElement,
 	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
 	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
-	includeGroups bool,
 ) (
 	result model.BulkResultElement,
 	err error,
@@ -71,7 +70,7 @@ func (this *Controller) handleBulkRequestElement(
 	}
 
 	protocolBlockList := request.FilterProtocols
-	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, deviceTypesByCriteriaCache, devicesByDeviceTypeCache, includeGroups)
+	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, deviceTypesByCriteriaCache, devicesByDeviceTypeCache, request.IncludeGroups)
 	if err != nil {
 		return result, err, code
 	}

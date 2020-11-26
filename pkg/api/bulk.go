@@ -25,7 +25,6 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
-	"strconv"
 )
 
 func init() {
@@ -44,9 +43,7 @@ func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl 
 			return
 		}
 
-		includeGroups, _ := strconv.ParseBool(request.URL.Query().Get("include_groups"))
-
-		result, err, code := ctrl.BulkGetFilteredDevices(token, criteria, includeGroups)
+		result, err, code := ctrl.BulkGetFilteredDevices(token, criteria)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return
@@ -74,7 +71,7 @@ func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl 
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
-		temp, err, code := ctrl.BulkGetFilteredDevices(token, criteria, false)
+		temp, err, code := ctrl.BulkGetFilteredDevices(token, criteria)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

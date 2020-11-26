@@ -54,6 +54,7 @@ type BulkRequestElement struct {
 	FilterInteraction *devicemodel.Interaction `json:"filter_interaction"`
 	FilterProtocols   []string                 `json:"filter_protocols"`
 	Criteria          FilterCriteriaAndSet     `json:"criteria"`
+	IncludeGroups     bool                     `json:"include_groups"`
 }
 
 type BulkRequest []BulkRequestElement
