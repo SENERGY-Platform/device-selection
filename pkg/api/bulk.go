@@ -71,6 +71,12 @@ func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl 
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
 		}
+		for _, element := range criteria {
+			if element.IncludeGroups {
+				http.Error(writer, "unable to combine devices when groups are expected (fix: set include_groups to false)", http.StatusBadRequest)
+				return
+			}
+		}
 		temp, err, code := ctrl.BulkGetFilteredDevices(token, criteria)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
