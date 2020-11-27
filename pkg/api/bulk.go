@@ -43,6 +43,11 @@ func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl 
 			return
 		}
 
+		if config.Debug {
+			temp, _ := json.Marshal(criteria)
+			log.Println("DEBUG:", string(temp))
+		}
+
 		result, err, code := ctrl.BulkGetFilteredDevices(token, criteria)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
@@ -55,6 +60,12 @@ func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl 
 				return
 			}
 		}
+
+		if config.Debug {
+			temp, _ := json.Marshal(result)
+			log.Println("DEBUG:", string(temp))
+		}
+
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
