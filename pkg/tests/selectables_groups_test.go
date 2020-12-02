@@ -165,7 +165,7 @@ func TestSelectableGroups(t *testing.T) {
 			Id:                 "dg_lamp",
 			Name:               "dg_lamp",
 			BlockedInteraction: devicemodel.EVENT,
-			Criteria: []devicemodel.FilterCriteria{
+			Criteria: []devicemodel.DeviceGroupFilterCriteria{
 				{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 				{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
@@ -177,7 +177,7 @@ func TestSelectableGroups(t *testing.T) {
 			Id:                 "dg_colorlamp",
 			Name:               "dg_colorlamp",
 			BlockedInteraction: devicemodel.EVENT,
-			Criteria: []model.FilterCriteria{
+			Criteria: []devicemodel.DeviceGroupFilterCriteria{
 				{FunctionId: setColorFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 				{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 				{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
@@ -191,7 +191,7 @@ func TestSelectableGroups(t *testing.T) {
 			Id:                 "dg_plug",
 			Name:               "dg_plug",
 			BlockedInteraction: devicemodel.EVENT,
-			Criteria: []model.FilterCriteria{
+			Criteria: []devicemodel.DeviceGroupFilterCriteria{
 				{FunctionId: setOnFunction, DeviceClassId: plugDeviceClass, AspectId: ""},
 				{FunctionId: setOffFunction, DeviceClassId: plugDeviceClass, AspectId: ""},
 				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
@@ -202,7 +202,7 @@ func TestSelectableGroups(t *testing.T) {
 			Id:                 "dg_event_lamp",
 			Name:               "eventlamps",
 			BlockedInteraction: devicemodel.REQUEST,
-			Criteria: []model.FilterCriteria{
+			Criteria: []devicemodel.DeviceGroupFilterCriteria{
 				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
 				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
 			},

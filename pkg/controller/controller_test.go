@@ -219,7 +219,7 @@ type DeviceDescription struct {
 
 func (this DeviceDescriptions) ToFilter() (result model.FilterCriteriaAndSet) {
 	for _, element := range this {
-		newElement := model.FilterCriteria{
+		newElement := devicemodel.FilterCriteria{
 			FunctionId: element.Function.Id,
 		}
 		if element.DeviceClass != nil {

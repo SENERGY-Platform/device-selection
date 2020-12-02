@@ -22,26 +22,26 @@ import (
 	"net/http"
 )
 
-func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, filterByInteraction string, search model.QueryFind) (result model.DeviceGroupHelperResult, err error, code int) {
+func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, search model.QueryFind) (result model.DeviceGroupHelperResult, err error, code int) {
 	deviceCache := &map[string]devicemodel.Device{}
 	deviceTypeCache := &map[string]devicemodel.DeviceType{}
-	result.Criteria, err, code = this.getDeviceGroupCriteria(token, deviceTypeCache, deviceCache, devicemodel.Interaction(filterByInteraction), deviceIds)
+	result.Criteria, err, code = this.getDeviceGroupCriteria(token, deviceTypeCache, deviceCache, deviceIds)
 	if err != nil {
 		return
 	}
-	result.Options, err, code = this.getDeviceGroupOptions(token, deviceTypeCache, deviceCache, devicemodel.Interaction(filterByInteraction), deviceIds, result.Criteria, search)
+	result.Options, err, code = this.getDeviceGroupOptions(token, deviceTypeCache, deviceCache, deviceIds, result.Criteria, search)
 	return result, err, code
 }
 
-func (this *Controller) getDeviceGroupCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, interaction devicemodel.Interaction, deviceIds []string) (result []model.FilterCriteria, err error, code int) {
-	currentSet := map[string]model.FilterCriteria{}
+func (this *Controller) getDeviceGroupCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, deviceIds []string) (result []devicemodel.DeviceGroupFilterCriteria, err error, code int) {
+	currentSet := map[string]devicemodel.DeviceGroupFilterCriteria{}
 	for i, deviceId := range deviceIds {
-		deviceCriteris, err, code := this.getDeviceCriteria(token, deviceTypeCache, deviceCache, interaction, deviceId)
+		deviceCriterias, err, code := this.getDeviceCriteria(token, deviceTypeCache, deviceCache, deviceId)
 		if err != nil {
 			return result, err, code
 		}
-		nextSet := map[string]model.FilterCriteria{}
-		for _, criteria := range deviceCriteris {
+		nextSet := map[string]devicemodel.DeviceGroupFilterCriteria{}
+		for _, criteria := range deviceCriterias {
 			criteriaHash := criteriaHash(criteria)
 			_, usedInCurrent := currentSet[criteriaHash]
 			if i == 0 || usedInCurrent {
@@ -50,14 +50,14 @@ func (this *Controller) getDeviceGroupCriteria(token string, deviceTypeCache *ma
 		}
 		currentSet = nextSet
 	}
-	result = []model.FilterCriteria{}
+	result = []devicemodel.DeviceGroupFilterCriteria{}
 	for _, element := range currentSet {
 		result = append(result, element)
 	}
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) getDeviceCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, interaction devicemodel.Interaction, deviceId string) (result []model.FilterCriteria, err error, code int) {
+func (this *Controller) getDeviceCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, deviceId string) (result []devicemodel.DeviceGroupFilterCriteria, err error, code int) {
 	device, err, code := this.getCachedTechnicalDevice(token, deviceId, deviceCache)
 	if err != nil {
 		return result, err, code
@@ -66,22 +66,29 @@ func (this *Controller) getDeviceCriteria(token string, deviceTypeCache *map[str
 	if err != nil {
 		return result, err, http.StatusInternalServerError
 	}
-	resultSet := map[string]model.FilterCriteria{}
+	resultSet := map[string]devicemodel.DeviceGroupFilterCriteria{}
 	for _, service := range deviceType.Services {
-		if service.Interaction != interaction {
-			for _, functionId := range service.FunctionIds {
+		interactions := []devicemodel.Interaction{service.Interaction}
+		if service.Interaction == devicemodel.EVENT_AND_REQUEST {
+			interactions = []devicemodel.Interaction{devicemodel.EVENT, devicemodel.REQUEST}
+		}
+
+		for _, functionId := range service.FunctionIds {
+			for _, interaction := range interactions {
 				if isMeasuringFunctionId(functionId) {
 					for _, aspectId := range service.AspectIds {
-						criteria := model.FilterCriteria{
-							FunctionId: functionId,
-							AspectId:   aspectId,
+						criteria := devicemodel.DeviceGroupFilterCriteria{
+							FunctionId:  functionId,
+							AspectId:    aspectId,
+							Interaction: interaction,
 						}
 						resultSet[criteriaHash(criteria)] = criteria
 					}
 				} else {
-					criteria := model.FilterCriteria{
+					criteria := devicemodel.DeviceGroupFilterCriteria{
 						FunctionId:    functionId,
 						DeviceClassId: deviceType.DeviceClassId,
+						Interaction:   interaction,
 					}
 					resultSet[criteriaHash(criteria)] = criteria
 				}
@@ -94,17 +101,16 @@ func (this *Controller) getDeviceCriteria(token string, deviceTypeCache *map[str
 	return result, nil, http.StatusOK
 }
 
-func criteriaHash(criteria model.FilterCriteria) string {
-	return criteria.FunctionId + "_" + criteria.AspectId + "_" + criteria.DeviceClassId
+func criteriaHash(criteria devicemodel.DeviceGroupFilterCriteria) string {
+	return criteria.FunctionId + "_" + criteria.AspectId + "_" + criteria.DeviceClassId + "_" + string(criteria.Interaction)
 }
 
 func (this *Controller) getDeviceGroupOptions(
 	token string,
 	deviceTypeCache *map[string]devicemodel.DeviceType,
 	deviceCache *map[string]devicemodel.Device,
-	interaction devicemodel.Interaction,
 	currentDeviceIds []string,
-	criteria []model.FilterCriteria,
+	criteria []devicemodel.DeviceGroupFilterCriteria,
 	search model.QueryFind,
 ) (
 	result []model.DeviceGroupOption,
@@ -132,19 +138,19 @@ func (this *Controller) getDeviceGroupOptions(
 		return result, err, code
 	}
 
-	deviceTypeToRemoveCache := map[string][]model.FilterCriteria{}
-	deviceTypeToCriteriaCache := map[string][]model.FilterCriteria{}
+	deviceTypeToRemoveCache := map[string][]devicemodel.DeviceGroupFilterCriteria{}
+	deviceTypeToCriteriaCache := map[string][]devicemodel.DeviceGroupFilterCriteria{}
 	for _, device := range devices {
 		option := model.DeviceGroupOption{
 			Device:          device.Device,
-			RemovesCriteria: []model.FilterCriteria{},
+			RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{},
 		}
-		deviceCriteria := []model.FilterCriteria{}
+		deviceCriteria := []devicemodel.DeviceGroupFilterCriteria{}
 		if cached, ok := deviceTypeToRemoveCache[device.DeviceTypeId]; ok {
 			option.RemovesCriteria = cached
 			deviceCriteria = deviceTypeToCriteriaCache[device.DeviceTypeId]
 		} else {
-			option.RemovesCriteria, deviceCriteria, err, code = this.getDeviceGroupOptionCriteria(token, deviceTypeCache, deviceCache, interaction, criteria, option.Device.Id)
+			option.RemovesCriteria, deviceCriteria, err, code = this.getDeviceGroupOptionCriteria(token, deviceTypeCache, deviceCache, criteria, option.Device.Id)
 			if err != nil {
 				return result, err, code
 			}
@@ -161,21 +167,20 @@ func (this *Controller) getDeviceGroupOptionCriteria(
 	token string,
 	deviceTypeCache *map[string]devicemodel.DeviceType,
 	deviceCache *map[string]devicemodel.Device,
-	interaction devicemodel.Interaction,
-	currentCriteria []model.FilterCriteria,
+	currentCriteria []devicemodel.DeviceGroupFilterCriteria,
 	deviceId string,
 ) (
-	result []model.FilterCriteria,
-	deviceCriteria []model.FilterCriteria,
+	result []devicemodel.DeviceGroupFilterCriteria,
+	deviceCriteria []devicemodel.DeviceGroupFilterCriteria,
 	err error,
 	code int,
 ) {
-	result = []model.FilterCriteria{}
-	deviceCriteria, err, code = this.getDeviceCriteria(token, deviceTypeCache, deviceCache, interaction, deviceId)
+	result = []devicemodel.DeviceGroupFilterCriteria{}
+	deviceCriteria, err, code = this.getDeviceCriteria(token, deviceTypeCache, deviceCache, deviceId)
 	if err != nil {
 		return result, deviceCriteria, err, code
 	}
-	deviceCriteriaSet := map[string]model.FilterCriteria{}
+	deviceCriteriaSet := map[string]devicemodel.DeviceGroupFilterCriteria{}
 	for _, criteria := range deviceCriteria {
 		deviceCriteriaSet[criteriaHash(criteria)] = criteria
 	}

@@ -47,8 +47,6 @@ type FilterCriteriaAndSet []devicemodel.FilterCriteria
 
 type FilterCriteriaOrSet []devicemodel.FilterCriteria
 
-type FilterCriteria = devicemodel.FilterCriteria
-
 type BulkRequestElement struct {
 	Id                string                   `json:"id"`
 	FilterInteraction *devicemodel.Interaction `json:"filter_interaction"`
@@ -67,12 +65,12 @@ type BulkResultElement struct {
 }
 
 type DeviceGroupHelperResult struct {
-	Criteria []FilterCriteria    `json:"criteria"`
-	Options  []DeviceGroupOption `json:"options"`
+	Criteria []devicemodel.DeviceGroupFilterCriteria `json:"criteria"`
+	Options  []DeviceGroupOption                     `json:"options"`
 }
 
 type DeviceGroupOption struct {
-	Device                  devicemodel.Device `json:"device"`
-	RemovesCriteria         []FilterCriteria   `json:"removes_criteria"`
-	MaintainsGroupUsability bool               `json:"maintains_group_usability"`
+	Device                  devicemodel.Device                      `json:"device"`
+	RemovesCriteria         []devicemodel.DeviceGroupFilterCriteria `json:"removes_criteria"`
+	MaintainsGroupUsability bool                                    `json:"maintains_group_usability"`
 }

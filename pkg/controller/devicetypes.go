@@ -126,7 +126,7 @@ func (this *Controller) getCachedFilteredDeviceTypes(token string, descriptions 
 }
 
 func hashCriteriaAndSet(criteria model.FilterCriteriaAndSet) string {
-	arr := append([]model.FilterCriteria{}, criteria...) //make copy to prevent sorting to effect original
+	arr := append(model.FilterCriteriaAndSet{}, criteria...) //make copy to prevent sorting to effect original
 	sort.SliceStable(arr, func(i, j int) bool {
 		return fmt.Sprint(arr[i]) < fmt.Sprint(arr[j])
 	})

@@ -67,13 +67,13 @@ type ProtocolSegment struct {
 }
 
 type DeviceGroup struct {
-	Id                 string           `json:"id"`
-	Name               string           `json:"name"`
-	Image              string           `json:"image"`
-	BlockedInteraction Interaction      `json:"blocked_interaction"` //service must not use this interaction
-	Criteria           []FilterCriteria `json:"criteria"`
-	DeviceIds          []string         `json:"device_ids"`
-	CriteriaShort      []string         `json:"criteria_short,omitempty"`
+	Id                 string                      `json:"id"`
+	Name               string                      `json:"name"`
+	Image              string                      `json:"image"`
+	BlockedInteraction Interaction                 `json:"blocked_interaction"` //service must not use this interaction
+	Criteria           []DeviceGroupFilterCriteria `json:"criteria"`
+	DeviceIds          []string                    `json:"device_ids"`
+	CriteriaShort      []string                    `json:"criteria_short,omitempty"`
 }
 
 func (this *DeviceGroup) SetShortCriteria() {
@@ -91,4 +91,15 @@ type FilterCriteria struct {
 
 func (this FilterCriteria) Short() string {
 	return this.FunctionId + "_" + this.AspectId + "_" + this.DeviceClassId
+}
+
+type DeviceGroupFilterCriteria struct {
+	Interaction   Interaction `json:"interaction"`
+	FunctionId    string      `json:"function_id"`
+	AspectId      string      `json:"aspect_id"`
+	DeviceClassId string      `json:"device_class_id"`
+}
+
+func (this DeviceGroupFilterCriteria) Short() string {
+	return this.FunctionId + "_" + this.AspectId + "_" + this.DeviceClassId + "_" + string(this.Interaction)
 }

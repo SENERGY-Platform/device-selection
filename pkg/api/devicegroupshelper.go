@@ -36,8 +36,6 @@ func DeviceGroupsHelper(router *httprouter.Router, config configuration.Config, 
 	router.POST("/device-group-helper", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		token := request.Header.Get("Authorization")
 
-		filterByInteraction := request.URL.Query().Get("filter-by-interaction")
-
 		deviceIds := []string{}
 		err := json.NewDecoder(request.Body).Decode(&deviceIds)
 		if err != nil {
@@ -51,7 +49,7 @@ func DeviceGroupsHelper(router *httprouter.Router, config configuration.Config, 
 		search.Offset, _ = strconv.Atoi(request.URL.Query().Get("offset"))
 		search.Rights = "rx"
 
-		result, err, code := ctrl.DeviceGroupHelper(token, deviceIds, filterByInteraction, search)
+		result, err, code := ctrl.DeviceGroupHelper(token, deviceIds, search)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

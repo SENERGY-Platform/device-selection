@@ -90,7 +90,7 @@ func getCriteriaFromRequest(request *http.Request) (criteria model.FilterCriteri
 		return
 	}
 
-	criteria = []model.FilterCriteria{{
+	criteria = []devicemodel.FilterCriteria{{
 		FunctionId:    request.URL.Query().Get("function_id"),
 		DeviceClassId: request.URL.Query().Get("device_class_id"),
 		AspectId:      request.URL.Query().Get("aspect_id"),

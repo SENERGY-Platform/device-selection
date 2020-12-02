@@ -46,7 +46,7 @@ func TestApiBulkCombinedDevices(t *testing.T) {
 		{
 			Id:              "1",
 			FilterProtocols: []string{"mqtt"},
-			Criteria: []model.FilterCriteria{{
+			Criteria: []devicemodel.FilterCriteria{{
 				FunctionId:    devicemodel.MEASURING_FUNCTION_PREFIX + "_1",
 				DeviceClassId: "dc1",
 				AspectId:      "a1",
@@ -55,7 +55,7 @@ func TestApiBulkCombinedDevices(t *testing.T) {
 		{
 			Id:                "2",
 			FilterInteraction: &eventInteraction,
-			Criteria: []model.FilterCriteria{{
+			Criteria: []devicemodel.FilterCriteria{{
 				FunctionId:    devicemodel.MEASURING_FUNCTION_PREFIX + "_1",
 				DeviceClassId: "dc1",
 				AspectId:      "a1",
