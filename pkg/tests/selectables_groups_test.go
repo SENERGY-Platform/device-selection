@@ -59,47 +59,58 @@ func TestSelectableGroups(t *testing.T) {
 		return
 	}
 
+	deviceAspect := "urn:infai:ses:aspect:deviceAspect"
+	lightAspect := "urn:infai:ses:aspect:ligthAspect"
+	setOnFunction := devicemodel.CONTROLLING_FUNCTION_PREFIX + "setOnFunction"
+	setOffFunction := devicemodel.CONTROLLING_FUNCTION_PREFIX + "setOffFunction"
+	setColorFunction := devicemodel.CONTROLLING_FUNCTION_PREFIX + "setColorFunction"
+	getStateFunction := devicemodel.MEASURING_FUNCTION_PREFIX + "getStateFunction"
+	getColorFunction := devicemodel.MEASURING_FUNCTION_PREFIX + "getColorFunction"
+
+	lampDeviceClass := "urn:infai:ses:device-class:lampClass"
+	plugDeviceClass := "urn:infai:ses:device-class:plugClass"
+
 	deviceTypes := []devicemodel.DeviceType{
 		{
 			Id:            "lamp",
 			Name:          "lamp",
-			DeviceClassId: "lamp",
+			DeviceClassId: lampDeviceClass,
 			Services: []devicemodel.Service{
-				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
-				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
+				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			},
 		},
 		{
 			Id:            "event_lamp",
 			Name:          "event_lamp",
-			DeviceClassId: "lamp",
+			DeviceClassId: lampDeviceClass,
 			Services: []devicemodel.Service{
-				{Id: "se1", Name: "se1", Interaction: devicemodel.EVENT, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "se2", Name: "se2", Interaction: devicemodel.EVENT, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
-				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
+				{Id: "se1", Name: "se1", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "se2", Name: "se2", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			},
 		},
 		{
 			Id:            "colorlamp",
 			Name:          "colorlamp",
-			DeviceClassId: "lamp",
+			DeviceClassId: lampDeviceClass,
 			Services: []devicemodel.Service{
-				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
-				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
-				{Id: "s7", Name: "s7", Interaction: devicemodel.REQUEST, AspectIds: []string{"light"}, FunctionIds: []string{"setColor"}},
-				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{"light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getColor"}},
+				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+				{Id: "s7", Name: "s7", Interaction: devicemodel.REQUEST, AspectIds: []string{lightAspect}, FunctionIds: []string{setColorFunction}},
+				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{lightAspect}, FunctionIds: []string{getColorFunction}},
 			},
 		},
 		{
 			Id:            "plug",
 			Name:          "plug",
-			DeviceClassId: "plug",
+			DeviceClassId: plugDeviceClass,
 			Services: []devicemodel.Service{
-				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOn"}},
-				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOff"}},
-				{Id: "s11", Name: "s11", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
+				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOffFunction}},
+				{Id: "s11", Name: "s11", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{getStateFunction}},
 			},
 		},
 	}
@@ -155,10 +166,10 @@ func TestSelectableGroups(t *testing.T) {
 			Name:               "dg_lamp",
 			BlockedInteraction: devicemodel.EVENT,
 			Criteria: []devicemodel.FilterCriteria{
-				{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
-				{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
-				{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device"},
-				{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light"},
+				{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
+				{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
 			},
 			DeviceIds: []string{"lamp1", "colorlamp1"},
 		},
@@ -167,12 +178,12 @@ func TestSelectableGroups(t *testing.T) {
 			Name:               "dg_colorlamp",
 			BlockedInteraction: devicemodel.EVENT,
 			Criteria: []model.FilterCriteria{
-				{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: ""},
-				{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
-				{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
-				{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device"},
-				{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light"},
-				{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light"},
+				{FunctionId: setColorFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
+				{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
+				{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
+				{FunctionId: getColorFunction, DeviceClassId: "", AspectId: lightAspect},
 			},
 			DeviceIds: []string{"colorlamp1"},
 		},
@@ -181,9 +192,9 @@ func TestSelectableGroups(t *testing.T) {
 			Name:               "dg_plug",
 			BlockedInteraction: devicemodel.EVENT,
 			Criteria: []model.FilterCriteria{
-				{FunctionId: "setOn", DeviceClassId: "plug", AspectId: ""},
-				{FunctionId: "setOff", DeviceClassId: "plug", AspectId: ""},
-				{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device"},
+				{FunctionId: setOnFunction, DeviceClassId: plugDeviceClass, AspectId: ""},
+				{FunctionId: setOffFunction, DeviceClassId: plugDeviceClass, AspectId: ""},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
 			},
 			DeviceIds: []string{"plug1", "plug2"},
 		},
@@ -192,8 +203,8 @@ func TestSelectableGroups(t *testing.T) {
 			Name:               "eventlamps",
 			BlockedInteraction: devicemodel.REQUEST,
 			Criteria: []model.FilterCriteria{
-				{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light"},
-				{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device"},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
 			},
 			DeviceIds: []string{"elamp"},
 		},
@@ -206,8 +217,8 @@ func TestSelectableGroups(t *testing.T) {
 	time.Sleep(5 * time.Second)
 
 	t.Run("lamp on/off", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
-		{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
-		{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
+		{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
+		{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 	}, devicemodel.EVENT, false, []model.Selectable{
 		{
 			Device: &model.PermSearchDevice{
@@ -218,8 +229,8 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
+				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
 		{
@@ -231,8 +242,8 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
+				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
 		{
@@ -244,8 +255,8 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
+				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
 		{
@@ -257,15 +268,15 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
+				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
 	}))
 
 	t.Run("lamp on/off with group", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
-		{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: ""},
-		{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: ""},
+		{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
+		{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 	}, devicemodel.EVENT, true, []model.Selectable{
 		{
 			Device: &model.PermSearchDevice{
@@ -276,8 +287,8 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
+				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
 		{
@@ -289,8 +300,8 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
+				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
 		{
@@ -302,8 +313,8 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
+				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
 		{
@@ -315,8 +326,8 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
-				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
+				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
 		{
@@ -334,7 +345,7 @@ func TestSelectableGroups(t *testing.T) {
 	}))
 
 	t.Run("lamp get color with group", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
-		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light"},
+		{FunctionId: getColorFunction, DeviceClassId: "", AspectId: lightAspect},
 	}, devicemodel.EVENT, true, []model.Selectable{
 		{
 			Device: &model.PermSearchDevice{
@@ -345,7 +356,7 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{"light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getColor"}},
+				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{lightAspect}, FunctionIds: []string{getColorFunction}},
 			},
 		},
 		{
@@ -357,7 +368,7 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{"light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getColor"}},
+				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{lightAspect}, FunctionIds: []string{getColorFunction}},
 			},
 		},
 		{
@@ -369,8 +380,8 @@ func TestSelectableGroups(t *testing.T) {
 	}))
 
 	t.Run("plug on/off with group", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
-		{FunctionId: "setOn", DeviceClassId: "plug", AspectId: ""},
-		{FunctionId: "setOff", DeviceClassId: "plug", AspectId: ""},
+		{FunctionId: setOnFunction, DeviceClassId: plugDeviceClass, AspectId: ""},
+		{FunctionId: setOffFunction, DeviceClassId: plugDeviceClass, AspectId: ""},
 	}, devicemodel.EVENT, true, []model.Selectable{
 		{
 			Device: &model.PermSearchDevice{
@@ -381,8 +392,8 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOn"}},
-				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOff"}},
+				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
 		{
@@ -394,8 +405,8 @@ func TestSelectableGroups(t *testing.T) {
 				},
 			},
 			Services: []devicemodel.Service{
-				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOn"}},
-				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOff"}},
+				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
 		{
