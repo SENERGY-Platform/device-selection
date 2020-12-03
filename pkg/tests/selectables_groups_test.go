@@ -82,12 +82,22 @@ func TestSelectableGroups(t *testing.T) {
 			},
 		},
 		{
+			Id:            "both_lamp",
+			Name:          "both_lamp",
+			DeviceClassId: lampDeviceClass,
+			Services: []devicemodel.Service{
+				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
 			Id:            "event_lamp",
 			Name:          "event_lamp",
 			DeviceClassId: lampDeviceClass,
 			Services: []devicemodel.Service{
-				{Id: "se1", Name: "se1", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
-				{Id: "se2", Name: "se2", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			},
 		},
@@ -121,6 +131,12 @@ func TestSelectableGroups(t *testing.T) {
 			Name:         "elamp",
 			LocalId:      "elamp",
 			DeviceTypeId: "event_lamp",
+		},
+		{
+			Id:           "blamp",
+			Name:         "blamp",
+			LocalId:      "blamp",
+			DeviceTypeId: "both_lamp",
 		},
 		{
 			Id:           "lamp1",
@@ -162,51 +178,62 @@ func TestSelectableGroups(t *testing.T) {
 
 	deviceGroups := []devicemodel.DeviceGroup{
 		{
-			Id:                 "dg_lamp",
-			Name:               "dg_lamp",
-			BlockedInteraction: devicemodel.EVENT,
+			Id:   "dg_lamp",
+			Name: "dg_lamp",
 			Criteria: []devicemodel.DeviceGroupFilterCriteria{
-				{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
-				{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
-				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
-				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
+				{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+				{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect, Interaction: devicemodel.REQUEST},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect, Interaction: devicemodel.REQUEST},
 			},
 			DeviceIds: []string{"lamp1", "colorlamp1"},
 		},
 		{
-			Id:                 "dg_colorlamp",
-			Name:               "dg_colorlamp",
-			BlockedInteraction: devicemodel.EVENT,
+			Id:   "dg_colorlamp",
+			Name: "dg_colorlamp",
 			Criteria: []devicemodel.DeviceGroupFilterCriteria{
-				{FunctionId: setColorFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
-				{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
-				{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
-				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
-				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
-				{FunctionId: getColorFunction, DeviceClassId: "", AspectId: lightAspect},
+				{FunctionId: setColorFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+				{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+				{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect, Interaction: devicemodel.REQUEST},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect, Interaction: devicemodel.REQUEST},
+				{FunctionId: getColorFunction, DeviceClassId: "", AspectId: lightAspect, Interaction: devicemodel.REQUEST},
 			},
 			DeviceIds: []string{"colorlamp1"},
 		},
 		{
-			Id:                 "dg_plug",
-			Name:               "dg_plug",
-			BlockedInteraction: devicemodel.EVENT,
+			Id:   "dg_plug",
+			Name: "dg_plug",
 			Criteria: []devicemodel.DeviceGroupFilterCriteria{
-				{FunctionId: setOnFunction, DeviceClassId: plugDeviceClass, AspectId: ""},
-				{FunctionId: setOffFunction, DeviceClassId: plugDeviceClass, AspectId: ""},
-				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
+				{FunctionId: setOnFunction, DeviceClassId: plugDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+				{FunctionId: setOffFunction, DeviceClassId: plugDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect, Interaction: devicemodel.REQUEST},
 			},
 			DeviceIds: []string{"plug1", "plug2"},
 		},
 		{
-			Id:                 "dg_event_lamp",
-			Name:               "eventlamps",
-			BlockedInteraction: devicemodel.REQUEST,
+			Id:   "dg_event_lamp",
+			Name: "eventlamps",
 			Criteria: []devicemodel.DeviceGroupFilterCriteria{
-				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
-				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect},
+				{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+				{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect, Interaction: devicemodel.EVENT},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect, Interaction: devicemodel.EVENT},
 			},
 			DeviceIds: []string{"elamp"},
+		},
+		{
+			Id:   "dg_both_lamp",
+			Name: "bothlamps",
+			Criteria: []devicemodel.DeviceGroupFilterCriteria{
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect, Interaction: devicemodel.EVENT},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect, Interaction: devicemodel.EVENT},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect, Interaction: devicemodel.REQUEST},
+				{FunctionId: getStateFunction, DeviceClassId: "", AspectId: deviceAspect, Interaction: devicemodel.REQUEST},
+				{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+				{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+			},
+			DeviceIds: []string{"blamp"},
 		},
 	}
 
@@ -272,6 +299,126 @@ func TestSelectableGroups(t *testing.T) {
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			},
 		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "blamp",
+					Name:         "blamp",
+					DeviceTypeId: "both_lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+			},
+		},
+	}))
+
+	t.Run("get lamp state", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+		{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
+	}, devicemodel.EVENT, false, []model.Selectable{
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "colorlamp1",
+					Name:         "colorlamp1",
+					DeviceTypeId: "colorlamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "colorlamp2",
+					Name:         "colorlamp2",
+					DeviceTypeId: "colorlamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "lamp1",
+					Name:         "lamp1",
+					DeviceTypeId: "lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "lamp2",
+					Name:         "lamp2",
+					DeviceTypeId: "lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "blamp",
+					Name:         "blamp",
+					DeviceTypeId: "both_lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+	}))
+
+	t.Run("get lamp state as event", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+		{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
+	}, devicemodel.REQUEST, false, []model.Selectable{
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "blamp",
+					Name:         "blamp",
+					DeviceTypeId: "both_lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
 	}))
 
 	t.Run("lamp on/off with group", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
@@ -331,9 +478,47 @@ func TestSelectableGroups(t *testing.T) {
 			},
 		},
 		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "blamp",
+					Name:         "blamp",
+					DeviceTypeId: "both_lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+			},
+		},
+		{
 			DeviceGroup: &model.DeviceGroup{
 				Id:   "dg_colorlamp",
 				Name: "dg_colorlamp",
+			},
+		},
+		{
+			DeviceGroup: &model.DeviceGroup{
+				Id:   "dg_event_lamp",
+				Name: "eventlamps",
+			},
+		},
+		{
+			DeviceGroup: &model.DeviceGroup{
+				Id:   "dg_both_lamp",
+				Name: "bothlamps",
 			},
 		},
 		{
@@ -417,6 +602,129 @@ func TestSelectableGroups(t *testing.T) {
 		},
 	}))
 
+	t.Run("get lamp state with groups", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+		{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
+	}, devicemodel.EVENT, true, []model.Selectable{
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "colorlamp1",
+					Name:         "colorlamp1",
+					DeviceTypeId: "colorlamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "colorlamp2",
+					Name:         "colorlamp2",
+					DeviceTypeId: "colorlamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "lamp1",
+					Name:         "lamp1",
+					DeviceTypeId: "lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "lamp2",
+					Name:         "lamp2",
+					DeviceTypeId: "lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "blamp",
+					Name:         "blamp",
+					DeviceTypeId: "both_lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			DeviceGroup: &model.DeviceGroup{
+				Id:   "dg_lamp",
+				Name: "dg_lamp",
+			},
+		},
+		{
+			DeviceGroup: &model.DeviceGroup{
+				Id:   "dg_colorlamp",
+				Name: "dg_colorlamp",
+			},
+		},
+		{
+			DeviceGroup: &model.DeviceGroup{
+				Id:   "dg_both_lamp",
+				Name: "bothlamps",
+			},
+		},
+	}))
+
+	t.Run("get lamp state as event with groups", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+		{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
+	}, devicemodel.REQUEST, true, []model.Selectable{
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "blamp",
+					Name:         "blamp",
+					DeviceTypeId: "both_lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+				},
+			},
+			Services: []devicemodel.Service{
+				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
+			},
+		},
+		{
+			DeviceGroup: &model.DeviceGroup{
+				Id:   "dg_both_lamp",
+				Name: "bothlamps",
+			},
+		},
+		{
+			DeviceGroup: &model.DeviceGroup{
+				Id:   "dg_event_lamp",
+				Name: "eventlamps",
+			},
+		},
+	}))
 }
 
 const token = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlcyI6WyJjcmVhdGUtcmVhbG0iLCJvZmZsaW5lX2FjY2VzcyIsImFkbWluIiwiZGV2ZWxvcGVyIiwidW1hX2F1dGhvcml6YXRpb24iLCJ1c2VyIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJjcmVhdGUtcmVhbG0iLCJvZmZsaW5lX2FjY2VzcyIsImFkbWluIiwiZGV2ZWxvcGVyIiwidW1hX2F1dGhvcml6YXRpb24iLCJ1c2VyIl19fQ.s-bPUbJc8e04WmwD7ei_XGRjAMuRKkpfqmgQKXjjqqI`

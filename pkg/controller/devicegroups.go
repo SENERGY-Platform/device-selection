@@ -21,21 +21,21 @@ import (
 	"device-selection/pkg/model/devicemodel"
 )
 
-func (this *Controller) getFilteredDeviceGroups(token string, descriptions model.FilterCriteriaAndSet, interaction devicemodel.Interaction) (result []model.Selectable, err error, code int) {
+func (this *Controller) getFilteredDeviceGroups(token string, descriptions model.FilterCriteriaAndSet, expectedInteraction devicemodel.Interaction) (result []model.Selectable, err error, code int) {
 	groups := []model.DeviceGroup{}
-	criteriaFilter := []model.Selection{{
-		Condition: model.ConditionConfig{
-			Feature:   "features.blocked_interaction",
-			Operation: model.QueryEqualOperation,
-			Value:     interaction,
-		},
-	}}
+	filter := []model.Selection{}
 	for _, criteria := range descriptions {
-		criteriaFilter = append(criteriaFilter, model.Selection{
+		groupCriteria := devicemodel.DeviceGroupFilterCriteria{
+			Interaction:   expectedInteraction,
+			FunctionId:    criteria.FunctionId,
+			AspectId:      criteria.AspectId,
+			DeviceClassId: criteria.DeviceClassId,
+		}
+		filter = append(filter, model.Selection{
 			Condition: model.ConditionConfig{
 				Feature:   "features.criteria_short",
 				Operation: model.QueryEqualOperation,
-				Value:     criteria.Short(),
+				Value:     groupCriteria.Short(),
 			},
 		})
 	}
@@ -51,7 +51,7 @@ func (this *Controller) getFilteredDeviceGroups(token string, descriptions model
 			},
 			Search: "",
 			Filter: &model.Selection{
-				And: criteriaFilter,
+				And: filter,
 			},
 		},
 	}, &groups)

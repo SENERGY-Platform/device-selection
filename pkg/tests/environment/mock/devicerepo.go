@@ -120,15 +120,6 @@ func NewDeviceRepo(consumer Consumer) *DeviceRepo {
 			http.Error(writer, "missing device id", http.StatusBadRequest)
 			return
 		}
-		switch group.BlockedInteraction {
-		case "":
-		case devicemodel.EVENT:
-		case devicemodel.REQUEST:
-		case devicemodel.EVENT_AND_REQUEST:
-		default:
-			http.Error(writer, "unknown interaction", http.StatusBadRequest)
-			return
-		}
 
 		writer.WriteHeader(http.StatusOK)
 	})
