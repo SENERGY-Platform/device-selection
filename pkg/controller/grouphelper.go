@@ -220,7 +220,7 @@ func (this *Controller) getValidDeviceTypesForDeviceGroup(token string, criteria
 	deviceTypeIds = []string{}
 	deviceIdSet := map[string]bool{}
 	for _, c := range criteria {
-		temp, err := this.getValidDeviceTypesForDeviceGroupCriteria(token, c)
+		temp, err := this.cachedGetValidDeviceTypesForDeviceGroupCriteria(token, c)
 		if err != nil {
 			return deviceTypeIds, err
 		}
