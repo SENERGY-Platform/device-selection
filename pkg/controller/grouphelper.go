@@ -234,6 +234,13 @@ func (this *Controller) getValidDeviceTypesForDeviceGroup(token string, criteria
 	return deviceTypeIds, nil
 }
 
+func (this *Controller) cachedGetValidDeviceTypesForDeviceGroupCriteria(token string, criteria devicemodel.DeviceGroupFilterCriteria) (deviceTypeIds []string, err error) {
+	err = this.cache.Use("dt_by_criteria."+criteria.Short(), func() (interface{}, error) {
+		return this.getValidDeviceTypesForDeviceGroupCriteria(token, criteria)
+	}, &deviceTypeIds)
+	return
+}
+
 func (this *Controller) getValidDeviceTypesForDeviceGroupCriteria(token string, criteria devicemodel.DeviceGroupFilterCriteria) (deviceTypeIds []string, err error) {
 	descriptions := model.FilterCriteriaAndSet{{
 		FunctionId:    criteria.FunctionId,

@@ -28,11 +28,13 @@ import (
 
 type Controller struct {
 	config configuration.Config
+	cache  *Cache
 }
 
 func New(ctx context.Context, config configuration.Config) (*Controller, error) {
 	return &Controller{
 		config: config,
+		cache:  NewCache(),
 	}, nil
 }
 
