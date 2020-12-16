@@ -142,7 +142,7 @@ func (this *Controller) getDeviceGroupOptions(
 		} else {
 			filter = append(filter, model.Selection{
 				Condition: model.ConditionConfig{
-					Feature:   "device_type_id",
+					Feature:   "features.device_type_id",
 					Operation: model.QueryAnyValueInFeatureOperation,
 					Value:     validDeviceTypes,
 				},

@@ -1369,7 +1369,7 @@ func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []
 
 			var filterByDeviceTypeId []interface{}
 			if len(query.Find.Filter.And) >= 2 {
-				if query.Find.Filter.And[1].Condition.Feature != "device_type_id" ||
+				if query.Find.Filter.And[1].Condition.Feature != "features.device_type_id" ||
 					query.Find.Filter.And[1].Condition.Operation != model.QueryAnyValueInFeatureOperation {
 					debug.PrintStack()
 					http.Error(w, "not implemented", http.StatusNotImplemented)
