@@ -19,17 +19,18 @@ package controller
 import (
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
+	"log"
 	"net/http"
 )
 
-func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, search model.QueryFind) (result model.DeviceGroupHelperResult, err error, code int) {
+func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, search model.QueryFind, maintainGroupUsability bool) (result model.DeviceGroupHelperResult, err error, code int) {
 	deviceCache := &map[string]devicemodel.Device{}
 	deviceTypeCache := &map[string]devicemodel.DeviceType{}
 	result.Criteria, err, code = this.getDeviceGroupCriteria(token, deviceTypeCache, deviceCache, deviceIds)
 	if err != nil {
 		return
 	}
-	result.Options, err, code = this.getDeviceGroupOptions(token, deviceTypeCache, deviceCache, deviceIds, result.Criteria, search)
+	result.Options, err, code = this.getDeviceGroupOptions(token, deviceTypeCache, deviceCache, deviceIds, result.Criteria, search, maintainGroupUsability)
 	return result, err, code
 }
 
@@ -112,6 +113,7 @@ func (this *Controller) getDeviceGroupOptions(
 	currentDeviceIds []string,
 	criteria []devicemodel.DeviceGroupFilterCriteria,
 	search model.QueryFind,
+	maintainGroupUsability bool,
 ) (
 	result []model.DeviceGroupOption,
 	err error,
@@ -120,14 +122,36 @@ func (this *Controller) getDeviceGroupOptions(
 
 	devices := []model.PermSearchDevice{}
 
-	search.Filter = &model.Selection{
-		Not: &model.Selection{
-			Condition: model.ConditionConfig{
-				Feature:   "id",
-				Operation: model.QueryAnyValueInFeatureOperation,
-				Value:     currentDeviceIds,
+	filter := []model.Selection{
+		{
+			Not: &model.Selection{
+				Condition: model.ConditionConfig{
+					Feature:   "id",
+					Operation: model.QueryAnyValueInFeatureOperation,
+					Value:     currentDeviceIds,
+				},
 			},
 		},
+	}
+
+	if maintainGroupUsability && len(criteria) > 0 {
+		validDeviceTypes, err := this.getValidDeviceTypesForDeviceGroup(token, criteria)
+		if err != nil {
+			log.Println("ERROR: getValidDeviceTypesForDeviceGroup()", err)
+			err = nil
+		} else {
+			filter = append(filter, model.Selection{
+				Condition: model.ConditionConfig{
+					Feature:   "device_type_id",
+					Operation: model.QueryAnyValueInFeatureOperation,
+					Value:     validDeviceTypes,
+				},
+			})
+		}
+	}
+
+	search.Filter = &model.Selection{
+		And: filter,
 	}
 
 	err, code = this.Search(token, model.QueryMessage{
@@ -190,4 +214,66 @@ func (this *Controller) getDeviceGroupOptionCriteria(
 		}
 	}
 	return
+}
+
+func (this *Controller) getValidDeviceTypesForDeviceGroup(token string, criteria []devicemodel.DeviceGroupFilterCriteria) (deviceTypeIds []string, err error) {
+	deviceTypeIds = []string{}
+	deviceIdSet := map[string]bool{}
+	for _, c := range criteria {
+		temp, err := this.getValidDeviceTypesForDeviceGroupCriteria(token, c)
+		if err != nil {
+			return deviceTypeIds, err
+		}
+		for _, id := range temp {
+			deviceIdSet[id] = true
+		}
+	}
+	for id, _ := range deviceIdSet {
+		deviceTypeIds = append(deviceTypeIds, id)
+	}
+	return deviceTypeIds, nil
+}
+
+func (this *Controller) getValidDeviceTypesForDeviceGroupCriteria(token string, criteria devicemodel.DeviceGroupFilterCriteria) (deviceTypeIds []string, err error) {
+	descriptions := model.FilterCriteriaAndSet{{
+		FunctionId:    criteria.FunctionId,
+		AspectId:      criteria.AspectId,
+		DeviceClassId: criteria.DeviceClassId,
+	}}
+	deviceTypes, err, _ := this.getCachedFilteredDeviceTypes(token, descriptions, nil)
+	if err != nil {
+		return deviceTypeIds, err
+	}
+	if this.config.Debug {
+		log.Println("DEBUG: GetFilteredDevices()::getCachedFilteredDeviceTypes()", deviceTypes)
+	}
+	for _, dt := range deviceTypes {
+		serviceIndex := map[string]devicemodel.Service{}
+
+		//repeat criteria filtering locally to add interaction filtering
+		for _, service := range dt.Services {
+			if criteria.Interaction == service.Interaction ||
+				(service.Interaction == devicemodel.EVENT_AND_REQUEST && (criteria.Interaction == devicemodel.REQUEST || criteria.Interaction == devicemodel.EVENT)) {
+				for _, desc := range descriptions {
+					for _, functionId := range service.FunctionIds {
+						if functionId == desc.FunctionId {
+							if desc.AspectId == "" {
+								serviceIndex[service.Id] = service
+							} else {
+								for _, aspect := range service.AspectIds {
+									if aspect == desc.AspectId {
+										serviceIndex[service.Id] = service
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if len(serviceIndex) > 0 {
+			deviceTypeIds = append(deviceTypeIds, dt.Id)
+		}
+	}
+	return deviceTypeIds, nil
 }

@@ -49,7 +49,13 @@ func DeviceGroupsHelper(router *httprouter.Router, config configuration.Config, 
 		search.Offset, _ = strconv.Atoi(request.URL.Query().Get("offset"))
 		search.Rights = "rx"
 
-		result, err, code := ctrl.DeviceGroupHelper(token, deviceIds, search)
+		filterMaintainsGroupUsability := false
+		maintainsGroupUsability := request.URL.Query().Get("maintains_group_usability")
+		if maintainsGroupUsability != "" {
+			filterMaintainsGroupUsability, _ = strconv.ParseBool(maintainsGroupUsability)
+		}
+
+		result, err, code := ctrl.DeviceGroupHelper(token, deviceIds, search, filterMaintainsGroupUsability)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

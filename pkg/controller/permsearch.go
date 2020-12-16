@@ -21,6 +21,7 @@ import (
 	"device-selection/pkg/model"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"runtime/debug"
@@ -88,8 +89,10 @@ func (this *Controller) Search(token string, query model.QueryMessage, result in
 	if resp.StatusCode >= 300 {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(resp.Body)
+		err = errors.New(buf.String())
+		log.Println("ERROR: ", resp.StatusCode, err)
 		debug.PrintStack()
-		return errors.New(buf.String()), resp.StatusCode
+		return err, resp.StatusCode
 	}
 	err = json.NewDecoder(resp.Body).Decode(result)
 	if err != nil {
