@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"device-selection/pkg/configuration"
+	"device-selection/pkg/controller/cache"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"log"
@@ -28,13 +29,13 @@ import (
 
 type Controller struct {
 	config configuration.Config
-	cache  *Cache
+	cache  cache.Cache
 }
 
 func New(ctx context.Context, config configuration.Config) (*Controller, error) {
 	return &Controller{
 		config: config,
-		cache:  NewCache(),
+		cache:  cache.New(config.MemcachedUrls),
 	}, nil
 }
 
