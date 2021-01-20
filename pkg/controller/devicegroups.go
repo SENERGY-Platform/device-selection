@@ -25,19 +25,52 @@ func (this *Controller) getFilteredDeviceGroups(token string, descriptions model
 	groups := []model.DeviceGroup{}
 	filter := []model.Selection{}
 	for _, criteria := range descriptions {
-		groupCriteria := devicemodel.DeviceGroupFilterCriteria{
-			Interaction:   expectedInteraction,
-			FunctionId:    criteria.FunctionId,
-			AspectId:      criteria.AspectId,
-			DeviceClassId: criteria.DeviceClassId,
+		if expectedInteraction == devicemodel.EVENT_AND_REQUEST {
+			groupCriteriaEvent := devicemodel.DeviceGroupFilterCriteria{
+				Interaction:   devicemodel.EVENT,
+				FunctionId:    criteria.FunctionId,
+				AspectId:      criteria.AspectId,
+				DeviceClassId: criteria.DeviceClassId,
+			}
+			groupCriteriaRequest := devicemodel.DeviceGroupFilterCriteria{
+				Interaction:   devicemodel.REQUEST,
+				FunctionId:    criteria.FunctionId,
+				AspectId:      criteria.AspectId,
+				DeviceClassId: criteria.DeviceClassId,
+			}
+			filter = append(filter, model.Selection{
+				Or: []model.Selection{
+					{
+						Condition: model.ConditionConfig{
+							Feature:   "features.criteria_short",
+							Operation: model.QueryEqualOperation,
+							Value:     groupCriteriaEvent.Short(),
+						},
+					},
+					{
+						Condition: model.ConditionConfig{
+							Feature:   "features.criteria_short",
+							Operation: model.QueryEqualOperation,
+							Value:     groupCriteriaRequest.Short(),
+						},
+					},
+				},
+			})
+		} else {
+			groupCriteria := devicemodel.DeviceGroupFilterCriteria{
+				Interaction:   expectedInteraction,
+				FunctionId:    criteria.FunctionId,
+				AspectId:      criteria.AspectId,
+				DeviceClassId: criteria.DeviceClassId,
+			}
+			filter = append(filter, model.Selection{
+				Condition: model.ConditionConfig{
+					Feature:   "features.criteria_short",
+					Operation: model.QueryEqualOperation,
+					Value:     groupCriteria.Short(),
+				},
+			})
 		}
-		filter = append(filter, model.Selection{
-			Condition: model.ConditionConfig{
-				Feature:   "features.criteria_short",
-				Operation: model.QueryEqualOperation,
-				Value:     groupCriteria.Short(),
-			},
-		})
 	}
 	err, code = this.Search(token, model.QueryMessage{
 		Resource: "device-groups",

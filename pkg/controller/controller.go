@@ -157,8 +157,15 @@ func (this *Controller) getFilteredDevices(
 	}
 	if includeGroups {
 		var expectedInteraction = devicemodel.REQUEST
-		if blockedInteraction == devicemodel.REQUEST {
+		switch blockedInteraction {
+		case devicemodel.REQUEST:
 			expectedInteraction = devicemodel.EVENT
+		case devicemodel.EVENT:
+			expectedInteraction = devicemodel.REQUEST
+		case devicemodel.EVENT_AND_REQUEST:
+			expectedInteraction = ""
+		case "":
+			expectedInteraction = devicemodel.EVENT_AND_REQUEST
 		}
 		groupResult, err, code := this.getFilteredDeviceGroups(token, descriptions, expectedInteraction)
 		if err != nil {
