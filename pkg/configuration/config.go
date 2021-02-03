@@ -32,6 +32,8 @@ type ConfigStruct struct {
 	DeviceRepoUrl   string   `json:"device_repo_url"`
 	SemanticRepoUrl string   `json:"semantic_repo_url"`
 	PermSearchUrl   string   `json:"perm_search_url"`
+	ImportDeployUrl string   `json:"import_deploy_url"`
+	ImportRepoUrl   string   `json:"import_repo_url"`
 	MemcachedUrls   []string `json:"memcached_urls"`
 	Debug           bool     `json:"debug"`
 }

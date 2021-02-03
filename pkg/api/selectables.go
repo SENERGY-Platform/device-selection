@@ -46,8 +46,9 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 		}
 
 		includeGroups, _ := strconv.ParseBool(request.URL.Query().Get("include_groups"))
+		includeImports, _ := strconv.ParseBool(request.URL.Query().Get("include_imports"))
 
-		result, err, code := ctrl.GetFilteredDevices(token, criteria, blockedProtocols, blockedInteraction, includeGroups)
+		result, err, code := ctrl.GetFilteredDevices(token, criteria, blockedProtocols, blockedInteraction, includeGroups, includeImports)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

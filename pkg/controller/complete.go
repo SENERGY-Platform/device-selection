@@ -37,6 +37,7 @@ func (this *Controller) CompleteBulkServices(token string, bulk model.BulkResult
 }
 
 func (this *Controller) completeServices(token string, selectables []model.Selectable, cache *map[string]devicemodel.DeviceType) (_ []model.Selectable, err error) {
+	knownFullTypes := map[string]model.ImportType{}
 	for selectableIndex, selectable := range selectables {
 		if selectable.Device != nil {
 			dt, err := this.getCachedTechnicalDeviceType(token, selectable.Device.DeviceTypeId, cache)
@@ -55,6 +56,17 @@ func (this *Controller) completeServices(token string, selectables []model.Selec
 				selectable.Services[serviceIndex] = dtServices[service.Id]
 			}
 			selectables[selectableIndex] = selectable
+		} else if selectable.Import != nil {
+			fullType, known := knownFullTypes[selectable.Import.ImportTypeId]
+			if !known {
+				fullType, err, _ = this.getFullImportType(token, selectable.Import.ImportTypeId)
+				if err != nil {
+					return
+				}
+				knownFullTypes[selectable.Import.ImportTypeId] = fullType
+				selectable.ImportType = &fullType
+				selectables[selectableIndex] = selectable
+			}
 		}
 	}
 	return selectables, nil

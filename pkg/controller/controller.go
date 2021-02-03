@@ -39,8 +39,8 @@ func New(ctx context.Context, config configuration.Config) (*Controller, error) 
 	}, nil
 }
 
-func (this *Controller) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, includeGroups bool) (result []model.Selectable, err error, code int) {
-	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, nil, includeGroups)
+func (this *Controller) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, includeGroups bool, includeImports bool) (result []model.Selectable, err error, code int) {
+	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, nil, includeGroups, includeImports)
 }
 
 func (this *Controller) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
@@ -73,7 +73,7 @@ func (this *Controller) handleBulkRequestElement(
 	}
 
 	protocolBlockList := request.FilterProtocols
-	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, deviceTypesByCriteriaCache, devicesByDeviceTypeCache, request.IncludeGroups)
+	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, deviceTypesByCriteriaCache, devicesByDeviceTypeCache, request.IncludeGroups, request.IncludeImports)
 	if err != nil {
 		return result, err, code
 	}
@@ -91,6 +91,7 @@ func (this *Controller) getFilteredDevices(
 	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
 	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
 	includeGroups bool,
+	includeImports bool,
 ) (
 	result []model.Selectable,
 	err error,
@@ -155,23 +156,30 @@ func (this *Controller) getFilteredDevices(
 			}
 		}
 	}
+	var expectedInteraction = devicemodel.REQUEST
+	switch blockedInteraction {
+	case devicemodel.REQUEST:
+		expectedInteraction = devicemodel.EVENT
+	case devicemodel.EVENT:
+		expectedInteraction = devicemodel.REQUEST
+	case devicemodel.EVENT_AND_REQUEST:
+		expectedInteraction = ""
+	case "":
+		expectedInteraction = devicemodel.EVENT_AND_REQUEST
+	}
 	if includeGroups {
-		var expectedInteraction = devicemodel.REQUEST
-		switch blockedInteraction {
-		case devicemodel.REQUEST:
-			expectedInteraction = devicemodel.EVENT
-		case devicemodel.EVENT:
-			expectedInteraction = devicemodel.REQUEST
-		case devicemodel.EVENT_AND_REQUEST:
-			expectedInteraction = ""
-		case "":
-			expectedInteraction = devicemodel.EVENT_AND_REQUEST
-		}
 		groupResult, err, code := this.getFilteredDeviceGroups(token, descriptions, expectedInteraction)
 		if err != nil {
 			return result, err, code
 		}
 		result = append(result, groupResult...)
+	}
+	if includeImports && (expectedInteraction == devicemodel.EVENT || expectedInteraction == devicemodel.EVENT_AND_REQUEST) {
+		importResult, err, code := this.getFilteredImports(token, descriptions)
+		if err != nil {
+			return result, err, code
+		}
+		result = append(result, importResult...)
 	}
 	if this.config.Debug {
 		log.Println("DEBUG: GetFilteredDevices()", result)

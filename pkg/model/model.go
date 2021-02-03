@@ -36,6 +36,8 @@ type Selectable struct {
 	Device      *PermSearchDevice     `json:"device,omitempty"`
 	Services    []devicemodel.Service `json:"services,omitempty"`
 	DeviceGroup *DeviceGroup          `json:"device_group,omitempty"`
+	Import      *Import               `json:"import,omitempty"`
+	ImportType  *ImportType           `json:"importType,omitempty"`
 }
 
 type DeviceGroup struct {
@@ -53,6 +55,7 @@ type BulkRequestElement struct {
 	FilterProtocols   []string                 `json:"filter_protocols"`
 	Criteria          FilterCriteriaAndSet     `json:"criteria"`
 	IncludeGroups     bool                     `json:"include_groups"`
+	IncludeImports    bool                     `json:"include_imports"`
 }
 
 type BulkRequest []BulkRequestElement
