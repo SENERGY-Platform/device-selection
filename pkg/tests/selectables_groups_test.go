@@ -731,7 +731,7 @@ const token = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3O
 
 func testCheckSelection(ctrl *controller.Controller, criteria model.FilterCriteriaAndSet, interaction devicemodel.Interaction, includeGroups bool, expectedResult []model.Selectable) func(t *testing.T) {
 	return func(t *testing.T) {
-		result, err, _ := ctrl.GetFilteredDevices(token, criteria, nil, interaction, includeGroups)
+		result, err, _ := ctrl.GetFilteredDevices(token, criteria, nil, interaction, includeGroups, false)
 		if err != nil {
 			t.Error(err)
 			return
