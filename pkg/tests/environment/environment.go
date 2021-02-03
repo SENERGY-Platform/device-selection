@@ -19,42 +19,44 @@ package environment
 import (
 	"context"
 	"device-selection/pkg/tests/environment/docker"
+	"device-selection/pkg/tests/environment/kafka"
 	"device-selection/pkg/tests/environment/mock"
 	"log"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
 
-func New(ctx context.Context, wg *sync.WaitGroup) (deviceManagerUrl string, semanticUrl string, deviceRepoUrl string, permSearchUrl string, err error) {
+func New(ctx context.Context, wg *sync.WaitGroup) (deviceManagerUrl string, semanticUrl string, deviceRepoUrl string, permSearchUrl string, importRepoUrl string, importDeployUrl string, err error) {
 	_, zk, err := docker.Zookeeper(ctx, wg)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 	zkUrl := zk + ":2181"
 
-	err = docker.Kafka(ctx, wg, zkUrl)
+	kafkaPort, err := docker.Kafka(ctx, wg, zkUrl)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 
 	_, elasticIp, err := docker.ElasticSearch(ctx, wg)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 
 	_, permIp, err := docker.PermSearch(ctx, wg, zkUrl, elasticIp)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 	permSearchUrl = "http://" + permIp + ":8080"
 
@@ -62,20 +64,33 @@ func New(ctx context.Context, wg *sync.WaitGroup) (deviceManagerUrl string, sema
 
 	semantic := mock.NewSemanticRepo(mock.NewConsumer(ctx, zkUrl, "semantic"))
 	deviceRepo := mock.NewDeviceRepo(mock.NewConsumer(ctx, zkUrl, "devicerepo"))
+	importRepoProducer, err := kafka.GetProducer([]string{"127.0.0.1:" + strconv.Itoa(kafkaPort)}, "import-types")
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+		return "", "", "", "", "", "", err
+	}
+	importRepo := mock.NewImportRepo(importRepoProducer)
+	importDeploy := mock.NewImportDeploy()
+
 	go func() {
 		<-ctx.Done()
 		semantic.Stop()
 		deviceRepo.Stop()
+		importRepo.Stop()
+		importDeploy.Stop()
 	}()
 
 	semanticUrl = semantic.Url()
 	deviceRepoUrl = deviceRepo.Url()
+	importRepoUrl = importRepo.Url()
+	importDeployUrl = importDeploy.Url()
 
 	hostIp, err := docker.GetHostIp()
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 
 	//transform local-address to address in docker container
@@ -92,7 +107,7 @@ func New(ctx context.Context, wg *sync.WaitGroup) (deviceManagerUrl string, sema
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 
 	deviceManagerUrl = "http://" + managerIp + ":8080"

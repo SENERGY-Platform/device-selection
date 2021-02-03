@@ -21,8 +21,10 @@ import (
 	"device-selection/pkg/model"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 )
 
 func (this *Controller) getFilteredImports(token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
@@ -66,9 +68,16 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 		importTypeIds = append(importTypeIds, importType.Id)
 	}
 
+	if this.config.Debug {
+		log.Println("DEBUG: getFilteredImports()::Found " + strconv.Itoa(len(importTypeIds)) + " matching import types")
+	}
+
 	instances, err, code := this.getImportsByTypes(token, importTypeIds)
 	if err != nil {
 		return
+	}
+	if this.config.Debug {
+		log.Println("DEBUG: getFilteredImports()::Found " + strconv.Itoa(len(instances)) + " matching import instances")
 	}
 
 	for _, instance := range instances {

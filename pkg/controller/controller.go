@@ -175,11 +175,16 @@ func (this *Controller) getFilteredDevices(
 		result = append(result, groupResult...)
 	}
 	if includeImports && (expectedInteraction == devicemodel.EVENT || expectedInteraction == devicemodel.EVENT_AND_REQUEST) {
+		if this.config.Debug {
+			log.Println("DEBUG: GetFilteredDevices() Loading matching imports")
+		}
 		importResult, err, code := this.getFilteredImports(token, descriptions)
 		if err != nil {
 			return result, err, code
 		}
 		result = append(result, importResult...)
+	} else if this.config.Debug {
+		log.Println("DEBUG: GetFilteredDevices() Not loading imports")
 	}
 	if this.config.Debug {
 		log.Println("DEBUG: GetFilteredDevices()", result)

@@ -40,7 +40,7 @@ func TestSelectableGroups(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	deviceManagerUrl, semanticUrl, deviceRepoUrl, permSearchUrl, err := environment.New(ctx, wg)
+	deviceManagerUrl, semanticUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -50,6 +50,8 @@ func TestSelectableGroups(t *testing.T) {
 		SemanticRepoUrl: semanticUrl,
 		PermSearchUrl:   permSearchUrl,
 		DeviceRepoUrl:   deviceRepoUrl,
+		ImportRepoUrl:   importRepoUrl,
+		ImportDeployUrl: importDeployUrl,
 		Debug:           true,
 	}
 
