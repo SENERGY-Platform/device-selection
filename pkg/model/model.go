@@ -56,6 +56,7 @@ type BulkRequestElement struct {
 	Criteria          FilterCriteriaAndSet     `json:"criteria"`
 	IncludeGroups     bool                     `json:"include_groups"`
 	IncludeImports    bool                     `json:"include_imports"`
+	LocalDevices      []string                 `json:"local_devices"`
 }
 
 type BulkRequest []BulkRequestElement

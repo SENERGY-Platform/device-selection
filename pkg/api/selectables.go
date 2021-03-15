@@ -48,7 +48,15 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 		includeGroups, _ := strconv.ParseBool(request.URL.Query().Get("include_groups"))
 		includeImports, _ := strconv.ParseBool(request.URL.Query().Get("include_imports"))
 
-		result, err, code := ctrl.GetFilteredDevices(token, criteria, blockedProtocols, blockedInteraction, includeGroups, includeImports)
+		var withLocalDeviceIds []string
+		localDevicesQueryParam := request.URL.Query().Get("local_devices")
+		if localDevicesQueryParam != "" {
+			for _, localId := range strings.Split(localDevicesQueryParam, ",") {
+				withLocalDeviceIds = append(withLocalDeviceIds, strings.TrimSpace(localId))
+			}
+		}
+
+		result, err, code := ctrl.GetFilteredDevices(token, criteria, blockedProtocols, blockedInteraction, includeGroups, includeImports, withLocalDeviceIds)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

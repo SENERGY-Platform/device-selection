@@ -39,8 +39,8 @@ func New(ctx context.Context, config configuration.Config) (*Controller, error) 
 	}, nil
 }
 
-func (this *Controller) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, includeGroups bool, includeImports bool) (result []model.Selectable, err error, code int) {
-	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, nil, includeGroups, includeImports)
+func (this *Controller) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, includeGroups bool, includeImports bool, withLocalDeviceIds []string) (result []model.Selectable, err error, code int) {
+	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, nil, includeGroups, includeImports, withLocalDeviceIds)
 }
 
 func (this *Controller) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
@@ -73,7 +73,7 @@ func (this *Controller) handleBulkRequestElement(
 	}
 
 	protocolBlockList := request.FilterProtocols
-	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, deviceTypesByCriteriaCache, devicesByDeviceTypeCache, request.IncludeGroups, request.IncludeImports)
+	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, deviceTypesByCriteriaCache, devicesByDeviceTypeCache, request.IncludeGroups, request.IncludeImports, request.LocalDevices)
 	if err != nil {
 		return result, err, code
 	}
@@ -92,6 +92,7 @@ func (this *Controller) getFilteredDevices(
 	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
 	includeGroups bool,
 	includeImports bool,
+	withLocalDeviceIds []string,
 ) (
 	result []model.Selectable,
 	err error,
@@ -140,7 +141,12 @@ func (this *Controller) getFilteredDevices(
 			services = append(services, service)
 		}
 		if len(services) > 0 {
-			devices, err, code := this.getCachedDevicesOfType(token, dt.Id, devicesByDeviceTypeCache)
+			var devices []model.PermSearchDevice
+			if len(withLocalDeviceIds) == 0 {
+				devices, err, code = this.getCachedDevicesOfType(token, dt.Id, devicesByDeviceTypeCache)
+			} else {
+				devices, err, code = this.getCachedDevicesOfTypeFilteredByLocalIdList(token, dt.Id, devicesByDeviceTypeCache, withLocalDeviceIds)
+			}
 			if err != nil {
 				return result, err, code
 			}

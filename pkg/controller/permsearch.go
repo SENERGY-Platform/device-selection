@@ -102,3 +102,46 @@ func (this *Controller) Search(token string, query model.QueryMessage, result in
 
 	return nil, http.StatusOK
 }
+
+func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice, localDeviceIds []string) (result []model.PermSearchDevice, err error, code int) {
+	if cache != nil {
+		if cacheResult, ok := (*cache)[deviceTypeId]; ok {
+			return cacheResult, nil, http.StatusOK
+		}
+	}
+	err, code = this.Search(token, model.QueryMessage{
+		Resource: "devices",
+		Find: &model.QueryFind{
+			QueryListCommons: model.QueryListCommons{
+				Limit:    1000,
+				Offset:   0,
+				Rights:   "rx",
+				SortBy:   "name",
+				SortDesc: false,
+			},
+			Search: "",
+			Filter: &model.Selection{
+				And: []model.Selection{
+					{
+						Condition: model.ConditionConfig{
+							Feature:   "features.device_type_id",
+							Operation: model.QueryEqualOperation,
+							Value:     deviceTypeId,
+						},
+					},
+					{
+						Condition: model.ConditionConfig{
+							Feature:   "features.local_id",
+							Operation: model.QueryAnyValueInFeatureOperation,
+							Value:     localDeviceIds,
+						},
+					},
+				},
+			},
+		},
+	}, &result)
+	if cache != nil {
+		(*cache)[deviceTypeId] = result
+	}
+	return
+}

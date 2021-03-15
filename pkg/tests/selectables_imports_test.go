@@ -200,7 +200,7 @@ func TestSelectableImports(t *testing.T) {
 
 func testCheckImportSelection(ctrl *controller.Controller, criteria model.FilterCriteriaAndSet, expectedResult []model.Selectable) func(t *testing.T) {
 	return func(t *testing.T) {
-		result, err, _ := ctrl.GetFilteredDevices(token, criteria, nil, "", false, true)
+		result, err, _ := ctrl.GetFilteredDevices(token, criteria, nil, "", false, true, nil)
 		if err != nil {
 			t.Error(err)
 			return
