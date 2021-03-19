@@ -36,7 +36,7 @@ func TestSelectableLocalId(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	deviceManagerUrl, semanticUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
+	_, deviceManagerUrl, semanticUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
