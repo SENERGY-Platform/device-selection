@@ -299,7 +299,7 @@ POST /bulk/selectables/combined/devices
 
 ## Completed Services
 
-by default the '/selectables' and '/bulk/selectables' endpoints return the services as known by the semantic repository. For completed services the query-parameter 'complete_services' can be set to true.
+by default the '/selectables' and '/bulk/selectables' endpoints return the services as known by the semantic repository. For completed services the query-parameter 'complete_services' can be set to true. In this case the additional field servicePathOptions is returned for each selectable.
 
 **examples:**
 ```

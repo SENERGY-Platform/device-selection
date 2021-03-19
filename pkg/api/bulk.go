@@ -54,7 +54,7 @@ func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl 
 			return
 		}
 		if request.URL.Query().Get("complete_services") == "true" {
-			result, err = ctrl.CompleteBulkServices(token, result)
+			result, err = ctrl.CompleteBulkServices(token, result, criteria)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
 				return

@@ -24,7 +24,10 @@ import (
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"device-selection/pkg/tests/environment"
+	"device-selection/pkg/tests/environment/kafka"
+	"device-selection/pkg/tests/environment/mock"
 	"encoding/json"
+	kafka2 "github.com/segmentio/kafka-go"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -39,7 +42,7 @@ func TestSelectableImports(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	_, semanticUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
+	kafkabroker, _, semanticUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -66,6 +69,11 @@ func TestSelectableImports(t *testing.T) {
 	getColorFunction := devicemodel.MEASURING_FUNCTION_PREFIX + "getColorFunction"
 	getHumidityFunction := devicemodel.MEASURING_FUNCTION_PREFIX + "getHumidityFunction"
 
+	colorConcept := "urn:infai:ses:concept:color"
+	humidityConcept := "urn:infai:ses:concept:humidity"
+
+	testCharacteristic := "urn:infai:ses:characteristic:test"
+
 	importTypes := []model.ImportType{
 		{
 			Id:          "lamp",
@@ -74,6 +82,14 @@ func TestSelectableImports(t *testing.T) {
 			FunctionIds: []string{getColorFunction, getHumidityFunction},
 			Output: model.ImportContentVariable{
 				Name: "output",
+				SubContentVariables: []model.ImportContentVariable{
+					{
+						Name: "value",
+						SubContentVariables: []model.ImportContentVariable{{
+							Name:             "value",
+							CharacteristicId: testCharacteristic,
+						}}},
+				},
 			},
 			Owner: "1234567890",
 		},
@@ -102,14 +118,56 @@ func TestSelectableImports(t *testing.T) {
 		},
 	}
 
+	functionProducer, err := kafka.GetProducer([]string{kafkabroker}, mock.FunctionTopic)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = functionProducer.WriteMessages(ctx, kafka2.Message{Key: []byte(getColorFunction), Value: []byte("" +
+		"{\"command\":\"PUT\",\"id\":\"" + getColorFunction + "\",\"owner\":\"1234567890\",\"function\":{\"id\":\"" + getColorFunction + "\",\"name\":\"getColorFunction\",\"description\":\"\"," +
+		"\"concept_id\":\"" + colorConcept + "\",\"rdf_type\":\"https://senergy.infai.org/ontology/MeasuringFunction\"}}")})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = functionProducer.WriteMessages(ctx, kafka2.Message{Key: []byte(getHumidityFunction), Value: []byte("" +
+		"{\"command\":\"PUT\",\"id\":\"" + getHumidityFunction + "\",\"owner\":\"1234567890\",\"function\":{\"id\":\"" + getHumidityFunction + "\",\"name\":\"getColorFunction\",\"description\":\"\"," +
+		"\"concept_id\":\"" + humidityConcept + "\",\"rdf_type\":\"https://senergy.infai.org/ontology/MeasuringFunction\"}}")})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	conceptProducer, err := kafka.GetProducer([]string{kafkabroker}, mock.ConceptTopic)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = conceptProducer.WriteMessages(ctx, kafka2.Message{Key: []byte(colorConcept), Value: []byte("" +
+		"{\"command\":\"PUT\",\"id\":\"" + colorConcept + "\",\"owner\":\"1234567890\",\"concept\":{\"id\":\"" + colorConcept + "\",\"name\":\"\",\"characteristic_ids\":[\"" + testCharacteristic + "\"],\"base_characteristic_id\": \"\",\"rdf_type\": \"https://senergy.infai.org/ontology/Concept\"   } }")})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = conceptProducer.WriteMessages(ctx, kafka2.Message{Key: []byte(humidityConcept), Value: []byte("" +
+		"{\"command\":\"PUT\",\"id\":\"" + humidityConcept + "\",\"owner\":\"1234567890\",\"concept\":{\"id\":\"" + humidityConcept + "\",\"name\":\"\",\"characteristic_ids\":[],\"base_characteristic_id\": \"\",\"rdf_type\": \"https://senergy.infai.org/ontology/Concept\"   } }")})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 	t.Run("create import-types", testCreateImportTypes(importRepoUrl, importTypes))
 	t.Run("create imports", testCreateImports(importDeployUrl, importInstances))
 
 	time.Sleep(10 * time.Second)
 
-	t.Run("filter imports", testCheckImportSelection(ctrl, model.FilterCriteriaAndSet{
+	criteria := model.FilterCriteriaAndSet{
 		{FunctionId: getColorFunction, AspectId: deviceAspect},
-	}, []model.Selectable{
+	}
+
+	t.Run("filter imports", testCheckImportSelection(ctrl, criteria, []model.Selectable{
 		{
 			Import: &model.Import{
 				Id:           "lamp-instance",
@@ -148,11 +206,19 @@ func TestSelectableImports(t *testing.T) {
 					FunctionIds: []string{getColorFunction, getHumidityFunction},
 					Output: model.ImportContentVariable{
 						Name: "output",
+						SubContentVariables: []model.ImportContentVariable{
+							{
+								Name: "value",
+								SubContentVariables: []model.ImportContentVariable{{
+									Name:             "value",
+									CharacteristicId: testCharacteristic,
+								}}},
+						},
 					},
 				},
 			},
 		}
-		selectables, err := ctrl.CompleteServices(token, selectables)
+		selectables, err := ctrl.CompleteServices(token, selectables, criteria)
 		if err != nil {
 			t.Error(err)
 			return
@@ -180,8 +246,22 @@ func TestSelectableImports(t *testing.T) {
 					FunctionIds: []string{getColorFunction, getHumidityFunction},
 					Output: model.ImportContentVariable{
 						Name: "output",
+						SubContentVariables: []model.ImportContentVariable{
+							{
+								Name: "value",
+								SubContentVariables: []model.ImportContentVariable{{
+									Name:             "value",
+									CharacteristicId: testCharacteristic,
+								}}},
+						},
 					},
 					Owner: "1234567890",
+				},
+				ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
+					"lamp": {{
+						Path:             "value.value",
+						CharacteristicId: testCharacteristic,
+					}},
 				},
 			},
 		}

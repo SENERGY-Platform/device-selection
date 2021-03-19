@@ -33,11 +33,12 @@ type Permissions struct {
 }
 
 type Selectable struct {
-	Device      *PermSearchDevice     `json:"device,omitempty"`
-	Services    []devicemodel.Service `json:"services,omitempty"`
-	DeviceGroup *DeviceGroup          `json:"device_group,omitempty"`
-	Import      *Import               `json:"import,omitempty"`
-	ImportType  *ImportType           `json:"importType,omitempty"`
+	Device             *PermSearchDevice                     `json:"device,omitempty"`
+	Services           []devicemodel.Service                 `json:"services,omitempty"`
+	DeviceGroup        *DeviceGroup                          `json:"device_group,omitempty"`
+	Import             *Import                               `json:"import,omitempty"`
+	ImportType         *ImportType                           `json:"importType,omitempty"`
+	ServicePathOptions map[string][]PathCharacteristicIdPair `json:"servicePathOptions,omitempty"`
 }
 
 type DeviceGroup struct {
@@ -77,4 +78,9 @@ type DeviceGroupOption struct {
 	Device                  devicemodel.Device                      `json:"device"`
 	RemovesCriteria         []devicemodel.DeviceGroupFilterCriteria `json:"removes_criteria"`
 	MaintainsGroupUsability bool                                    `json:"maintains_group_usability"`
+}
+
+type PathCharacteristicIdPair struct {
+	Path             string `json:"path"`
+	CharacteristicId string `json:"characteristicId"`
 }

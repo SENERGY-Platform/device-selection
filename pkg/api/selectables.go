@@ -62,7 +62,7 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 			return
 		}
 		if request.URL.Query().Get("complete_services") == "true" {
-			result, err = ctrl.CompleteServices(token, result)
+			result, err = ctrl.CompleteServices(token, result, criteria)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
 				return

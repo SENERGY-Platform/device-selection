@@ -130,31 +130,36 @@ func (this *Controller) getImportsByTypes(token string, typeIds []string) (resul
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) getFullImportType(token string, id string) (result model.ImportType, err error, code int) {
-	req, err := http.NewRequest("GET", this.config.ImportRepoUrl+"/import-types/"+id, nil)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	req.Header.Set("Authorization", token)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		debug.PrintStack()
-		return result, errors.New(buf.String()), resp.StatusCode
-	}
+func (this *Controller) getFullImportType(token string, id string) (fullType model.ImportType, err error) {
+	err = this.cache.Use(id, func() (interface{}, error) {
+		var result model.ImportType
+		req, err := http.NewRequest("GET", this.config.ImportRepoUrl+"/import-types/"+id, nil)
+		if err != nil {
+			debug.PrintStack()
+			return result, err
+		}
+		req.Header.Set("Authorization", token)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			debug.PrintStack()
+			return result, err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			debug.PrintStack()
+			return result, errors.New(buf.String())
+		}
 
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			debug.PrintStack()
+			return result, err
+		}
 
-	return result, nil, http.StatusOK
+		return result, nil
+	}, &fullType)
+
+	return
 }

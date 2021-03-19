@@ -317,6 +317,13 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 	semanticmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.Lock()
 		defer mux.Unlock()
+		if r.URL.Path == "/concepts/concept" {
+			json.NewEncoder(w).Encode(devicemodel.Concept{
+				Id:                "concept",
+				CharacteristicIds: []string{},
+			})
+			return
+		}
 		calls = append(calls, r.URL.Path+"?"+r.URL.RawQuery)
 		json.NewEncoder(w).Encode([]devicemodel.DeviceType{
 			{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
@@ -427,6 +434,11 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 					X: true,
 					A: false,
 				}},
+			})
+		}
+		if r.URL.Path == "/v3/resources/functions" {
+			json.NewEncoder(w).Encode([]devicemodel.Function{
+				{Id: devicemodel.MEASURING_FUNCTION_PREFIX + "_1", Name: "", ConceptId: "concept"},
 			})
 		}
 	}))

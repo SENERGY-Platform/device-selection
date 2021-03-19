@@ -16,6 +16,8 @@
 
 package model
 
+import "device-selection/pkg/model/basecontentvariable"
+
 type ImportType struct {
 	Id             string                `json:"id"`
 	Name           string                `json:"name"`
@@ -68,4 +70,20 @@ type ImportTypeFilterCriteria struct {
 
 func (this ImportTypeFilterCriteria) Short() string {
 	return this.AspectId + "_" + this.FunctionId
+}
+
+func (this *ImportContentVariable) GetName() string {
+	return this.Name
+}
+
+func (this *ImportContentVariable) GetCharacteristicId() string {
+	return this.CharacteristicId
+}
+
+func (this *ImportContentVariable) GetSubContentVariables() []basecontentvariable.Descriptor {
+	ls := make([]basecontentvariable.Descriptor, len(this.SubContentVariables))
+	for idx := range this.SubContentVariables {
+		ls[idx] = &this.SubContentVariables[idx]
+	}
+	return ls
 }

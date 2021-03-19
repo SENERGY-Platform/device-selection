@@ -16,6 +16,8 @@
 
 package devicemodel
 
+import "device-selection/pkg/model/basecontentvariable"
+
 type Hub struct {
 	Id             string   `json:"id"`
 	Name           string   `json:"name"`
@@ -51,4 +53,20 @@ type ContentVariable struct {
 	Value                interface{}       `json:"value"`
 	SerializationOptions []string          `json:"serialization_options"`
 	UnitReference        string            `json:"unit_reference,omitempty"`
+}
+
+func (this *ContentVariable) GetName() string {
+	return this.Name
+}
+
+func (this *ContentVariable) GetCharacteristicId() string {
+	return this.CharacteristicId
+}
+
+func (this *ContentVariable) GetSubContentVariables() []basecontentvariable.Descriptor {
+	ls := make([]basecontentvariable.Descriptor, len(this.SubContentVariables))
+	for idx := range this.SubContentVariables {
+		ls[idx] = &this.SubContentVariables[idx]
+	}
+	return ls
 }
