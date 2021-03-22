@@ -63,7 +63,9 @@ func (this *Controller) completeServices(token string, selectables []model.Selec
 				_, ok := selectable.ServicePathOptions[service.Id]
 				if !ok {
 					var pathCharacteristicPairs []model.PathCharacteristicIdPair
-					err = findPathCharacteristicPairs(&dtServices[service.Id].Outputs[0].ContentVariable, &characteristicIds, "value", &pathCharacteristicPairs)
+					if len(dtServices[service.Id].Outputs) == 1 {
+						err = findPathCharacteristicPairs(&dtServices[service.Id].Outputs[0].ContentVariable, &characteristicIds, "value", &pathCharacteristicPairs)
+					}
 					if err != nil {
 						return nil, err
 					}
