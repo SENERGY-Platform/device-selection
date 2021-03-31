@@ -135,11 +135,13 @@ func (this *Controller) prepareCharacteristicIds(filters []devicemodel.FilterCri
 		if err != nil {
 			return nil, err
 		}
-		c, err := this.GetConcept(f.ConceptId, token)
-		if err != nil {
-			return nil, err
+		if f.ConceptId != "" {
+			c, err := this.GetConcept(f.ConceptId, token)
+			if err != nil {
+				return nil, err
+			}
+			characteristicIds = append(characteristicIds, c.CharacteristicIds...)
 		}
-		characteristicIds = append(characteristicIds, c.CharacteristicIds...)
 	}
 	return
 }
