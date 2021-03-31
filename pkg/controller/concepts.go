@@ -21,6 +21,7 @@ import (
 	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"runtime/debug"
 )
@@ -42,8 +43,10 @@ func (this *Controller) GetConcept(id string, token string) (c devicemodel.Conce
 		if resp.StatusCode >= 300 {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(resp.Body)
+			err := errors.New(buf.String())
+			log.Println("ERROR:", err)
 			debug.PrintStack()
-			return nil, errors.New(buf.String())
+			return nil, err
 		}
 		var cInner devicemodel.Concept
 		err = json.NewDecoder(resp.Body).Decode(&cInner)
