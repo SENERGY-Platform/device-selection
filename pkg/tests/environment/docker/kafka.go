@@ -45,30 +45,29 @@ func GetHostIp() (string, error) {
 	return "", errors.New("no bridge network found")
 }
 
-func Kafka(ctx context.Context, wg *sync.WaitGroup, zookeeperUrl string) (kafkaport int, err error) {
+func Kafka(ctx context.Context, wg *sync.WaitGroup, zookeeperUrl string) (kafkaUrl string, err error) {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	kafkaport, err = getFreePort()
+	kafkaport, err := GetFreePort()
 	if err != nil {
-		return 0, err
+		return kafkaUrl, err
 	}
 	networks, _ := pool.Client.ListNetworks()
-	hostIp, err := GetHostIp()
-	if err != nil {
-		return 0, err
-	}
+	hostIp := ""
 	for _, network := range networks {
 		if network.Name == "bridge" {
 			hostIp = network.IPAM.Config[0].Gateway
 		}
 	}
+	kafkaUrl = hostIp + ":" + strconv.Itoa(kafkaport)
 	log.Println("host ip: ", hostIp)
+	log.Println("kafkaUrl url: ", kafkaUrl)
 	env := []string{
 		"ALLOW_PLAINTEXT_LISTENER=yes",
 		"KAFKA_LISTENERS=OUTSIDE://:9092",
-		"KAFKA_ADVERTISED_LISTENERS=OUTSIDE://" + hostIp + ":" + strconv.Itoa(kafkaport),
+		"KAFKA_ADVERTISED_LISTENERS=OUTSIDE://" + kafkaUrl,
 		"KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=OUTSIDE:PLAINTEXT",
 		"KAFKA_INTER_BROKER_LISTENER_NAME=OUTSIDE",
 		"KAFKA_ZOOKEEPER_CONNECT=" + zookeeperUrl,
@@ -78,18 +77,16 @@ func Kafka(ctx context.Context, wg *sync.WaitGroup, zookeeperUrl string) (kafkap
 		"9092/tcp": {{HostIP: "", HostPort: strconv.Itoa(kafkaport)}},
 	}})
 	if err != nil {
-		return 0, err
+		return kafkaUrl, err
 	}
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
 		<-ctx.Done()
 		log.Println("DEBUG: remove container " + container.Container.Name)
 		container.Close()
 	}()
 	err = pool.Retry(func() error {
 		log.Println("try kafka connection...")
-		conn, err := kafka.Dial("tcp", hostIp+":"+strconv.Itoa(kafkaport))
+		conn, err := kafka.Dial("tcp", kafkaUrl)
 		if err != nil {
 			log.Println(err)
 			return err
@@ -98,7 +95,7 @@ func Kafka(ctx context.Context, wg *sync.WaitGroup, zookeeperUrl string) (kafkap
 		return nil
 	})
 	time.Sleep(5 * time.Second)
-	return kafkaport, err
+	return kafkaUrl, err
 }
 
 func Zookeeper(ctx context.Context, wg *sync.WaitGroup) (hostPort string, ipAddress string, err error) {
@@ -106,7 +103,7 @@ func Zookeeper(ctx context.Context, wg *sync.WaitGroup) (hostPort string, ipAddr
 	if err != nil {
 		return "", "", err
 	}
-	zkport, err := getFreePort()
+	zkport, err := GetFreePort()
 	if err != nil {
 		log.Fatalf("Could not find new port: %s", err)
 	}
@@ -147,14 +144,14 @@ func Zookeeper(ctx context.Context, wg *sync.WaitGroup) (hostPort string, ipAddr
 }
 
 func getFreePortStr() (string, error) {
-	intPort, err := getFreePort()
+	intPort, err := GetFreePort()
 	if err != nil {
 		return "", err
 	}
 	return strconv.Itoa(intPort), nil
 }
 
-func getFreePort() (int, error) {
+func GetFreePort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
 		return 0, err

@@ -23,7 +23,6 @@ import (
 	"device-selection/pkg/tests/environment/mock"
 	"log"
 	"runtime/debug"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -38,13 +37,12 @@ func New(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceMan
 	}
 	zkUrl := zk + ":2181"
 
-	kafkaPort, err := docker.Kafka(ctx, wg, zkUrl)
+	kafkaBroker, err = docker.Kafka(ctx, wg, zkUrl)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 		return "", "", "", "", "", "", "", err
 	}
-	kafkaBroker = "127.0.0.1:" + strconv.Itoa(kafkaPort)
 
 	_, elasticIp, err := docker.ElasticSearch(ctx, wg)
 	if err != nil {
@@ -53,7 +51,7 @@ func New(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceMan
 		return "", "", "", "", "", "", "", err
 	}
 
-	_, permIp, err := docker.PermSearch(ctx, wg, zkUrl, elasticIp)
+	_, permIp, err := docker.PermSearch(ctx, wg, kafkaBroker, elasticIp)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
@@ -104,7 +102,7 @@ func New(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceMan
 	deviceRepoUrl = "http://" + hostIp + ":" + deviceRepoStruct[len(deviceRepoStruct)-1]
 	log.Println("DEBUG: device-repo url transformation:", deviceRepo.Url(), "-->", deviceRepoUrl)
 
-	_, managerIp, err := docker.DeviceManager(ctx, wg, zkUrl, semanticUrl, deviceRepoUrl, permSearchUrl)
+	_, managerIp, err := docker.DeviceManager(ctx, wg, kafkaBroker, semanticUrl, deviceRepoUrl, permSearchUrl)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()

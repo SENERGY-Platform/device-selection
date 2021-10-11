@@ -31,13 +31,15 @@ func (this *Controller) getDevicesOfType(token string, deviceTypeId string) (res
 	return this.getCachedDevicesOfType(token, deviceTypeId, nil)
 }
 
+//limited to 1000 devices
 func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice) (result []model.PermSearchDevice, err error, code int) {
 	if cache != nil {
 		if cacheResult, ok := (*cache)[deviceTypeId]; ok {
 			return cacheResult, nil, http.StatusOK
 		}
 	}
-	req, err := http.NewRequest("GET", this.config.PermSearchUrl+"/jwt/select/devices/device_type_id/"+url.PathEscape(deviceTypeId)+"/x", nil)
+	req, err := http.NewRequest("GET", this.config.PermSearchUrl+"/v3/resources/devices?filter="+url.PathEscape("device_type_id:"+deviceTypeId)+"&rights=x&limit=1000", nil)
+	//req, err := http.NewRequest("GET", this.config.PermSearchUrl+"/jwt/select/devices/device_type_id/"+url.PathEscape(deviceTypeId)+"/x", nil)
 	if err != nil {
 		debug.PrintStack()
 		return result, err, http.StatusInternalServerError

@@ -396,7 +396,7 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 	}))
 
 	searchmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/jwt/select/devices/device_type_id/dt1/x" {
+		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt1")+"&rights=x&limit=1000" {
 			json.NewEncoder(w).Encode([]TestPermSearchDevice{
 				{Id: "1", Name: "1", DeviceType: "dt1", Permissions: model.Permissions{
 					R: true,
@@ -406,7 +406,7 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 				}},
 			})
 		}
-		if r.URL.Path == "/jwt/select/devices/device_type_id/dt2/x" {
+		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt2")+"&rights=x&limit=1000" {
 			json.NewEncoder(w).Encode([]TestPermSearchDevice{
 				{Id: "2", Name: "2", DeviceType: "dt2", Permissions: model.Permissions{
 					R: true,
@@ -416,7 +416,7 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 				}},
 			})
 		}
-		if r.URL.Path == "/jwt/select/devices/device_type_id/dt3/x" {
+		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt3")+"&rights=x&limit=1000" {
 			json.NewEncoder(w).Encode([]TestPermSearchDevice{
 				{Id: "3", Name: "3", DeviceType: "dt3", Permissions: model.Permissions{
 					R: true,
@@ -426,7 +426,7 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 				}},
 			})
 		}
-		if r.URL.Path == "/jwt/select/devices/device_type_id/dt4/x" {
+		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt4")+"&rights=x&limit=1000" {
 			json.NewEncoder(w).Encode([]TestPermSearchDevice{
 				{Id: "4", Name: "4", DeviceType: "dt4", Permissions: model.Permissions{
 					R: true,

@@ -1333,7 +1333,7 @@ func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []
 		if strings.HasPrefix(r.URL.Path, "/jwt/select/devices/device_type_id/") {
 			result := []TestPermSearchDevice{}
 			for _, d := range deviceInstances {
-				if r.URL.Path == "/jwt/select/devices/device_type_id/"+d.DeviceTypeId+"/x" {
+				if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:"+d.DeviceTypeId)+"&rights=x&limit=1000" {
 					result = append(result, TestPermSearchDevice{Id: d.Id, Name: d.Name, DeviceType: d.DeviceTypeId, Permissions: model.Permissions{R: true, W: true, X: true, A: true}})
 				}
 			}

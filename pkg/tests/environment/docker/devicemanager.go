@@ -24,14 +24,14 @@ import (
 	"sync"
 )
 
-func DeviceManager(ctx context.Context, wg *sync.WaitGroup, zk string, semantic string, devicerepo string, permsearch string) (hostPort string, ipAddress string, err error) {
+func DeviceManager(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, semantic string, devicerepo string, permsearch string) (hostPort string, ipAddress string, err error) {
 	log.Println("start device-manager")
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		return "", "", err
 	}
-	container, err := pool.Run("fgseitsrancher.wifa.intern.uni-leipzig.de:5000/device-manager", "dev", []string{
-		"ZOOKEEPER_URL=" + zk,
+	container, err := pool.Run("ghcr.io/senergy-platform/device-manager", "dev", []string{
+		"KAFKA_URL=" + kafkaUrl,
 		"SEMANTIC_REPO_URL=" + semantic,
 		"DEVICE_REPO_URL=" + devicerepo,
 		"PERMISSIONS_URL=" + permsearch,
