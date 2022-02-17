@@ -17,33 +17,46 @@
 package devicemodel
 
 type Device struct {
-	Id           string `json:"id"`
-	LocalId      string `json:"local_id"`
-	Name         string `json:"name"`
-	DeviceTypeId string `json:"device_type_id"`
+	Id           string      `json:"id"`
+	LocalId      string      `json:"local_id"`
+	Name         string      `json:"name"`
+	Attributes   []Attribute `json:"attributes"`
+	DeviceTypeId string      `json:"device_type_id"`
 }
 
 type DeviceType struct {
-	Id            string    `json:"id"`
-	Name          string    `json:"name"`
-	Description   string    `json:"description"`
-	Services      []Service `json:"services"`
-	DeviceClassId string    `json:"device_class_id"`
-	RdfType       string    `json:"rdf_type"`
+	Id            string         `json:"id"`
+	Name          string         `json:"name"`
+	Description   string         `json:"description"`
+	ServiceGroups []ServiceGroup `json:"service_groups"`
+	Services      []Service      `json:"services"`
+	DeviceClassId string         `json:"device_class_id"`
+	Attributes    []Attribute    `json:"attributes"`
+}
+
+type ServiceGroup struct {
+	Key         string `json:"key"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type Attribute struct {
+	Key    string `json:"key"`
+	Value  string `json:"value"`
+	Origin string `json:"origin"`
 }
 
 type Service struct {
-	Id          string      `json:"id"`
-	LocalId     string      `json:"local_id"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Interaction Interaction `json:"interaction"`
-	AspectIds   []string    `json:"aspect_ids"`
-	ProtocolId  string      `json:"protocol_id"`
-	Inputs      []Content   `json:"inputs"`
-	Outputs     []Content   `json:"outputs"`
-	FunctionIds []string    `json:"function_ids"`
-	RdfType     string      `json:"rdf_type"`
+	Id              string      `json:"id"`
+	LocalId         string      `json:"local_id"`
+	Name            string      `json:"name"`
+	Description     string      `json:"description"`
+	Interaction     Interaction `json:"interaction"`
+	ProtocolId      string      `json:"protocol_id"`
+	Inputs          []Content   `json:"inputs"`
+	Outputs         []Content   `json:"outputs"`
+	Attributes      []Attribute `json:"attributes"`
+	ServiceGroupKey string      `json:"service_group_key"`
 }
 
 type Interaction string
@@ -80,16 +93,6 @@ func (this *DeviceGroup) SetShortCriteria() {
 	for _, criteria := range this.Criteria {
 		this.CriteriaShort = append(this.CriteriaShort, criteria.Short())
 	}
-}
-
-type FilterCriteria struct {
-	FunctionId    string `json:"function_id"`
-	AspectId      string `json:"aspect_id"`
-	DeviceClassId string `json:"device_class_id"`
-}
-
-func (this FilterCriteria) Short() string {
-	return this.FunctionId + "_" + this.AspectId + "_" + this.DeviceClassId
 }
 
 type DeviceGroupFilterCriteria struct {

@@ -34,12 +34,11 @@ import (
 )
 
 func TestApiSimpleGet(t *testing.T) {
-	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
+	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer semanticmock.Close()
 	defer selectionApi.Close()
 	defer searchmock.Close()
 	defer devicerepomock.Close()
@@ -81,12 +80,11 @@ func TestApiSimpleGet(t *testing.T) {
 }
 
 func TestApiCompleteSimpledGet(t *testing.T) {
-	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
+	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer semanticmock.Close()
 	defer selectionApi.Close()
 	defer searchmock.Close()
 	defer devicerepomock.Close()
@@ -127,12 +125,11 @@ func TestApiCompleteSimpledGet(t *testing.T) {
 }
 
 func TestApiJsonGet(t *testing.T) {
-	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
+	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer semanticmock.Close()
 	defer selectionApi.Close()
 	defer searchmock.Close()
 	defer devicerepomock.Close()
@@ -171,12 +168,11 @@ func TestApiJsonGet(t *testing.T) {
 }
 
 func TestApiBase64Get(t *testing.T) {
-	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
+	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer semanticmock.Close()
 	defer selectionApi.Close()
 	defer searchmock.Close()
 	defer devicerepomock.Close()
@@ -309,42 +305,10 @@ func sendBase64Request(apiurl string, result interface{}, functionId string, dev
 	}
 }
 
-func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest.Server, searchmock *httptest.Server, devicerepomock *httptest.Server, selectionApi *httptest.Server, err error) {
+func testenv() (mux *sync.Mutex, semanticCalls *[]string, searchmock *httptest.Server, devicerepomock *httptest.Server, selectionApi *httptest.Server, err error) {
 	mux = &sync.Mutex{}
 	calls := []string{}
 	semanticCalls = &calls
-
-	semanticmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mux.Lock()
-		defer mux.Unlock()
-		if r.URL.Path == "/concepts/concept" {
-			json.NewEncoder(w).Encode(devicemodel.Concept{
-				Id:                "concept",
-				CharacteristicIds: []string{},
-			})
-			return
-		}
-		calls = append(calls, r.URL.Path+"?"+r.URL.RawQuery)
-		json.NewEncoder(w).Encode([]devicemodel.DeviceType{
-			{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("11", "pid", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.REQUEST),
-				testService("11_b", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.EVENT),
-				testService("12", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
-			}},
-			{Id: "dt2", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("21", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
-				testService("22", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
-			}},
-			{Id: "dt3", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("31", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.EVENT),
-				testService("32", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
-			}},
-			{Id: "dt4", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("41", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
-				testService("42", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
-			}},
-		})
-	}))
 
 	devicerepomock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/device-types/dt1" {
@@ -393,6 +357,35 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 			}})
 			return
 		}
+
+		if r.URL.Path == "/concepts/concept" {
+			json.NewEncoder(w).Encode(devicemodel.Concept{
+				Id:                "concept",
+				CharacteristicIds: []string{},
+			})
+			return
+		}
+
+		calls = append(calls, r.URL.Path+"?"+r.URL.RawQuery)
+		json.NewEncoder(w).Encode([]devicemodel.DeviceType{
+			{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+				testService("11", "pid", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.REQUEST),
+				testService("11_b", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.EVENT),
+				testService("12", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
+			}},
+			{Id: "dt2", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+				testService("21", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
+				testService("22", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
+			}},
+			{Id: "dt3", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+				testService("31", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.EVENT),
+				testService("32", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
+			}},
+			{Id: "dt4", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+				testService("41", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
+				testService("42", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
+			}},
+		})
 	}))
 
 	searchmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -444,9 +437,8 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 	}))
 
 	c := &configuration.ConfigStruct{
-		SemanticRepoUrl: semanticmock.URL,
-		PermSearchUrl:   searchmock.URL,
-		DeviceRepoUrl:   devicerepomock.URL,
+		PermSearchUrl: searchmock.URL,
+		DeviceRepoUrl: devicerepomock.URL,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -455,9 +447,8 @@ func testenv() (mux *sync.Mutex, semanticCalls *[]string, semanticmock *httptest
 	if err != nil {
 		searchmock.Close()
 		selectionApi.Close()
-		semanticmock.Close()
 		devicerepomock.Close()
-		return mux, semanticCalls, semanticmock, searchmock, devicerepomock, selectionApi, err
+		return mux, semanticCalls, searchmock, devicerepomock, selectionApi, err
 	}
 
 	router := api.Router(c, repo)
@@ -471,14 +462,27 @@ func testService(id string, protocolId string, functionType string, interaction 
 		Id:          id,
 		LocalId:     id + "_l",
 		Name:        id + "_name",
-		AspectIds:   []string{"a1"},
 		ProtocolId:  protocolId,
 		Interaction: interaction,
 	}
 	if functionType == devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION {
-		result.FunctionIds = []string{devicemodel.MEASURING_FUNCTION_PREFIX + "_1"}
+		result.Outputs = append(result.Outputs, devicemodel.Content{
+			ContentVariable: devicemodel.ContentVariable{
+				FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "_1",
+				AspectId:   "a1",
+			},
+			Serialization:     "json",
+			ProtocolSegmentId: "ProtocolSegmentId",
+		})
 	} else {
-		result.FunctionIds = []string{devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1"}
+		result.Inputs = append(result.Outputs, devicemodel.Content{
+			ContentVariable: devicemodel.ContentVariable{
+				FunctionId: devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1",
+				AspectId:   "a1",
+			},
+			Serialization:     "json",
+			ProtocolSegmentId: "ProtocolSegmentId",
+		})
 	}
 	return result
 }

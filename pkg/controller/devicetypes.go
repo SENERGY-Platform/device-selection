@@ -26,6 +26,7 @@ import (
 	"net/url"
 	"runtime/debug"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -74,11 +75,11 @@ func (this *Controller) getCachedTechnicalDeviceType(token string, id string, ca
 	return result, err
 }
 
-func (this *Controller) getFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceType, err error, code int) {
-	return this.getCachedFilteredDeviceTypes(token, descriptions, nil)
+func (this *Controller) getFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, interactions []string) (result []devicemodel.DeviceType, err error, code int) {
+	return this.getCachedFilteredDeviceTypes(token, descriptions, interactions, nil)
 }
 
-func (this *Controller) getCachedFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, cache *map[string][]devicemodel.DeviceType) (result []devicemodel.DeviceType, err error, code int) {
+func (this *Controller) getCachedFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, interactions []string, cache *map[string][]devicemodel.DeviceType) (result []devicemodel.DeviceType, err error, code int) {
 	hash := hashCriteriaAndSet(descriptions)
 	if cache != nil {
 		if cacheResult, ok := (*cache)[hash]; ok {
@@ -91,9 +92,14 @@ func (this *Controller) getCachedFilteredDeviceTypes(token string, descriptions 
 	}
 	payload, err := json.Marshal(descriptions)
 
+	interactionFilter := ""
+	if len(interactions) > 0 {
+		interactionFilter = "&interactions-filter=" + url.QueryEscape(strings.Join(interactions, ","))
+	}
+
 	req, err := http.NewRequest(
 		"GET",
-		this.config.SemanticRepoUrl+"/device-types?filter="+url.QueryEscape(string(payload)),
+		this.config.DeviceRepoUrl+"/device-types?filter="+url.QueryEscape(string(payload))+interactionFilter,
 		nil,
 	)
 	if err != nil {

@@ -83,4 +83,5 @@ type DeviceGroupOption struct {
 type PathCharacteristicIdPair struct {
 	Path             string `json:"path"`
 	CharacteristicId string `json:"characteristicId"`
+	AspectNodeId     string `json:"aspectNodeId"`
 }

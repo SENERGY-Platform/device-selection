@@ -21,16 +21,16 @@ import (
 	"device-selection/pkg/model/basecontentvariable"
 	"device-selection/pkg/model/devicemodel"
 	"errors"
+	"log"
 )
 
 func (this *Controller) CompleteServices(token string, selectables []model.Selectable, filter []devicemodel.FilterCriteria) ([]model.Selectable, error) {
-	return this.completeServices(token, selectables, &map[string]devicemodel.DeviceType{}, filter)
+	return this.completeServices(token, selectables, filter)
 }
 
 func (this *Controller) CompleteBulkServices(token string, bulk model.BulkResult, request model.BulkRequest) (_ model.BulkResult, err error) {
-	cache := &map[string]devicemodel.DeviceType{}
 	for index, element := range bulk {
-		bulk[index].Selectables, err = this.completeServices(token, element.Selectables, cache, request[index].Criteria)
+		bulk[index].Selectables, err = this.completeServices(token, element.Selectables, request[index].Criteria)
 		if err != nil {
 			return bulk, err
 		}
@@ -38,41 +38,12 @@ func (this *Controller) CompleteBulkServices(token string, bulk model.BulkResult
 	return bulk, nil
 }
 
-func (this *Controller) completeServices(token string, selectables []model.Selectable, cache *map[string]devicemodel.DeviceType, filter []devicemodel.FilterCriteria) (_ []model.Selectable, err error) {
-	characteristicIds, err := this.prepareCharacteristicIds(filter, token)
-	if err != nil {
-		return nil, err
-	}
+func (this *Controller) completeServices(token string, selectables []model.Selectable, filter []devicemodel.FilterCriteria) (_ []model.Selectable, err error) {
+	aspectCache := &map[string]devicemodel.AspectNode{}
 	for selectableIndex, selectable := range selectables {
 		selectable.ServicePathOptions = map[string][]model.PathCharacteristicIdPair{}
 		if selectable.Device != nil {
-			dt, err := this.getCachedTechnicalDeviceType(token, selectable.Device.DeviceTypeId, cache)
-			if err != nil {
-				return selectables, err
-			}
-			dtServices := map[string]devicemodel.Service{}
-			for _, service := range dt.Services {
-				dtServices[service.Id] = service
-			}
-			for serviceIndex, service := range selectable.Services {
-				//merge technical and semantic device-type information
-				tdt := dtServices[service.Id]
-				tdt.FunctionIds = service.FunctionIds
-				tdt.AspectIds = service.AspectIds
-				selectable.Services[serviceIndex] = dtServices[service.Id]
-				_, ok := selectable.ServicePathOptions[service.Id]
-				if !ok {
-					var pathCharacteristicPairs []model.PathCharacteristicIdPair
-					if len(dtServices[service.Id].Outputs) == 1 {
-						err = findPathCharacteristicPairs(&dtServices[service.Id].Outputs[0].ContentVariable, &characteristicIds, "value", &pathCharacteristicPairs)
-					}
-					if err != nil {
-						return nil, err
-					}
-					selectable.ServicePathOptions[service.Id] = pathCharacteristicPairs
-				}
-			}
-			selectables[selectableIndex] = selectable
+			//already fully handled
 		} else if selectable.Import != nil {
 			fullType, err := this.getFullImportType(token, selectable.ImportType.Id)
 			if err != nil {
@@ -85,7 +56,7 @@ func (this *Controller) completeServices(token string, selectables []model.Selec
 				var pathCharacteristicPairs []model.PathCharacteristicIdPair
 				for _, subOutput := range fullType.Output.SubContentVariables { // root element has to be ignored to find correct path
 					var subPathCharacteristicPairs []model.PathCharacteristicIdPair
-					err = findPathCharacteristicPairs(&subOutput, &characteristicIds, "", &subPathCharacteristicPairs)
+					err = this.findPathCharacteristicPairs(&subOutput, filter, "", &subPathCharacteristicPairs, token, aspectCache)
 					if err != nil {
 						return nil, err
 					}
@@ -99,8 +70,8 @@ func (this *Controller) completeServices(token string, selectables []model.Selec
 	return selectables, nil
 }
 
-func findPathCharacteristicPairs(contentVariable basecontentvariable.Descriptor, allowedCharacteristicIds *[]string, prefix string, res *[]model.PathCharacteristicIdPair) (err error) {
-	if res == nil || allowedCharacteristicIds == nil || contentVariable == nil {
+func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentvariable.Descriptor, filterCriteria []devicemodel.FilterCriteria, prefix string, res *[]model.PathCharacteristicIdPair, token string, aspectCache *map[string]devicemodel.AspectNode) (err error) {
+	if res == nil || contentVariable == nil {
 		return errors.New("encountered nil pointer")
 	}
 	var path string
@@ -110,18 +81,20 @@ func findPathCharacteristicPairs(contentVariable basecontentvariable.Descriptor,
 		path = prefix + "."
 	}
 	path += contentVariable.GetName()
-	if contentVariable.GetCharacteristicId() != "" {
-		for _, allowedCharacteristicId := range *allowedCharacteristicIds {
-			if contentVariable.GetCharacteristicId() == allowedCharacteristicId {
-				*res = append(*res, model.PathCharacteristicIdPair{
-					Path:             path,
-					CharacteristicId: allowedCharacteristicId,
-				})
-			}
-		}
+
+	ok, err := this.contentVariableContainsAnyCriteria(contentVariable, filterCriteria, token, aspectCache)
+	if err != nil {
+		return err
+	}
+	if ok {
+		*res = append(*res, model.PathCharacteristicIdPair{
+			Path:             path,
+			CharacteristicId: contentVariable.GetCharacteristicId(),
+			AspectNodeId:     contentVariable.GetAspectId(),
+		})
 	}
 	for _, subContentVariable := range contentVariable.GetSubContentVariables() {
-		err = findPathCharacteristicPairs(subContentVariable, allowedCharacteristicIds, path, res)
+		err = this.findPathCharacteristicPairs(subContentVariable, filterCriteria, path, res, token, aspectCache)
 		if err != nil {
 			return
 		}
@@ -129,19 +102,47 @@ func findPathCharacteristicPairs(contentVariable basecontentvariable.Descriptor,
 	return
 }
 
-func (this *Controller) prepareCharacteristicIds(filters []devicemodel.FilterCriteria, token string) (characteristicIds []string, err error) {
-	for _, filter := range filters {
-		f, err := this.GetFunction(filter.FunctionId, token)
+func (this *Controller) contentVariableContainsAnyCriteria(variable basecontentvariable.Descriptor, criteria []devicemodel.FilterCriteria, token string, aspectCache *map[string]devicemodel.AspectNode) (result bool, err error) {
+	for _, c := range criteria {
+		temp, err := this.contentVariableContainsCriteria(variable, c, token, aspectCache)
 		if err != nil {
-			return nil, err
+			return result, err
 		}
-		if f.ConceptId != "" {
-			c, err := this.GetConcept(f.ConceptId, token)
-			if err != nil {
-				return nil, err
-			}
-			characteristicIds = append(characteristicIds, c.CharacteristicIds...)
+		if temp {
+			return true, nil
 		}
 	}
-	return
+	return false, nil
+}
+
+func (this *Controller) contentVariableContainsCriteria(variable basecontentvariable.Descriptor, criteria devicemodel.FilterCriteria, token string, aspectCache *map[string]devicemodel.AspectNode) (result bool, err error) {
+	aspectNode := devicemodel.AspectNode{}
+	if criteria.AspectId != "" {
+		var ok bool
+		aspectNode, ok = (*aspectCache)[criteria.AspectId]
+		if !ok {
+			aspectNode, err = this.GetAspectNode(criteria.AspectId, token)
+			if err != nil {
+				log.Println("WARNING: unable to load aspect node", criteria.AspectId, err)
+				return false, err
+			}
+			(*aspectCache)[criteria.AspectId] = aspectNode
+		}
+	}
+	if variable.GetFunctionId() == criteria.FunctionId &&
+		(criteria.AspectId == "" ||
+			variable.GetAspectId() == criteria.AspectId ||
+			listContains(aspectNode.DescendentIds, variable.GetAspectId())) {
+		return true, nil
+	}
+	return false, nil
+}
+
+func listContains(list []string, search string) bool {
+	for _, element := range list {
+		if element == search {
+			return true
+		}
+	}
+	return false
 }

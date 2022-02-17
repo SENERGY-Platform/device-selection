@@ -17,9 +17,11 @@
 package mock
 
 import (
+	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
+	"log"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -33,16 +35,64 @@ type DeviceRepo struct {
 }
 
 func NewDeviceRepo(consumer Consumer) *DeviceRepo {
-	repo := &DeviceRepo{db: map[string]interface{}{}, localIds: map[string]bool{}}
+	repo := &DeviceRepo{
+		db:       map[string]interface{}{},
+		localIds: map[string]bool{},
+	}
+
+	consumer.Subscribe(ConceptTopic, func(msg []byte) {
+		cmd := ConceptCommand{}
+		json.Unmarshal(msg, &cmd)
+		if cmd.Command == "PUT" {
+			repo.db[cmd.Id] = cmd.Concept
+		} else if cmd.Command == "DELETE" {
+			delete(repo.db, cmd.Id)
+		}
+	})
+	consumer.Subscribe(CharacteristicTopic, func(msg []byte) {
+		cmd := CharacteristicCommand{}
+		json.Unmarshal(msg, &cmd)
+		if cmd.Command == "PUT" {
+			repo.db[cmd.Id] = cmd.Characteristic
+		} else if cmd.Command == "DELETE" {
+			delete(repo.db, cmd.Id)
+		}
+	})
+
+	consumer.Subscribe(AspectTopic, func(msg []byte) {
+		cmd := AspectCommand{}
+		json.Unmarshal(msg, &cmd)
+		if cmd.Command == "PUT" {
+			repo.db[cmd.Id] = cmd.Aspect
+		} else if cmd.Command == "DELETE" {
+			delete(repo.db, cmd.Id)
+		}
+	})
+
+	consumer.Subscribe(FunctionTopic, func(msg []byte) {
+		cmd := FunctionCommand{}
+		json.Unmarshal(msg, &cmd)
+		if cmd.Command == "PUT" {
+			repo.db[cmd.Id] = cmd.Function
+		} else if cmd.Command == "DELETE" {
+			delete(repo.db, cmd.Id)
+		}
+	})
+
+	consumer.Subscribe(DeviceClassTopic, func(msg []byte) {
+		cmd := DeviceClassCommand{}
+		json.Unmarshal(msg, &cmd)
+		if cmd.Command == "PUT" {
+			repo.db[cmd.Id] = cmd.DeviceClass
+		} else if cmd.Command == "DELETE" {
+			delete(repo.db, cmd.Id)
+		}
+	})
+
 	consumer.Subscribe(DtTopic, func(msg []byte) {
 		cmd := DeviceTypeCommand{}
 		json.Unmarshal(msg, &cmd)
 		if cmd.Command == "PUT" {
-			for i, service := range cmd.DeviceType.Services {
-				service.AspectIds = nil
-				service.FunctionIds = nil
-				cmd.DeviceType.Services[i] = service
-			}
 			repo.db[cmd.Id] = cmd.DeviceType
 		} else if cmd.Command == "DELETE" {
 			delete(repo.db, cmd.Id)
@@ -132,6 +182,25 @@ func NewDeviceRepo(consumer Consumer) *DeviceRepo {
 		} else {
 			http.Error(writer, "404", 404)
 		}
+	})
+
+	router.GET("/device-types", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		var descriptions model.FilterCriteriaAndSet
+		filter := request.URL.Query().Get("filter")
+		err := json.Unmarshal([]byte(filter), &descriptions)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result := []devicemodel.DeviceType{}
+		for _, dtInterface := range repo.db {
+			dt, ok := dtInterface.(devicemodel.DeviceType)
+			if ok && dtMatchesAllCriteria(dt, descriptions) {
+				result = append(result, dt)
+			}
+		}
+		log.Println("TEST-DEBUG: /device-types", result)
+		json.NewEncoder(writer).Encode(result)
 	})
 
 	router.PUT("/device-types", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
@@ -274,6 +343,171 @@ func NewDeviceRepo(consumer Consumer) *DeviceRepo {
 		writer.WriteHeader(http.StatusOK)
 	})
 
+	router.GET("/aspects/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		id := params.ByName("id")
+		aspect, ok := repo.db[id]
+		if ok {
+			json.NewEncoder(writer).Encode(aspect)
+		} else {
+			http.Error(writer, "404", 404)
+		}
+	})
+
+	router.PUT("/aspects", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		dryRun, err := strconv.ParseBool(request.URL.Query().Get("dry-run"))
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if !dryRun {
+			http.Error(writer, "only with query-parameter 'dry-run=true' allowed", http.StatusNotImplemented)
+			return
+		}
+		aspect := devicemodel.Aspect{}
+		err = json.NewDecoder(request.Body).Decode(&aspect)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if aspect.Id == "" {
+			http.Error(writer, "missing device id", http.StatusBadRequest)
+			return
+		}
+		writer.WriteHeader(http.StatusOK)
+	})
+
+	router.GET("/functions/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		id := params.ByName("id")
+		function, ok := repo.db[id]
+		if ok {
+			json.NewEncoder(writer).Encode(function)
+		} else {
+			http.Error(writer, "404", 404)
+		}
+	})
+
+	router.PUT("/functions", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		dryRun, err := strconv.ParseBool(request.URL.Query().Get("dry-run"))
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if !dryRun {
+			http.Error(writer, "only with query-parameter 'dry-run=true' allowed", http.StatusNotImplemented)
+			return
+		}
+		function := devicemodel.Function{}
+		err = json.NewDecoder(request.Body).Decode(&function)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if function.Id == "" {
+			http.Error(writer, "missing device id", http.StatusBadRequest)
+			return
+		}
+		writer.WriteHeader(http.StatusOK)
+	})
+
+	router.GET("/device-classes/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		id := params.ByName("id")
+		deviceclass, ok := repo.db[id]
+		if ok {
+			json.NewEncoder(writer).Encode(deviceclass)
+		} else {
+			http.Error(writer, "404", 404)
+		}
+	})
+
+	router.PUT("/device-classes", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		dryRun, err := strconv.ParseBool(request.URL.Query().Get("dry-run"))
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if !dryRun {
+			http.Error(writer, "only with query-parameter 'dry-run=true' allowed", http.StatusNotImplemented)
+			return
+		}
+		deviceclass := devicemodel.DeviceClass{}
+		err = json.NewDecoder(request.Body).Decode(&deviceclass)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if deviceclass.Id == "" {
+			http.Error(writer, "missing device id", http.StatusBadRequest)
+			return
+		}
+		writer.WriteHeader(http.StatusOK)
+	})
+
+	router.GET("/concepts/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		id := params.ByName("id")
+		concept, ok := repo.db[id]
+		if ok {
+			json.NewEncoder(writer).Encode(concept)
+		} else {
+			http.Error(writer, "404", 404)
+		}
+	})
+
+	router.PUT("/concepts", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		dryRun, err := strconv.ParseBool(request.URL.Query().Get("dry-run"))
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if !dryRun {
+			http.Error(writer, "only with query-parameter 'dry-run=true' allowed", http.StatusNotImplemented)
+			return
+		}
+		concept := devicemodel.Concept{}
+		err = json.NewDecoder(request.Body).Decode(&concept)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if concept.Id == "" {
+			http.Error(writer, "missing concept id", http.StatusBadRequest)
+			return
+		}
+		writer.WriteHeader(http.StatusOK)
+	})
+
+	router.PUT("/characteristics", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		dryRun, err := strconv.ParseBool(request.URL.Query().Get("dry-run"))
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if !dryRun {
+			http.Error(writer, "only with query-parameter 'dry-run=true' allowed", http.StatusNotImplemented)
+			return
+		}
+		characteristic := devicemodel.Characteristic{}
+		err = json.NewDecoder(request.Body).Decode(&characteristic)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if characteristic.Id == "" {
+			http.Error(writer, "missing characteristic id", http.StatusBadRequest)
+			return
+		}
+		writer.WriteHeader(http.StatusOK)
+	})
+
+	router.GET("/characteristics/:id", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		id := params.ByName("id")
+		concept, ok := repo.db[id]
+		if ok {
+			json.NewEncoder(writer).Encode(concept)
+		} else {
+			http.Error(writer, "404", 404)
+		}
+	})
+
 	repo.ts = &httptest.Server{
 		Config: &http.Server{Handler: router},
 	}
@@ -289,4 +523,45 @@ func (this *DeviceRepo) Stop() {
 
 func (this *DeviceRepo) Url() string {
 	return this.ts.URL
+}
+
+func dtMatchesAllCriteria(dt devicemodel.DeviceType, descriptions model.FilterCriteriaAndSet) bool {
+	for _, criteria := range descriptions {
+		if !dtMatchesCriteria(dt, criteria) {
+			return false
+		}
+	}
+	return true
+}
+
+func dtMatchesCriteria(dt devicemodel.DeviceType, criteria devicemodel.FilterCriteria) bool {
+	if criteria.DeviceClassId != "" && criteria.DeviceClassId != dt.DeviceClassId {
+		return false
+	}
+	for _, service := range dt.Services {
+		for _, content := range service.Inputs {
+			if contentVariableContainsCriteria(content.ContentVariable, criteria) {
+				return true
+			}
+		}
+		for _, content := range service.Outputs {
+			if contentVariableContainsCriteria(content.ContentVariable, criteria) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+//simple without aspect hierarchy
+func contentVariableContainsCriteria(variable devicemodel.ContentVariable, criteria devicemodel.FilterCriteria) bool {
+	if variable.FunctionId == criteria.FunctionId && (criteria.AspectId == "" || variable.AspectId == criteria.AspectId) {
+		return true
+	}
+	for _, sub := range variable.SubContentVariables {
+		if contentVariableContainsCriteria(sub, criteria) {
+			return true
+		}
+	}
+	return false
 }

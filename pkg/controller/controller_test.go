@@ -21,6 +21,7 @@ import (
 	"device-selection/pkg/configuration"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
+	"device-selection/pkg/tests/environment/mock"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -46,7 +47,7 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 	defer mock.Close()
 
 	c := &configuration.ConfigStruct{
-		SemanticRepoUrl: mock.URL,
+		DeviceRepoUrl: mock.URL,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -62,7 +63,7 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 		Function:         devicemodel.Function{Id: "fid"},
 		DeviceClass:      nil,
 		Aspect:           nil,
-	}}.ToFilter())
+	}}.ToFilter(), nil)
 
 	if err != nil {
 		t.Error(err)
@@ -74,7 +75,7 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 		Function:         devicemodel.Function{Id: "fid"},
 		DeviceClass:      &devicemodel.DeviceClass{Id: "dc1"},
 		Aspect:           &devicemodel.Aspect{Id: "a1"},
-	}}.ToFilter())
+	}}.ToFilter(), nil)
 
 	if err != nil {
 		t.Error(err)
@@ -156,8 +157,7 @@ func TestGetFilteredDevices(t *testing.T) {
 	defer searchmock.Close()
 
 	c := &configuration.ConfigStruct{
-		SemanticRepoUrl: semanticmock.URL,
-		PermSearchUrl:   searchmock.URL,
+		PermSearchUrl: searchmock.URL,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -196,7 +196,7 @@ func TestGetFilteredDevices(t *testing.T) {
 }
 
 func testService(id string, protocolId string, functionType string) devicemodel.Service {
-	result := devicemodel.Service{
+	result := mock.Service{
 		Id:         id,
 		LocalId:    id + "_l",
 		Name:       id + "_name",
@@ -208,7 +208,7 @@ func testService(id string, protocolId string, functionType string) devicemodel.
 	} else {
 		result.FunctionIds = []string{devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1"}
 	}
-	return result
+	return mock.FromLegacyService(result)
 }
 
 type DeviceDescriptions []DeviceDescription

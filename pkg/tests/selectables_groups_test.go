@@ -24,6 +24,7 @@ import (
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"device-selection/pkg/tests/environment"
+	"device-selection/pkg/tests/environment/mock"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -40,14 +41,13 @@ func TestSelectableGroups(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	_, deviceManagerUrl, semanticUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
+	_, deviceManagerUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
 	c := &configuration.ConfigStruct{
-		SemanticRepoUrl: semanticUrl,
 		PermSearchUrl:   permSearchUrl,
 		DeviceRepoUrl:   deviceRepoUrl,
 		ImportRepoUrl:   importRepoUrl,
@@ -77,53 +77,53 @@ func TestSelectableGroups(t *testing.T) {
 			Id:            "lamp",
 			Name:          "lamp",
 			DeviceClassId: lampDeviceClass,
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Id:            "both_lamp",
 			Name:          "both_lamp",
 			DeviceClassId: lampDeviceClass,
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Id:            "event_lamp",
 			Name:          "event_lamp",
 			DeviceClassId: lampDeviceClass,
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Id:            "colorlamp",
 			Name:          "colorlamp",
 			DeviceClassId: lampDeviceClass,
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 				{Id: "s7", Name: "s7", Interaction: devicemodel.REQUEST, AspectIds: []string{lightAspect}, FunctionIds: []string{setColorFunction}},
 				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{lightAspect}, FunctionIds: []string{getColorFunction}},
-			},
+			}),
 		},
 		{
 			Id:            "plug",
 			Name:          "plug",
 			DeviceClassId: plugDeviceClass,
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "s11", Name: "s11", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 	}
 
@@ -257,10 +257,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -270,10 +270,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -283,10 +283,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -296,10 +296,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -309,10 +309,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "event_lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -322,10 +322,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 	}))
 
@@ -340,9 +340,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -352,9 +352,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -364,9 +364,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -376,9 +376,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -388,9 +388,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 	}))
 
@@ -405,9 +405,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -417,9 +417,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "event_lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 	}))
 
@@ -435,10 +435,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -448,10 +448,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -461,10 +461,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -474,10 +474,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -487,10 +487,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "event_lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -500,10 +500,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			DeviceGroup: &model.DeviceGroup{
@@ -542,9 +542,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{lightAspect}, FunctionIds: []string{getColorFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -554,9 +554,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{lightAspect}, FunctionIds: []string{getColorFunction}},
-			},
+			}),
 		},
 		{
 			DeviceGroup: &model.DeviceGroup{
@@ -578,10 +578,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "plug",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -591,10 +591,10 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "plug",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOffFunction}},
-			},
+			}),
 		},
 		{
 			DeviceGroup: &model.DeviceGroup{
@@ -615,9 +615,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -627,9 +627,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -639,9 +639,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -651,9 +651,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -663,9 +663,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			DeviceGroup: &model.DeviceGroup{
@@ -698,9 +698,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			Device: &model.PermSearchDevice{
@@ -710,9 +710,9 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "event_lamp",
 				},
 			},
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
-			},
+			}),
 		},
 		{
 			DeviceGroup: &model.DeviceGroup{

@@ -40,14 +40,13 @@ func New(ctx context.Context, config configuration.Config) (*Controller, error) 
 }
 
 func (this *Controller) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, includeGroups bool, includeImports bool, withLocalDeviceIds []string) (result []model.Selectable, err error, code int) {
-	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, nil, includeGroups, includeImports, withLocalDeviceIds)
+	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, includeGroups, includeImports, withLocalDeviceIds)
 }
 
 func (this *Controller) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
-	deviceTypesByCriteriaCache := map[string][]devicemodel.DeviceType{}
 	devicesByDeviceTypeCache := map[string][]model.PermSearchDevice{}
 	for _, request := range requests {
-		resultElement, err, code := this.handleBulkRequestElement(token, request, &deviceTypesByCriteriaCache, &devicesByDeviceTypeCache)
+		resultElement, err, code := this.handleBulkRequestElement(token, request, &devicesByDeviceTypeCache)
 		if err != nil {
 			return result, err, code
 		}
@@ -59,7 +58,6 @@ func (this *Controller) BulkGetFilteredDevices(token string, requests model.Bulk
 func (this *Controller) handleBulkRequestElement(
 	token string,
 	request model.BulkRequestElement,
-	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
 	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
 ) (
 	result model.BulkResultElement,
@@ -73,7 +71,7 @@ func (this *Controller) handleBulkRequestElement(
 	}
 
 	protocolBlockList := request.FilterProtocols
-	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, deviceTypesByCriteriaCache, devicesByDeviceTypeCache, request.IncludeGroups, request.IncludeImports, request.LocalDevices)
+	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, devicesByDeviceTypeCache, request.IncludeGroups, request.IncludeImports, request.LocalDevices)
 	if err != nil {
 		return result, err, code
 	}
@@ -88,7 +86,6 @@ func (this *Controller) getFilteredDevices(
 	descriptions model.FilterCriteriaAndSet,
 	protocolBlockList []string,
 	blockedInteraction devicemodel.Interaction,
-	deviceTypesByCriteriaCache *map[string][]devicemodel.DeviceType,
 	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
 	includeGroups bool,
 	includeImports bool,
@@ -106,58 +103,51 @@ func (this *Controller) getFilteredDevices(
 	for _, protocolId := range protocolBlockList {
 		filteredProtocols[protocolId] = true
 	}
-	deviceTypes, err, code := this.getCachedFilteredDeviceTypes(token, descriptions, deviceTypesByCriteriaCache)
+
+	deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCached(token, descriptions)
 	if err != nil {
 		return result, err, code
 	}
-	if this.config.Debug {
-		log.Println("DEBUG: GetFilteredDevices()::getCachedFilteredDeviceTypes()", deviceTypes)
-	}
-	for _, dt := range deviceTypes {
-		services := []devicemodel.Service{}
-		serviceIndex := map[string]devicemodel.Service{}
-		for _, service := range dt.Services {
-			if blockedInteraction == "" || blockedInteraction != service.Interaction {
-				for _, desc := range descriptions {
-					for _, functionId := range service.FunctionIds {
-						if !(isMeasuringFunctionId(functionId) && filteredProtocols[service.ProtocolId]) { //mqtt cannot be measured in a task
-							if functionId == desc.FunctionId {
-								if desc.AspectId == "" {
-									serviceIndex[service.Id] = service
-								} else {
-									for _, aspect := range service.AspectIds {
-										if aspect == desc.AspectId {
-											serviceIndex[service.Id] = service
-										}
-									}
-								}
-							}
-						}
-					}
+	for _, dtSelectable := range deviceTypeSelectables {
+		servicesProtocolBlock := map[string]bool{}
+		servicesBlockedByInteraction := map[string]bool{}
+		for _, service := range dtSelectable.Services {
+			if service.Interaction == blockedInteraction {
+				servicesBlockedByInteraction[service.Id] = true
+			}
+			if filteredProtocols[service.ProtocolId] {
+				servicesProtocolBlock[service.Id] = true
+			}
+		}
+		pathOptions := getServicePathOptionsFromDeviceRepoResult(dtSelectable.ServicePathOptions, servicesProtocolBlock, servicesBlockedByInteraction)
+		usedServices := []devicemodel.Service{}
+		for serviceId, _ := range pathOptions {
+			for _, service := range dtSelectable.Services {
+				if serviceId == service.Id {
+					usedServices = append(usedServices, service)
+					break
 				}
 			}
 		}
-		for _, service := range serviceIndex {
-			services = append(services, service)
-		}
-		if len(services) > 0 {
+		if len(usedServices) > 0 {
 			var devices []model.PermSearchDevice
 			if len(withLocalDeviceIds) == 0 {
-				devices, err, code = this.getCachedDevicesOfType(token, dt.Id, devicesByDeviceTypeCache)
+				devices, err, code = this.getCachedDevicesOfType(token, dtSelectable.DeviceTypeId, devicesByDeviceTypeCache)
 			} else {
-				devices, err, code = this.getCachedDevicesOfTypeFilteredByLocalIdList(token, dt.Id, devicesByDeviceTypeCache, withLocalDeviceIds)
+				devices, err, code = this.getCachedDevicesOfTypeFilteredByLocalIdList(token, dtSelectable.DeviceTypeId, devicesByDeviceTypeCache, withLocalDeviceIds)
 			}
 			if err != nil {
 				return result, err, code
 			}
 			if this.config.Debug {
-				log.Println("DEBUG: GetFilteredDevices()::getDevicesOfType()", dt.Id, devices)
+				log.Println("DEBUG: GetFilteredDevices()::getDevicesOfType()", dtSelectable.DeviceTypeId, devices)
 			}
 			for _, device := range devices {
 				temp := device //make copy to prevent that Selectable.Device is the last element of devices every time
 				result = append(result, model.Selectable{
-					Device:   &temp,
-					Services: services,
+					Device:             &temp,
+					Services:           usedServices,
+					ServicePathOptions: pathOptions,
 				})
 			}
 		}
@@ -196,6 +186,28 @@ func (this *Controller) getFilteredDevices(
 		log.Println("DEBUG: GetFilteredDevices()", result)
 	}
 	return result, nil, 200
+}
+
+func getServicePathOptionsFromDeviceRepoResult(in map[string][]devicemodel.ServicePathOption, serviceBlocketByProtocolIndex map[string]bool, serviceBlocketByInteractionIndex map[string]bool) (out map[string][]model.PathCharacteristicIdPair) {
+	out = map[string][]model.PathCharacteristicIdPair{}
+	for serviceId, list := range in {
+		if !serviceBlocketByInteractionIndex[serviceId] {
+			temp := []model.PathCharacteristicIdPair{}
+			for _, element := range list {
+				if !(isMeasuringFunctionId(element.FunctionId) && serviceBlocketByProtocolIndex[serviceId]) { //legacy check; should be covered by interaction check
+					temp = append(temp, model.PathCharacteristicIdPair{
+						Path:             element.Path,
+						CharacteristicId: element.CharacteristicId,
+						AspectNodeId:     element.AspectNodeId,
+					})
+				}
+			}
+			if len(temp) > 0 {
+				out[serviceId] = temp
+			}
+		}
+	}
+	return out
 }
 
 func (this *Controller) CombinedDevices(bulk model.BulkResult) (result []model.PermSearchDevice) {

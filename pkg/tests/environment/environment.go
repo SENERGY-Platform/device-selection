@@ -28,12 +28,12 @@ import (
 	"time"
 )
 
-func New(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceManagerUrl string, semanticUrl string, deviceRepoUrl string, permSearchUrl string, importRepoUrl string, importDeployUrl string, err error) {
+func New(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceManagerUrl string, deviceRepoUrl string, permSearchUrl string, importRepoUrl string, importDeployUrl string, err error) {
 	_, zk, err := docker.Zookeeper(ctx, wg)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 	zkUrl := zk + ":2181"
 
@@ -41,46 +41,43 @@ func New(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceMan
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 
 	_, elasticIp, err := docker.ElasticSearch(ctx, wg)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 
 	_, permIp, err := docker.PermSearch(ctx, wg, kafkaBroker, elasticIp)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 	permSearchUrl = "http://" + permIp + ":8080"
 
 	time.Sleep(2 * time.Second)
 
-	semantic := mock.NewSemanticRepo(mock.NewConsumer(ctx, zkUrl, "semantic"))
 	deviceRepo := mock.NewDeviceRepo(mock.NewConsumer(ctx, zkUrl, "devicerepo"))
 	importRepoProducer, err := kafka.GetProducer([]string{kafkaBroker}, "import-types")
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 	importRepo := mock.NewImportRepo(importRepoProducer)
 	importDeploy := mock.NewImportDeploy()
 
 	go func() {
 		<-ctx.Done()
-		semantic.Stop()
 		deviceRepo.Stop()
 		importRepo.Stop()
 		importDeploy.Stop()
 	}()
 
-	semanticUrl = semantic.Url()
 	deviceRepoUrl = deviceRepo.Url()
 	importRepoUrl = importRepo.Url()
 	importDeployUrl = importDeploy.Url()
@@ -89,24 +86,19 @@ func New(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceMan
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
-
-	//transform local-address to address in docker container
-	semanticUrlStruct := strings.Split(semantic.Url(), ":")
-	semanticUrl = "http://" + hostIp + ":" + semanticUrlStruct[len(semanticUrlStruct)-1]
-	log.Println("DEBUG: semantic url transformation:", semantic.Url(), "-->", semanticUrl)
 
 	//transform local-address to address in docker container
 	deviceRepoStruct := strings.Split(deviceRepo.Url(), ":")
 	deviceRepoUrl = "http://" + hostIp + ":" + deviceRepoStruct[len(deviceRepoStruct)-1]
 	log.Println("DEBUG: device-repo url transformation:", deviceRepo.Url(), "-->", deviceRepoUrl)
 
-	_, managerIp, err := docker.DeviceManager(ctx, wg, kafkaBroker, semanticUrl, deviceRepoUrl, permSearchUrl)
+	_, managerIp, err := docker.DeviceManager(ctx, wg, kafkaBroker, deviceRepoUrl, permSearchUrl)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 
 	deviceManagerUrl = "http://" + managerIp + ":8080"

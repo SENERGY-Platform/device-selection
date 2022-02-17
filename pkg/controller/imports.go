@@ -31,17 +31,26 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 	importTypes := []model.ImportType{}
 	filter := []model.Selection{}
 	for _, criteria := range descriptions {
-		importTypeCriteria := model.ImportTypeFilterCriteria{
-			FunctionId: criteria.FunctionId,
-			AspectId:   criteria.AspectId,
+		aspect, err := this.GetAspectNode(criteria.AspectId, token)
+		if err != nil {
+			return result, err, http.StatusInternalServerError
 		}
-		filter = append(filter, model.Selection{
-			Condition: model.ConditionConfig{
-				Feature:   "features.aspect_functions",
-				Operation: model.QueryEqualOperation,
-				Value:     importTypeCriteria.Short(),
-			},
-		})
+		or := []model.Selection{}
+		validAspects := append(aspect.DescendentIds, aspect.Id)
+		for _, aid := range validAspects {
+			importTypeCriteria := model.ImportTypeFilterCriteria{
+				FunctionId: criteria.FunctionId,
+				AspectId:   aid,
+			}
+			or = append(or, model.Selection{
+				Condition: model.ConditionConfig{
+					Feature:   "features.aspect_functions",
+					Operation: model.QueryEqualOperation,
+					Value:     importTypeCriteria.Short(),
+				},
+			})
+		}
+		filter = append(filter, model.Selection{Or: or})
 	}
 
 	err, code = this.Search(token, model.QueryMessage{

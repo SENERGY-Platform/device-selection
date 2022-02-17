@@ -73,26 +73,36 @@ func (this *Controller) getDeviceCriteria(token string, deviceTypeCache *map[str
 		if service.Interaction == devicemodel.EVENT_AND_REQUEST {
 			interactions = []devicemodel.Interaction{devicemodel.EVENT, devicemodel.REQUEST}
 		}
-
-		for _, functionId := range service.FunctionIds {
-			for _, interaction := range interactions {
-				if isMeasuringFunctionId(functionId) {
-					for _, aspectId := range service.AspectIds {
+		work := []devicemodel.ContentVariable{}
+		for _, content := range service.Inputs {
+			work = append(work, content.ContentVariable)
+		}
+		for _, content := range service.Outputs {
+			work = append(work, content.ContentVariable)
+		}
+		for i := 0; i < len(work); i++ {
+			current := work[i]
+			if current.FunctionId != "" {
+				for _, interaction := range interactions {
+					if isMeasuringFunctionId(current.FunctionId) {
 						criteria := devicemodel.DeviceGroupFilterCriteria{
-							FunctionId:  functionId,
-							AspectId:    aspectId,
+							FunctionId:  current.FunctionId,
+							AspectId:    current.AspectId,
 							Interaction: interaction,
 						}
 						resultSet[criteriaHash(criteria)] = criteria
+					} else {
+						criteria := devicemodel.DeviceGroupFilterCriteria{
+							FunctionId:    current.FunctionId,
+							DeviceClassId: deviceType.DeviceClassId,
+							Interaction:   interaction,
+						}
+						resultSet[criteriaHash(criteria)] = criteria
 					}
-				} else {
-					criteria := devicemodel.DeviceGroupFilterCriteria{
-						FunctionId:    functionId,
-						DeviceClassId: deviceType.DeviceClassId,
-						Interaction:   interaction,
-					}
-					resultSet[criteriaHash(criteria)] = criteria
 				}
+			}
+			if len(current.SubContentVariables) > 0 {
+				work = append(work, current.SubContentVariables...)
 			}
 		}
 	}
@@ -247,40 +257,23 @@ func (this *Controller) getValidDeviceTypesForDeviceGroupCriteria(token string, 
 		AspectId:      criteria.AspectId,
 		DeviceClassId: criteria.DeviceClassId,
 	}}
-	deviceTypes, err, _ := this.getCachedFilteredDeviceTypes(token, descriptions, nil)
+	interactions := []string{}
+	if criteria.Interaction != "" {
+		interactions = append(interactions, string(devicemodel.EVENT_AND_REQUEST))
+		if criteria.Interaction != devicemodel.EVENT_AND_REQUEST {
+			interactions = append(interactions, string(criteria.Interaction))
+		}
+	}
+	deviceTypes, err, _ := this.getCachedFilteredDeviceTypes(token, descriptions, interactions, nil)
 	if err != nil {
 		return deviceTypeIds, err
 	}
 	if this.config.Debug {
 		log.Println("DEBUG: GetFilteredDevices()::getCachedFilteredDeviceTypes()", deviceTypes)
 	}
-	for _, dt := range deviceTypes {
-		serviceIndex := map[string]devicemodel.Service{}
 
-		//repeat criteria filtering locally to add interaction filtering
-		for _, service := range dt.Services {
-			if criteria.Interaction == service.Interaction ||
-				(service.Interaction == devicemodel.EVENT_AND_REQUEST && (criteria.Interaction == devicemodel.REQUEST || criteria.Interaction == devicemodel.EVENT)) {
-				for _, desc := range descriptions {
-					for _, functionId := range service.FunctionIds {
-						if functionId == desc.FunctionId {
-							if desc.AspectId == "" {
-								serviceIndex[service.Id] = service
-							} else {
-								for _, aspect := range service.AspectIds {
-									if aspect == desc.AspectId {
-										serviceIndex[service.Id] = service
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		if len(serviceIndex) > 0 {
-			deviceTypeIds = append(deviceTypeIds, dt.Id)
-		}
+	for _, dt := range deviceTypes {
+		deviceTypeIds = append(deviceTypeIds, dt.Id)
 	}
 	return deviceTypeIds, nil
 }

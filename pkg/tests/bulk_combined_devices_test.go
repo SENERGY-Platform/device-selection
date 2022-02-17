@@ -28,12 +28,11 @@ import (
 )
 
 func TestApiBulkCombinedDevices(t *testing.T) {
-	mux, calls, semanticmock, searchmock, devicerepomock, selectionApi, err := testenv()
+	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer semanticmock.Close()
 	defer selectionApi.Close()
 	defer searchmock.Close()
 	defer devicerepomock.Close()

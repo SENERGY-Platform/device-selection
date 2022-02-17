@@ -24,7 +24,7 @@ import (
 	"sync"
 )
 
-func DeviceManager(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, semantic string, devicerepo string, permsearch string) (hostPort string, ipAddress string, err error) {
+func DeviceManager(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, devicerepo string, permsearch string) (hostPort string, ipAddress string, err error) {
 	log.Println("start device-manager")
 	pool, err := dockertest.NewPool("")
 	if err != nil {
@@ -32,7 +32,6 @@ func DeviceManager(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, sem
 	}
 	container, err := pool.Run("ghcr.io/senergy-platform/device-manager", "dev", []string{
 		"KAFKA_URL=" + kafkaUrl,
-		"SEMANTIC_REPO_URL=" + semantic,
 		"DEVICE_REPO_URL=" + devicerepo,
 		"PERMISSIONS_URL=" + permsearch,
 	})

@@ -42,14 +42,13 @@ func TestSelectableImports(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	kafkabroker, _, semanticUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
+	kafkabroker, _, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
 	c := &configuration.ConfigStruct{
-		SemanticRepoUrl: semanticUrl,
 		PermSearchUrl:   permSearchUrl,
 		DeviceRepoUrl:   deviceRepoUrl,
 		ImportRepoUrl:   importRepoUrl,

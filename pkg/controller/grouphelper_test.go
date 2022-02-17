@@ -20,6 +20,7 @@ import (
 	"context"
 	"device-selection/pkg/configuration"
 	"device-selection/pkg/model/devicemodel"
+	"device-selection/pkg/tests/environment/mock"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -36,53 +37,53 @@ func TestGroupHelperCriteria(t *testing.T) {
 			Id:            "lamp",
 			Name:          "lamp",
 			DeviceClassId: "lamp",
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
-			},
+			}),
 		},
 		{
 			Id:            "event_lamp",
 			Name:          "event_lamp",
 			DeviceClassId: "lamp",
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
-			},
+			}),
 		},
 		{
 			Id:            "both_lamp",
 			Name:          "both_lamp",
 			DeviceClassId: "lamp",
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
-			},
+			}),
 		},
 		{
 			Id:            "colorlamp",
 			Name:          "colorlamp",
 			DeviceClassId: "lamp",
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
 				{Id: "s7", Name: "s7", Interaction: devicemodel.REQUEST, AspectIds: []string{"light"}, FunctionIds: []string{"setColor"}},
 				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{"light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getColor"}},
-			},
+			}),
 		},
 		{
 			Id:            "plug",
 			Name:          "plug",
 			DeviceClassId: "plug",
-			Services: []devicemodel.Service{
+			Services: mock.FromLegacyServices([]mock.Service{
 				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOn"}},
 				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOff"}},
 				{Id: "s11", Name: "s11", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
-			},
+			}),
 		},
 	}
 
@@ -236,11 +237,6 @@ func normalizeCriteria(criteria []devicemodel.DeviceGroupFilterCriteria) []devic
 
 func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (semanticmock *httptest.Server, searchmock *httptest.Server, devicerepomock *httptest.Server, repo *Controller, err error) {
 
-	semanticmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("DEBUG: semantic call: " + r.URL.Path + "?" + r.URL.RawQuery)
-		http.Error(w, "not implemented", http.StatusNotImplemented)
-	}))
-
 	devicerepomock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, dt := range deviceTypes {
 			if r.URL.Path == "/device-types/"+url.PathEscape(dt.Id) {
@@ -264,9 +260,8 @@ func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []
 	}))
 
 	c := &configuration.ConfigStruct{
-		SemanticRepoUrl: semanticmock.URL,
-		PermSearchUrl:   searchmock.URL,
-		DeviceRepoUrl:   devicerepomock.URL,
+		PermSearchUrl: searchmock.URL,
+		DeviceRepoUrl: devicerepomock.URL,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
