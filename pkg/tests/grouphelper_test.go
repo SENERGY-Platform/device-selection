@@ -1359,6 +1359,8 @@ func grouphelpertestenv(ctx context.Context, wg *sync.WaitGroup, deviceTypes []d
 }
 
 func testSetDeviceType(devicemanagerUrl string, dt devicemodel.DeviceType) error {
+	temp, _ := json.Marshal(dt)
+	log.Println("test create device-type:", string(temp))
 	resp, err := Jwtpost(adminjwt, devicemanagerUrl+"/device-types", dt)
 	if err != nil {
 		return err

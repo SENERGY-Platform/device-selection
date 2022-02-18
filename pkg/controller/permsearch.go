@@ -54,8 +54,10 @@ func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string
 	if resp.StatusCode >= 300 {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(resp.Body)
+		err = errors.New(buf.String())
+		log.Println("ERROR:", err, resp.StatusCode)
 		debug.PrintStack()
-		return result, errors.New(buf.String()), resp.StatusCode
+		return result, err, resp.StatusCode
 	}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {

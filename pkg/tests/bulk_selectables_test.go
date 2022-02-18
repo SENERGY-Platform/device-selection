@@ -18,24 +18,26 @@ package devices
 
 import (
 	"bytes"
+	"context"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"net/http"
-	"net/url"
 	"reflect"
+	"sync"
 	"testing"
 )
 
 func TestApiBulkSelectables(t *testing.T) {
-	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_, _, _, selectionurl, err := testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer selectionApi.Close()
-	defer searchmock.Close()
-	defer devicerepomock.Close()
 
 	result := model.BulkResult{}
 
@@ -74,7 +76,7 @@ func TestApiBulkSelectables(t *testing.T) {
 	temp, _ := json.Marshal(request)
 	t.Log("request:", string(temp))
 
-	t.Run("send bulk request", sendBulkRequest(selectionApi.URL, &result, request))
+	t.Run("send bulk request", sendBulkRequest(selectionurl, &result, request))
 
 	temp, _ = json.Marshal(result)
 	t.Log("response:", string(temp))
@@ -123,31 +125,18 @@ func TestApiBulkSelectables(t *testing.T) {
 			return
 		}
 	})
-
-	t.Run("check semantic calls", func(t *testing.T) {
-		mux.Lock()
-		defer mux.Unlock()
-		expected := []string{
-			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"dc1"}]`),
-			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"unknown"}]`),
-		}
-		if !reflect.DeepEqual(*calls, expected) {
-			actualStr, _ := json.Marshal(calls)
-			expectedStr, _ := json.Marshal(expected)
-			t.Error(string(actualStr), string(expectedStr))
-		}
-	})
 }
 
 func TestApiCompletedBulkSelectables(t *testing.T) {
-	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_, _, _, selectionurl, err := testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer selectionApi.Close()
-	defer searchmock.Close()
-	defer devicerepomock.Close()
 
 	result := model.BulkResult{}
 
@@ -186,7 +175,7 @@ func TestApiCompletedBulkSelectables(t *testing.T) {
 	temp, _ := json.Marshal(request)
 	t.Log("request:", string(temp))
 
-	t.Run("send bulk request", sendCompletedBulkRequest(selectionApi.URL, &result, request))
+	t.Run("send bulk request", sendCompletedBulkRequest(selectionurl, &result, request))
 
 	temp, _ = json.Marshal(result)
 	t.Log("response:", string(temp))
@@ -235,20 +224,6 @@ func TestApiCompletedBulkSelectables(t *testing.T) {
 		if len(result[2].Selectables) != 0 {
 			t.Error(result[2].Selectables)
 			return
-		}
-	})
-
-	t.Run("check semantic calls", func(t *testing.T) {
-		mux.Lock()
-		defer mux.Unlock()
-		expected := []string{
-			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"dc1"}]`),
-			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"unknown"}]`),
-		}
-		if !reflect.DeepEqual(*calls, expected) {
-			actualStr, _ := json.Marshal(calls)
-			expectedStr, _ := json.Marshal(expected)
-			t.Error(string(actualStr), string(expectedStr))
 		}
 	})
 }

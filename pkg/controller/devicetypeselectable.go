@@ -22,6 +22,8 @@ import (
 	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"errors"
+	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"runtime/debug"
@@ -51,7 +53,7 @@ func (this *Controller) GetDeviceTypeSelectables(token string, descriptions mode
 	req, err := http.NewRequest(
 		"POST",
 		this.config.DeviceRepoUrl+"/query/device-type-selectables?path-prefix="+url.QueryEscape(DeviceTypeSelectablePathPrefix),
-		nil,
+		payload,
 	)
 	if err != nil {
 		debug.PrintStack()
@@ -67,6 +69,8 @@ func (this *Controller) GetDeviceTypeSelectables(token string, descriptions mode
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
 		debug.PrintStack()
+		temp, _ := io.ReadAll(resp.Body)
+		log.Println("ERROR: GetDeviceTypeSelectables():", resp.StatusCode, string(temp))
 		return result, errors.New("unexpected statuscode")
 	}
 	err = json.NewDecoder(resp.Body).Decode(&result)

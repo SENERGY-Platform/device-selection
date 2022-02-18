@@ -18,34 +18,35 @@ package devices
 
 import (
 	"context"
-	"device-selection/pkg/api"
-	"device-selection/pkg/configuration"
-	"device-selection/pkg/controller"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"io"
+	"log"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"reflect"
+	"runtime/debug"
 	"sync"
 	"testing"
 )
 
 func TestApiSimpleGet(t *testing.T) {
-	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_, _, _, selectionurl, err := testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer selectionApi.Close()
-	defer searchmock.Close()
-	defer devicerepomock.Close()
 
 	result := []model.Selectable{}
 
-	t.Run("send simple request", sendSimpleRequest(selectionApi.URL, &result, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", "mqtt"))
+	t.Run("send simple request", sendSimpleRequest(selectionurl, &result, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", "mqtt"))
 
 	t.Run("check result", func(t *testing.T) {
 		if len(result) != 1 {
@@ -55,43 +56,28 @@ func TestApiSimpleGet(t *testing.T) {
 		if result[0].Device.Name != "1" ||
 			result[0].Device.Id != "1" ||
 			len(result[0].Services) != 1 ||
-			result[0].Services[0].Id != "11" ||
-			!result[0].Device.Permissions.R ||
-			result[0].Device.Permissions.W ||
-			!result[0].Device.Permissions.X ||
-			result[0].Device.Permissions.A {
-			t.Error(result)
+			result[0].Services[0].Id != "11" {
+			temp, _ := json.Marshal(result[0])
+			t.Error(string(temp))
 			return
-		}
-	})
-
-	t.Run("check semantic calls", func(t *testing.T) {
-		mux.Lock()
-		defer mux.Unlock()
-		expected := []string{
-			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"dc1"}]`),
-		}
-		if !reflect.DeepEqual(*calls, expected) {
-			actualStr, _ := json.Marshal(calls)
-			expectedStr, _ := json.Marshal(expected)
-			t.Error(string(actualStr), string(expectedStr))
 		}
 	})
 }
 
 func TestApiCompleteSimpledGet(t *testing.T) {
-	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_, _, _, selectionurl, err := testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer selectionApi.Close()
-	defer searchmock.Close()
-	defer devicerepomock.Close()
 
 	result := []model.Selectable{}
 
-	t.Run("send simple request", sendCompletedSimpleRequest(selectionApi.URL, &result, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", "mqtt"))
+	t.Run("send simple request", sendCompletedSimpleRequest(selectionurl, &result, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", "mqtt"))
 
 	t.Run("check result", func(t *testing.T) {
 		if len(result) != 1 ||
@@ -100,119 +86,79 @@ func TestApiCompleteSimpledGet(t *testing.T) {
 			len(result[0].Services) != 1 ||
 			result[0].Services[0].Id != "11" ||
 			len(result[0].Services[0].Outputs) != 1 ||
-			result[0].Services[0].Outputs[0].Id != "content1" ||
-			!result[0].Device.Permissions.R ||
-			result[0].Device.Permissions.W ||
-			!result[0].Device.Permissions.X ||
-			result[0].Device.Permissions.A {
+			result[0].Services[0].Outputs[0].Id != "content1" {
 			t.Error(result)
 			return
-		}
-	})
-
-	t.Run("check semantic calls", func(t *testing.T) {
-		mux.Lock()
-		defer mux.Unlock()
-		expected := []string{
-			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"dc1"}]`),
-		}
-		if !reflect.DeepEqual(*calls, expected) {
-			actualStr, _ := json.Marshal(calls)
-			expectedStr, _ := json.Marshal(expected)
-			t.Error(string(actualStr), string(expectedStr))
 		}
 	})
 }
 
 func TestApiJsonGet(t *testing.T) {
-	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_, _, _, selectionurl, err := testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer selectionApi.Close()
-	defer searchmock.Close()
-	defer devicerepomock.Close()
 
 	result := []model.Selectable{}
 
-	t.Run("send json request", sendJsonRequest(selectionApi.URL, &result, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", "mqtt"))
+	t.Run("send json request", sendJsonRequest(selectionurl, &result, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", "mqtt"))
 
 	t.Run("check result", func(t *testing.T) {
 		if len(result) != 1 ||
 			result[0].Device.Name != "1" ||
 			result[0].Device.Id != "1" ||
 			len(result[0].Services) != 1 ||
-			result[0].Services[0].Id != "11" ||
-			!result[0].Device.Permissions.R ||
-			result[0].Device.Permissions.W ||
-			!result[0].Device.Permissions.X ||
-			result[0].Device.Permissions.A {
+			result[0].Services[0].Id != "11" {
 			t.Error(result)
 			return
 		}
 	})
 
-	t.Run("check semantic calls", func(t *testing.T) {
-		mux.Lock()
-		defer mux.Unlock()
-		expected := []string{
-			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"dc1"}]`),
-		}
-		if !reflect.DeepEqual(*calls, expected) {
-			actualStr, _ := json.Marshal(calls)
-			expectedStr, _ := json.Marshal(expected)
-			t.Error(string(actualStr), string(expectedStr))
-		}
-	})
 }
 
 func TestApiBase64Get(t *testing.T) {
-	mux, calls, searchmock, devicerepomock, selectionApi, err := testenv()
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_, _, _, selectionurl, err := testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer selectionApi.Close()
-	defer searchmock.Close()
-	defer devicerepomock.Close()
 
 	result := []model.Selectable{}
 
-	t.Run("send base64 request", sendBase64Request(selectionApi.URL, &result, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", "mqtt"))
+	t.Run("send base64 request", sendBase64Request(selectionurl, &result, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", "mqtt"))
 
 	t.Run("check result", func(t *testing.T) {
 		if len(result) != 1 ||
 			result[0].Device.Name != "1" ||
 			result[0].Device.Id != "1" ||
 			len(result[0].Services) != 1 ||
-			result[0].Services[0].Id != "11" ||
-			!result[0].Device.Permissions.R ||
-			result[0].Device.Permissions.W ||
-			!result[0].Device.Permissions.X ||
-			result[0].Device.Permissions.A {
+			result[0].Services[0].Id != "11" {
 			t.Error(result)
 			return
-		}
-	})
-
-	t.Run("check semantic calls", func(t *testing.T) {
-		mux.Lock()
-		defer mux.Unlock()
-		expected := []string{
-			"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"dc1"}]`),
-		}
-		if !reflect.DeepEqual(*calls, expected) {
-			actualStr, _ := json.Marshal(calls)
-			expectedStr, _ := json.Marshal(expected)
-			t.Error(string(actualStr), string(expectedStr))
 		}
 	})
 }
 
 func sendSimpleRequest(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, blockList string) func(t *testing.T) {
 	return func(t *testing.T) {
-		resp, err := http.Get(apiurl + "/selectables?function_id=" + url.QueryEscape(functionId) + "&device_class_id=" + url.QueryEscape(deviceClassId) + "&aspect_id=" + url.QueryEscape(aspectId) + "&filter_protocols=" + url.QueryEscape(blockList))
+		endpoint := apiurl + "/selectables?function_id=" + url.QueryEscape(functionId) + "&device_class_id=" + url.QueryEscape(deviceClassId) + "&aspect_id=" + url.QueryEscape(aspectId) + "&filter_protocols=" + url.QueryEscape(blockList)
+		req, err := http.NewRequest("GET", endpoint, nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		req.Header.Set("Authorization", adminjwt)
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
 			return
@@ -231,7 +177,15 @@ func sendSimpleRequest(apiurl string, result interface{}, functionId string, dev
 
 func sendCompletedSimpleRequest(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, blockList string) func(t *testing.T) {
 	return func(t *testing.T) {
-		resp, err := http.Get(apiurl + "/selectables?complete_services=true&function_id=" + url.QueryEscape(functionId) + "&device_class_id=" + url.QueryEscape(deviceClassId) + "&aspect_id=" + url.QueryEscape(aspectId) + "&filter_protocols=" + url.QueryEscape(blockList))
+		endpoint := apiurl + "/selectables?complete_services=true&function_id=" + url.QueryEscape(functionId) + "&device_class_id=" + url.QueryEscape(deviceClassId) + "&aspect_id=" + url.QueryEscape(aspectId) + "&filter_protocols=" + url.QueryEscape(blockList)
+		req, err := http.NewRequest("GET", endpoint, nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		req.Header.Set("Authorization", adminjwt)
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
 			return
@@ -259,7 +213,15 @@ func sendJsonRequest(apiurl string, result interface{}, functionId string, devic
 			t.Error(err)
 			return
 		}
-		resp, err := http.Get(apiurl + "/selectables?json=" + url.QueryEscape(string(jsonStr)) + "&filter_protocols=" + url.QueryEscape(blockList))
+		endpoint := apiurl + "/selectables?json=" + url.QueryEscape(string(jsonStr)) + "&filter_protocols=" + url.QueryEscape(blockList)
+		req, err := http.NewRequest("GET", endpoint, nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		req.Header.Set("Authorization", adminjwt)
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
 			return
@@ -305,155 +267,143 @@ func sendBase64Request(apiurl string, result interface{}, functionId string, dev
 	}
 }
 
-func testenv() (mux *sync.Mutex, semanticCalls *[]string, searchmock *httptest.Server, devicerepomock *httptest.Server, selectionApi *httptest.Server, err error) {
-	mux = &sync.Mutex{}
-	calls := []string{}
-	semanticCalls = &calls
-
-	devicerepomock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/device-types/dt1" {
-			json.NewEncoder(w).Encode(devicemodel.DeviceType{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testTechnicalService("11", "pid", []devicemodel.Content{{
-					Id: "content1",
-					ContentVariable: devicemodel.ContentVariable{
-						Id:   "variable1",
-						Name: "variable1",
-					},
-				}}, devicemodel.REQUEST),
-				testTechnicalService("11_b", "mqtt", []devicemodel.Content{{
-					Id: "content2",
-					ContentVariable: devicemodel.ContentVariable{
-						Id:   "variable2",
-						Name: "variable2",
-					},
-				}}, devicemodel.EVENT),
-				testTechnicalService("12", "pid", []devicemodel.Content{{
-					Id: "content3",
-					ContentVariable: devicemodel.ContentVariable{
-						Id:   "variable3",
-						Name: "variable3",
-					},
-				}}, devicemodel.REQUEST),
-			}})
-			return
-		}
-
-		if r.URL.Path == "/device-types/dt2" {
-			json.NewEncoder(w).Encode(devicemodel.DeviceType{Id: "dt2", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testTechnicalService("21", "pid", []devicemodel.Content{{
-					Id: "content4",
-					ContentVariable: devicemodel.ContentVariable{
-						Id:   "variable4",
-						Name: "variable4",
-					},
-				}}, devicemodel.REQUEST),
-				testTechnicalService("22", "pid", []devicemodel.Content{{
-					Id: "content5",
-					ContentVariable: devicemodel.ContentVariable{
-						Id:   "variable5",
-						Name: "variable5",
-					},
-				}}, devicemodel.REQUEST),
-			}})
-			return
-		}
-
-		if r.URL.Path == "/concepts/concept" {
-			json.NewEncoder(w).Encode(devicemodel.Concept{
-				Id:                "concept",
-				CharacteristicIds: []string{},
-			})
-			return
-		}
-
-		calls = append(calls, r.URL.Path+"?"+r.URL.RawQuery)
-		json.NewEncoder(w).Encode([]devicemodel.DeviceType{
-			{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("11", "pid", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.REQUEST),
-				testService("11_b", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.EVENT),
-				testService("12", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
-			}},
-			{Id: "dt2", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("21", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
-				testService("22", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.REQUEST),
-			}},
-			{Id: "dt3", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("31", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.EVENT),
-				testService("32", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
-			}},
-			{Id: "dt4", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("41", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
-				testService("42", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
-			}},
-		})
-	}))
-
-	searchmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt1")+"&rights=x&limit=1000" {
-			json.NewEncoder(w).Encode([]TestPermSearchDevice{
-				{Id: "1", Name: "1", DeviceType: "dt1", Permissions: model.Permissions{
-					R: true,
-					W: false,
-					X: true,
-					A: false,
-				}},
-			})
-		}
-		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt2")+"&rights=x&limit=1000" {
-			json.NewEncoder(w).Encode([]TestPermSearchDevice{
-				{Id: "2", Name: "2", DeviceType: "dt2", Permissions: model.Permissions{
-					R: true,
-					W: false,
-					X: true,
-					A: false,
-				}},
-			})
-		}
-		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt3")+"&rights=x&limit=1000" {
-			json.NewEncoder(w).Encode([]TestPermSearchDevice{
-				{Id: "3", Name: "3", DeviceType: "dt3", Permissions: model.Permissions{
-					R: true,
-					W: false,
-					X: true,
-					A: false,
-				}},
-			})
-		}
-		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt4")+"&rights=x&limit=1000" {
-			json.NewEncoder(w).Encode([]TestPermSearchDevice{
-				{Id: "4", Name: "4", DeviceType: "dt4", Permissions: model.Permissions{
-					R: true,
-					W: false,
-					X: true,
-					A: false,
-				}},
-			})
-		}
-		if r.URL.Path == "/v3/resources/functions" {
-			json.NewEncoder(w).Encode([]devicemodel.Function{
-				{Id: devicemodel.MEASURING_FUNCTION_PREFIX + "_1", Name: "", ConceptId: "concept"},
-			})
-		}
-	}))
-
-	c := &configuration.ConfigStruct{
-		PermSearchUrl: searchmock.URL,
-		DeviceRepoUrl: devicerepomock.URL,
+func testenv(ctx context.Context, wg *sync.WaitGroup) (managerurl string, repourl string, searchurl string, selectionurl string, err error) {
+	deviceTypes := []devicemodel.DeviceType{
+		{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+			testTechnicalService("11", "pid", nil, []devicemodel.Content{{
+				Id:            "content1",
+				Serialization: "json",
+				ContentVariable: devicemodel.ContentVariable{
+					Id:         "variable1",
+					Name:       "variable1",
+					AspectId:   "a1",
+					FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "_1",
+				},
+			}}, devicemodel.REQUEST),
+			testTechnicalService("11_b", "mqtt", nil, []devicemodel.Content{{
+				Id:            "content2",
+				Serialization: "json",
+				ContentVariable: devicemodel.ContentVariable{
+					Id:         "variable2",
+					Name:       "variable2",
+					AspectId:   "a1",
+					FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "_1",
+				},
+			}}, devicemodel.EVENT),
+			testTechnicalService("12", "pid", []devicemodel.Content{{
+				Id:            "content3",
+				Serialization: "json",
+				ContentVariable: devicemodel.ContentVariable{
+					Id:         "variable3",
+					Name:       "variable3",
+					AspectId:   "a1",
+					FunctionId: devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1",
+				},
+			}}, nil, devicemodel.REQUEST),
+		}},
+		{Id: "dt2", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+			testTechnicalService("21", "pid", []devicemodel.Content{{
+				Id:            "content4",
+				Serialization: "json",
+				ContentVariable: devicemodel.ContentVariable{
+					Id:         "variable4",
+					Name:       "variable4",
+					AspectId:   "a1",
+					FunctionId: devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1",
+				},
+			}}, nil, devicemodel.REQUEST),
+			testTechnicalService("22", "pid", []devicemodel.Content{{
+				Id:            "content5",
+				Serialization: "json",
+				ContentVariable: devicemodel.ContentVariable{
+					Id:         "variable5",
+					Name:       "variable5",
+					AspectId:   "a1",
+					FunctionId: devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1",
+				},
+			}}, nil, devicemodel.REQUEST),
+		}},
+		{Id: "dt3", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+			testService("31", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION, devicemodel.EVENT),
+			testService("32", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
+		}},
+		{Id: "dt4", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+			testService("41", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
+			testService("42", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION, devicemodel.EVENT),
+		}},
+	}
+	deviceInstances := []devicemodel.Device{
+		{
+			Id:           "1",
+			Name:         "1",
+			DeviceTypeId: "dt1",
+		},
+		{
+			Id:           "2",
+			Name:         "2",
+			DeviceTypeId: "dt2",
+		},
+		{
+			Id:           "3",
+			Name:         "3",
+			DeviceTypeId: "dt3",
+		},
+		{
+			Id:           "4",
+			Name:         "4",
+			DeviceTypeId: "dt4",
+		},
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	repo, err := controller.New(ctx, c)
+	concepts := []devicemodel.Concept{
+		{
+			Id: "concept",
+		},
+	}
+
+	functions := []devicemodel.Function{
+		{
+			Id:        devicemodel.MEASURING_FUNCTION_PREFIX + "_1",
+			ConceptId: "concept",
+		},
+		{
+			Id:        devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1",
+			ConceptId: "concept",
+		},
+	}
+
+	aspects := []devicemodel.Aspect{
+		{
+			Id:   "a1",
+			Name: "a1",
+		},
+	}
+
+	managerurl, repourl, searchurl, selectionurl, err = grouphelpertestenv(ctx, wg, deviceTypes, deviceInstances)
 	if err != nil {
-		searchmock.Close()
-		selectionApi.Close()
-		devicerepomock.Close()
-		return mux, semanticCalls, searchmock, devicerepomock, selectionApi, err
+		return managerurl, repourl, searchurl, selectionurl, err
 	}
 
-	router := api.Router(c, repo)
-	selectionApi = httptest.NewServer(router)
+	for _, concept := range concepts {
+		err = testSetConcept(managerurl, concept)
+		if err != nil {
+			return managerurl, repourl, searchurl, selectionurl, err
+		}
+	}
 
+	for _, f := range functions {
+		err = testSetFunction(managerurl, f)
+		if err != nil {
+			return managerurl, repourl, searchurl, selectionurl, err
+		}
+	}
+
+	for _, a := range aspects {
+		err = testSetAspect(managerurl, a)
+		if err != nil {
+			return managerurl, repourl, searchurl, selectionurl, err
+		}
+	}
 	return
 }
 
@@ -487,13 +437,14 @@ func testService(id string, protocolId string, functionType string, interaction 
 	return result
 }
 
-func testTechnicalService(id string, protocolId string, outputs []devicemodel.Content, interaction devicemodel.Interaction) devicemodel.Service {
+func testTechnicalService(id string, protocolId string, inputs, outputs []devicemodel.Content, interaction devicemodel.Interaction) devicemodel.Service {
 	return devicemodel.Service{
 		Id:          id,
 		LocalId:     id + "_l",
 		Name:        id + "_name",
 		ProtocolId:  protocolId,
 		Outputs:     outputs,
+		Inputs:      inputs,
 		Interaction: interaction,
 	}
 }
@@ -536,4 +487,52 @@ type TestPermSearchDevice struct {
 	Permissions model.Permissions `json:"permissions"`
 	Shared      bool              `json:"shared"`
 	Creator     string            `json:"creator"`
+}
+
+func testSetFunction(devicemanagerUrl string, f devicemodel.Function) error {
+	resp, err := Jwtput(adminjwt, devicemanagerUrl+"/functions/"+url.PathEscape(f.Id), f)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		temp, _ := io.ReadAll(resp.Body)
+		err = errors.New(string(temp))
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+		return err
+	}
+	return nil
+}
+
+func testSetAspect(devicemanagerUrl string, a devicemodel.Aspect) error {
+	resp, err := Jwtput(adminjwt, devicemanagerUrl+"/aspects/"+url.PathEscape(a.Id), a)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		temp, _ := io.ReadAll(resp.Body)
+		err = errors.New(string(temp))
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+		return err
+	}
+	return nil
+}
+
+func testSetConcept(devicemanagerUrl string, c devicemodel.Concept) error {
+	resp, err := Jwtput(adminjwt, devicemanagerUrl+"/concepts/"+url.PathEscape(c.Id), c)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		temp, _ := io.ReadAll(resp.Body)
+		err = errors.New(string(temp))
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+		return err
+	}
+	return nil
 }
