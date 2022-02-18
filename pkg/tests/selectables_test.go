@@ -250,7 +250,15 @@ func sendBase64Request(apiurl string, result interface{}, functionId string, dev
 			return
 		}
 		b64Str := base64.StdEncoding.EncodeToString(jsonStr)
-		resp, err := http.Get(apiurl + "/selectables?base64=" + b64Str + "&filter_protocols=" + url.QueryEscape(blockList))
+		endpoint := apiurl + "/selectables?base64=" + b64Str + "&filter_protocols=" + url.QueryEscape(blockList)
+		req, err := http.NewRequest("GET", endpoint, nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		req.Header.Set("Authorization", adminjwt)
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
 			return
