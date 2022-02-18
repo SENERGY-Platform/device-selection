@@ -34,6 +34,7 @@ func DeviceManager(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, dev
 		"KAFKA_URL=" + kafkaUrl,
 		"DEVICE_REPO_URL=" + devicerepo,
 		"PERMISSIONS_URL=" + permsearch,
+		"DISABLE_VALIDATION=true",
 	})
 	if err != nil {
 		return "", "", err
@@ -56,4 +57,54 @@ func DeviceManager(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, dev
 		return err
 	})
 	return hostPort, container.Container.NetworkSettings.IPAddress, err
+}
+
+func DeviceManagerWithDependencies(basectx context.Context, wg *sync.WaitGroup) (managerUrl string, repoUrl string, searchUrl string, err error) {
+	ctx, cancel := context.WithCancel(basectx)
+	defer func() {
+		if err != nil {
+			cancel()
+		}
+	}()
+
+	_, zkIp, err := Zookeeper(ctx, wg)
+	if err != nil {
+		return managerUrl, repoUrl, searchUrl, err
+	}
+	zookeeperUrl := zkIp + ":2181"
+
+	kafkaUrl, err := Kafka(ctx, wg, zookeeperUrl)
+	if err != nil {
+		return managerUrl, repoUrl, searchUrl, err
+	}
+
+	_, elasticIp, err := ElasticSearch(ctx, wg)
+	if err != nil {
+		return managerUrl, repoUrl, searchUrl, err
+	}
+
+	_, permIp, err := PermSearch(ctx, wg, kafkaUrl, elasticIp)
+	if err != nil {
+		return managerUrl, repoUrl, searchUrl, err
+	}
+	searchUrl = "http://" + permIp + ":8080"
+
+	_, mongoIp, err := MongoDB(ctx, wg)
+	if err != nil {
+		return managerUrl, repoUrl, searchUrl, err
+	}
+
+	_, repoIp, err := DeviceRepo(ctx, wg, kafkaUrl, "mongodb://"+mongoIp+":27017", searchUrl)
+	if err != nil {
+		return managerUrl, repoUrl, searchUrl, err
+	}
+	repoUrl = "http://" + repoIp + ":8080"
+
+	_, managerIp, err := DeviceManager(ctx, wg, kafkaUrl, repoUrl, searchUrl)
+	if err != nil {
+		return managerUrl, repoUrl, searchUrl, err
+	}
+	managerUrl = "http://" + managerIp + ":8080"
+
+	return managerUrl, repoUrl, searchUrl, err
 }

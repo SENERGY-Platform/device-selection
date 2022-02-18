@@ -74,7 +74,7 @@ func TestSelectableImports(t *testing.T) {
 	testCharacteristic := "urn:infai:ses:characteristic:test"
 
 	importTypes := []model.ImportType{
-		{
+		mock.FromLegacyImportType(mock.ImportType{
 			Id:          "lamp",
 			Name:        "lamp",
 			AspectIds:   []string{deviceAspect, airAspect},
@@ -91,8 +91,8 @@ func TestSelectableImports(t *testing.T) {
 				},
 			},
 			Owner: "1234567890",
-		},
-		{
+		}),
+		mock.FromLegacyImportType(mock.ImportType{
 			Id:          "never",
 			Name:        "never",
 			AspectIds:   []string{},
@@ -101,7 +101,7 @@ func TestSelectableImports(t *testing.T) {
 				Name: "output",
 			},
 			Owner: "1234567890",
-		},
+		}),
 	}
 
 	importInstances := []model.Import{
@@ -177,12 +177,12 @@ func TestSelectableImports(t *testing.T) {
 				Configs:      nil,
 				Restart:      nil,
 			},
-			ImportType: &model.ImportType{
+			ImportType: mock.FromLegacyImportTypePointer(mock.ImportType{
 				Id:          "lamp",
 				Name:        "lamp",
 				AspectIds:   []string{deviceAspect, airAspect},
 				FunctionIds: []string{getColorFunction, getHumidityFunction},
-			},
+			}),
 		},
 	}))
 
@@ -198,7 +198,7 @@ func TestSelectableImports(t *testing.T) {
 					Configs:      nil,
 					Restart:      nil,
 				},
-				ImportType: &model.ImportType{
+				ImportType: mock.FromLegacyImportTypePointer(mock.ImportType{
 					Id:          "lamp",
 					Name:        "lamp",
 					AspectIds:   []string{deviceAspect, airAspect},
@@ -214,7 +214,7 @@ func TestSelectableImports(t *testing.T) {
 								}}},
 						},
 					},
-				},
+				}),
 			},
 		}
 		selectables, err := ctrl.CompleteServices(token, selectables, criteria)
@@ -238,7 +238,7 @@ func TestSelectableImports(t *testing.T) {
 					Configs:      nil,
 					Restart:      nil,
 				},
-				ImportType: &model.ImportType{
+				ImportType: mock.FromLegacyImportTypePointer(mock.ImportType{
 					Id:          "lamp",
 					Name:        "lamp",
 					AspectIds:   []string{deviceAspect, airAspect},
@@ -255,7 +255,7 @@ func TestSelectableImports(t *testing.T) {
 						},
 					},
 					Owner: "1234567890",
-				},
+				}),
 				ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 					"lamp": {{
 						Path:             "value.value",

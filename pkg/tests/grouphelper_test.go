@@ -24,8 +24,11 @@ import (
 	"device-selection/pkg/controller"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
+	"device-selection/pkg/tests/environment/docker"
 	"device-selection/pkg/tests/environment/mock"
 	"encoding/json"
+	"errors"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -33,11 +36,17 @@ import (
 	"reflect"
 	"runtime/debug"
 	"sort"
-	"strings"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestGroupHelper(t *testing.T) {
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	deviceTypes := []devicemodel.DeviceType{
 		{
 			Id:            "temperature",
@@ -149,17 +158,13 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}
 
-	semanticmock, searchmock, devicerepomock, selectionApi, err := grouphelpertestenv(deviceTypes, devicesInstances)
+	_, _, _, selectionurl, err := grouphelpertestenv(ctx, wg, deviceTypes, devicesInstances)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer selectionApi.Close()
-	defer searchmock.Close()
-	defer devicerepomock.Close()
-	defer semanticmock.Close()
 
-	t.Run("empty list", testGroupHelper(selectionApi, false, []string{}, model.DeviceGroupHelperResult{
+	t.Run("empty list", testGroupHelper(selectionurl, false, []string{}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{},
 		Options: []model.DeviceGroupOption{
 			{
@@ -246,7 +251,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("blamp", testGroupHelper(selectionApi, false, []string{"blamp"}, model.DeviceGroupHelperResult{
+	t.Run("blamp", testGroupHelper(selectionurl, false, []string{"blamp"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -365,7 +370,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("lamp1", testGroupHelper(selectionApi, false, []string{"lamp1"}, model.DeviceGroupHelperResult{
+	t.Run("lamp1", testGroupHelper(selectionurl, false, []string{"lamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -464,7 +469,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("colorlamp1", testGroupHelper(selectionApi, false, []string{"colorlamp1"}, model.DeviceGroupHelperResult{
+	t.Run("colorlamp1", testGroupHelper(selectionurl, false, []string{"colorlamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -582,7 +587,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("lamp1 colorlamp1", testGroupHelper(selectionApi, false, []string{"lamp1", "colorlamp1"}, model.DeviceGroupHelperResult{
+	t.Run("lamp1 colorlamp1", testGroupHelper(selectionurl, false, []string{"lamp1", "colorlamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -672,7 +677,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("lamp1 colorlamp1 plug1", testGroupHelper(selectionApi, false, []string{"lamp1", "colorlamp1", "plug1"}, model.DeviceGroupHelperResult{
+	t.Run("lamp1 colorlamp1 plug1", testGroupHelper(selectionurl, false, []string{"lamp1", "colorlamp1", "plug1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		},
@@ -738,7 +743,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability empty list", testGroupHelper(selectionApi, true, []string{}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability empty list", testGroupHelper(selectionurl, true, []string{}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{},
 		Options: []model.DeviceGroupOption{
 			{
@@ -825,7 +830,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability blamp", testGroupHelper(selectionApi, true, []string{"blamp"}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability blamp", testGroupHelper(selectionurl, true, []string{"blamp"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -928,7 +933,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability lamp1", testGroupHelper(selectionApi, true, []string{"lamp1"}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability lamp1", testGroupHelper(selectionurl, true, []string{"lamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1013,7 +1018,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability colorlamp1", testGroupHelper(selectionApi, true, []string{"colorlamp1"}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability colorlamp1", testGroupHelper(selectionurl, true, []string{"colorlamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1115,7 +1120,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability lamp1 colorlamp1", testGroupHelper(selectionApi, true, []string{"lamp1", "colorlamp1"}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability lamp1 colorlamp1", testGroupHelper(selectionurl, true, []string{"lamp1", "colorlamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1191,7 +1196,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability lamp1 colorlamp1 plug1", testGroupHelper(selectionApi, true, []string{"lamp1", "colorlamp1", "plug1"}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability lamp1 colorlamp1 plug1", testGroupHelper(selectionurl, true, []string{"lamp1", "colorlamp1", "plug1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		},
@@ -1236,7 +1241,7 @@ func TestGroupHelper(t *testing.T) {
 	}))
 }
 
-func testGroupHelper(selectionApi *httptest.Server, maintainUsability bool, deviceIds []string, expectedResult model.DeviceGroupHelperResult) func(t *testing.T) {
+func testGroupHelper(selectionurl string, maintainUsability bool, deviceIds []string, expectedResult model.DeviceGroupHelperResult) func(t *testing.T) {
 	return func(t *testing.T) {
 		buff := new(bytes.Buffer)
 		err := json.NewEncoder(buff).Encode(deviceIds)
@@ -1248,19 +1253,20 @@ func testGroupHelper(selectionApi *httptest.Server, maintainUsability bool, devi
 		if maintainUsability {
 			query = "?maintains_group_usability=true"
 		}
-		req, err := http.NewRequest("POST", selectionApi.URL+"/device-group-helper"+query, buff)
+		req, err := http.NewRequest("POST", selectionurl+"/device-group-helper"+query, buff)
 		if err != nil {
 			t.Error(err)
 			return
 		}
-		req.Header.Set("Authorization", "test-token")
+		req.Header.Set("Authorization", adminjwt)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
 			return
 		}
 		if resp.StatusCode != 200 {
-			t.Error(resp.StatusCode)
+			temp, _ := io.ReadAll(resp.Body)
+			t.Error(resp.StatusCode, string(temp))
 			return
 		}
 		result := model.DeviceGroupHelperResult{}
@@ -1293,6 +1299,7 @@ func normalizeGroupHelperResult(result model.DeviceGroupHelperResult) model.Devi
 		return result.Options[i].Device.Id < result.Options[j].Device.Id
 	})
 	for i, option := range result.Options {
+		option.Device.LocalId = option.Device.Id
 		sort.SliceStable(option.RemovesCriteria, func(i, j int) bool {
 			return option.RemovesCriteria[i].AspectId < option.RemovesCriteria[j].AspectId
 		})
@@ -1307,125 +1314,123 @@ func normalizeGroupHelperResult(result model.DeviceGroupHelperResult) model.Devi
 	return result
 }
 
-func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (semanticRepoMock *httptest.Server, searchmock *httptest.Server, devicerepomock *httptest.Server, selectionApi *httptest.Server, err error) {
+func grouphelpertestenv(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (managerurl string, repourl string, searchurl string, selectionurl string, err error) {
+	managerurl, repourl, searchurl, err = docker.DeviceManagerWithDependencies(ctx, wg)
+	if err != nil {
+		return managerurl, repourl, searchurl, selectionurl, err
+	}
 
-	devicerepomock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for _, dt := range deviceTypes {
-			if r.URL.Path == "/device-types/"+url.PathEscape(dt.Id) {
-				json.NewEncoder(w).Encode(dt)
-				return
-			}
+	for _, dt := range deviceTypes {
+		err = testSetDeviceType(managerurl, dt)
+		if err != nil {
+			return managerurl, repourl, searchurl, selectionurl, err
 		}
-		for _, d := range deviceInstances {
-			if r.URL.Path == "/devices/"+url.PathEscape(d.Id) {
-				json.NewEncoder(w).Encode(d)
-				return
-			}
+	}
+
+	for _, d := range deviceInstances {
+		err = testSetDevice(managerurl, d)
+		if err != nil {
+			return managerurl, repourl, searchurl, selectionurl, err
 		}
-		log.Println("DEBUG: devicerepo call: " + r.URL.Path + "?" + r.URL.RawQuery)
-		http.Error(w, "not implemented", http.StatusNotImplemented)
-	}))
-
-	searchmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.URL.Path, "/jwt/select/devices/device_type_id/") {
-			result := []TestPermSearchDevice{}
-			for _, d := range deviceInstances {
-				if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:"+d.DeviceTypeId)+"&rights=x&limit=1000" {
-					result = append(result, TestPermSearchDevice{Id: d.Id, Name: d.Name, DeviceType: d.DeviceTypeId, Permissions: model.Permissions{R: true, W: true, X: true, A: true}})
-				}
-			}
-			json.NewEncoder(w).Encode(result)
-			return
-		}
-		if r.URL.Path == "/v2/query" {
-			query := model.QueryMessage{}
-			err := json.NewDecoder(r.Body).Decode(&query)
-			if err != nil {
-				debug.PrintStack()
-				http.Error(w, "not implemented", http.StatusNotImplemented)
-				return
-			}
-			if query.Resource != "devices" ||
-				query.Find == nil ||
-				query.Find.Filter == nil ||
-				query.Find.Filter.And == nil ||
-				len(query.Find.Filter.And) == 0 ||
-				query.Find.Filter.And[0].Not == nil ||
-				query.Find.Filter.And[0].Not.Condition.Feature != "id" ||
-				query.Find.Filter.And[0].Not.Condition.Operation != model.QueryAnyValueInFeatureOperation {
-				debug.PrintStack()
-				http.Error(w, "not implemented", http.StatusNotImplemented)
-				return
-			}
-			notIdList, ok := query.Find.Filter.And[0].Not.Condition.Value.([]interface{})
-			if !ok {
-				debug.PrintStack()
-				http.Error(w, "not implemented", http.StatusNotImplemented)
-				return
-			}
-
-			var filterByDeviceTypeId []interface{}
-			if len(query.Find.Filter.And) >= 2 {
-				if query.Find.Filter.And[1].Condition.Feature != "features.device_type_id" ||
-					query.Find.Filter.And[1].Condition.Operation != model.QueryAnyValueInFeatureOperation {
-					debug.PrintStack()
-					http.Error(w, "not implemented", http.StatusNotImplemented)
-					return
-				}
-				filterByDeviceTypeId = query.Find.Filter.And[1].Condition.Value.([]interface{})
-			}
-
-			result := []TestPermSearchDevice{}
-			for _, d := range deviceInstances {
-				if strings.Contains(d.Name, query.Find.Search) {
-					foundIdInNotIdList := false
-					for _, notIdInterface := range notIdList {
-						if notId, ok := notIdInterface.(string); ok && d.Id == notId {
-							foundIdInNotIdList = true
-							break
-						}
-					}
-
-					foundTypeIdInList := filterByDeviceTypeId == nil
-					if !foundTypeIdInList {
-						for _, typeIdInterface := range filterByDeviceTypeId {
-							if typeId, ok := typeIdInterface.(string); ok && d.DeviceTypeId == typeId {
-								foundTypeIdInList = true
-								break
-							}
-						}
-					}
-
-					if !foundIdInNotIdList && foundTypeIdInList {
-						result = append(result, TestPermSearchDevice{Id: d.Id, Name: d.Name, DeviceType: d.DeviceTypeId, Permissions: model.Permissions{R: true, W: true, X: true, A: true}})
-					}
-				}
-			}
-			json.NewEncoder(w).Encode(result)
-			return
-		}
-		log.Println("DEBUG: search call: " + r.URL.Path + "?" + r.URL.RawQuery)
-		http.Error(w, "not implemented", http.StatusNotImplemented)
-	}))
+	}
 
 	c := &configuration.ConfigStruct{
-		PermSearchUrl: searchmock.URL,
-		DeviceRepoUrl: devicerepomock.URL,
+		PermSearchUrl: searchurl,
+		DeviceRepoUrl: repourl,
+		Debug:         true,
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	repo, err := controller.New(ctx, c)
+	ctrl, err := controller.New(ctx, c)
 	if err != nil {
-		searchmock.Close()
-		selectionApi.Close()
-		devicerepomock.Close()
-		semanticRepoMock.Close()
-		return semanticRepoMock, searchmock, devicerepomock, selectionApi, err
+		return managerurl, repourl, searchurl, selectionurl, err
 	}
 
-	router := api.Router(c, repo)
-	selectionApi = httptest.NewServer(router)
+	router := api.Router(c, ctrl)
+	selectionApi := httptest.NewServer(router)
+	wg.Add(1)
+	go func() {
+		<-ctx.Done()
+		selectionApi.Close()
+		wg.Done()
+	}()
+	selectionurl = selectionApi.URL
 
 	return
 }
+
+func testSetDeviceType(devicemanagerUrl string, dt devicemodel.DeviceType) error {
+	resp, err := Jwtpost(adminjwt, devicemanagerUrl+"/device-types", dt)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		temp, _ := io.ReadAll(resp.Body)
+		err = errors.New(string(temp))
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+		return err
+	}
+	return nil
+}
+
+func testSetDevice(devicemanagerUrl string, d devicemodel.Device) error {
+	d.LocalId = d.Id
+	resp, err := Jwtput(adminjwt, devicemanagerUrl+"/devices/"+url.PathEscape(d.Id), d)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		temp, _ := io.ReadAll(resp.Body)
+		err = errors.New(string(temp))
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+		return err
+	}
+	return nil
+}
+
+var SleepAfterEdit = 2 * time.Second
+
+func Jwtpost(token string, url string, msg interface{}) (resp *http.Response, err error) {
+	body := new(bytes.Buffer)
+	err = json.NewEncoder(body).Encode(msg)
+	if err != nil {
+		return resp, err
+	}
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", token)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = http.DefaultClient.Do(req)
+	if SleepAfterEdit != 0 {
+		time.Sleep(SleepAfterEdit)
+	}
+	return
+}
+
+func Jwtput(token string, url string, msg interface{}) (resp *http.Response, err error) {
+	body := new(bytes.Buffer)
+	err = json.NewEncoder(body).Encode(msg)
+	if err != nil {
+		return resp, err
+	}
+	req, err := http.NewRequest("PUT", url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", token)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = http.DefaultClient.Do(req)
+	if SleepAfterEdit != 0 {
+		time.Sleep(SleepAfterEdit)
+	}
+	return
+}
+
+const userjwt = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIzaUtabW9aUHpsMmRtQnBJdS1vSkY4ZVVUZHh4OUFIckVOcG5CcHM5SjYwIn0.eyJqdGkiOiJiOGUyNGZkNy1jNjJlLTRhNWQtOTQ4ZC1mZGI2ZWVkM2JmYzYiLCJleHAiOjE1MzA1MzIwMzIsIm5iZiI6MCwiaWF0IjoxNTMwNTI4NDMyLCJpc3MiOiJodHRwczovL2F1dGguc2VwbC5pbmZhaS5vcmcvYXV0aC9yZWFsbXMvbWFzdGVyIiwiYXVkIjoiZnJvbnRlbmQiLCJzdWIiOiJkZDY5ZWEwZC1mNTUzLTQzMzYtODBmMy03ZjQ1NjdmODVjN2IiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZCIsIm5vbmNlIjoiMjJlMGVjZjgtZjhhMS00NDQ1LWFmMjctNGQ1M2JmNWQxOGI5IiwiYXV0aF90aW1lIjoxNTMwNTI4NDIzLCJzZXNzaW9uX3N0YXRlIjoiMWQ3NWE5ODQtNzM1OS00MWJlLTgxYjktNzMyZDgyNzRjMjNlIiwiYWNyIjoiMCIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJjcmVhdGUtcmVhbG0iLCJhZG1pbiIsImRldmVsb3BlciIsInVtYV9hdXRob3JpemF0aW9uIiwidXNlciJdfSwicmVzb3VyY2VfYWNjZXNzIjp7Im1hc3Rlci1yZWFsbSI6eyJyb2xlcyI6WyJ2aWV3LWlkZW50aXR5LXByb3ZpZGVycyIsInZpZXctcmVhbG0iLCJtYW5hZ2UtaWRlbnRpdHktcHJvdmlkZXJzIiwiaW1wZXJzb25hdGlvbiIsImNyZWF0ZS1jbGllbnQiLCJtYW5hZ2UtdXNlcnMiLCJxdWVyeS1yZWFsbXMiLCJ2aWV3LWF1dGhvcml6YXRpb24iLCJxdWVyeS1jbGllbnRzIiwicXVlcnktdXNlcnMiLCJtYW5hZ2UtZXZlbnRzIiwibWFuYWdlLXJlYWxtIiwidmlldy1ldmVudHMiLCJ2aWV3LXVzZXJzIiwidmlldy1jbGllbnRzIiwibWFuYWdlLWF1dGhvcml6YXRpb24iLCJtYW5hZ2UtY2xpZW50cyIsInF1ZXJ5LWdyb3VwcyJdfSwiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwicm9sZXMiOlsidW1hX2F1dGhvcml6YXRpb24iLCJhZG1pbiIsImNyZWF0ZS1yZWFsbSIsImRldmVsb3BlciIsInVzZXIiLCJvZmZsaW5lX2FjY2VzcyJdLCJuYW1lIjoiZGYgZGZmZmYiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJzZXBsIiwiZ2l2ZW5fbmFtZSI6ImRmIiwiZmFtaWx5X25hbWUiOiJkZmZmZiIsImVtYWlsIjoic2VwbEBzZXBsLmRlIn0.eOwKV7vwRrWr8GlfCPFSq5WwR_p-_rSJURXCV1K7ClBY5jqKQkCsRL2V4YhkP1uS6ECeSxF7NNOLmElVLeFyAkvgSNOUkiuIWQpMTakNKynyRfH0SrdnPSTwK2V1s1i4VjoYdyZWXKNjeT2tUUX9eCyI5qOf_Dzcai5FhGCSUeKpV0ScUj5lKrn56aamlW9IdmbFJ4VwpQg2Y843Vc0TqpjK9n_uKwuRcQd9jkKHkbwWQ-wyJEbFWXHjQ6LnM84H0CQ2fgBqPPfpQDKjGSUNaCS-jtBcbsBAWQSICwol95BuOAqVFMucx56Wm-OyQOuoQ1jaLt2t-Uxtr-C9wKJWHQ"
+const userid = "dd69ea0d-f553-4336-80f3-7f4567f85c7b"
+const adminjwt = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIzaUtabW9aUHpsMmRtQnBJdS1vSkY4ZVVUZHh4OUFIckVOcG5CcHM5SjYwIn0.eyJqdGkiOiJiOGUyNGZkNy1jNjJlLTRhNWQtOTQ4ZC1mZGI2ZWVkM2JmYzYiLCJleHAiOjE1MzA1MzIwMzIsIm5iZiI6MCwiaWF0IjoxNTMwNTI4NDMyLCJpc3MiOiJodHRwczovL2F1dGguc2VwbC5pbmZhaS5vcmcvYXV0aC9yZWFsbXMvbWFzdGVyIiwiYXVkIjoiZnJvbnRlbmQiLCJzdWIiOiJkZDY5ZWEwZC1mNTUzLTQzMzYtODBmMy03ZjQ1NjdmODVjN2IiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZCIsIm5vbmNlIjoiMjJlMGVjZjgtZjhhMS00NDQ1LWFmMjctNGQ1M2JmNWQxOGI5IiwiYXV0aF90aW1lIjoxNTMwNTI4NDIzLCJzZXNzaW9uX3N0YXRlIjoiMWQ3NWE5ODQtNzM1OS00MWJlLTgxYjktNzMyZDgyNzRjMjNlIiwiYWNyIjoiMCIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJjcmVhdGUtcmVhbG0iLCJhZG1pbiIsImRldmVsb3BlciIsInVtYV9hdXRob3JpemF0aW9uIiwidXNlciJdfSwicmVzb3VyY2VfYWNjZXNzIjp7Im1hc3Rlci1yZWFsbSI6eyJyb2xlcyI6WyJ2aWV3LWlkZW50aXR5LXByb3ZpZGVycyIsInZpZXctcmVhbG0iLCJtYW5hZ2UtaWRlbnRpdHktcHJvdmlkZXJzIiwiaW1wZXJzb25hdGlvbiIsImNyZWF0ZS1jbGllbnQiLCJtYW5hZ2UtdXNlcnMiLCJxdWVyeS1yZWFsbXMiLCJ2aWV3LWF1dGhvcml6YXRpb24iLCJxdWVyeS1jbGllbnRzIiwicXVlcnktdXNlcnMiLCJtYW5hZ2UtZXZlbnRzIiwibWFuYWdlLXJlYWxtIiwidmlldy1ldmVudHMiLCJ2aWV3LXVzZXJzIiwidmlldy1jbGllbnRzIiwibWFuYWdlLWF1dGhvcml6YXRpb24iLCJtYW5hZ2UtY2xpZW50cyIsInF1ZXJ5LWdyb3VwcyJdfSwiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwicm9sZXMiOlsidW1hX2F1dGhvcml6YXRpb24iLCJhZG1pbiIsImNyZWF0ZS1yZWFsbSIsImRldmVsb3BlciIsInVzZXIiLCJvZmZsaW5lX2FjY2VzcyJdLCJuYW1lIjoiZGYgZGZmZmYiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJzZXBsIiwiZ2l2ZW5fbmFtZSI6ImRmIiwiZmFtaWx5X25hbWUiOiJkZmZmZiIsImVtYWlsIjoic2VwbEBzZXBsLmRlIn0.eOwKV7vwRrWr8GlfCPFSq5WwR_p-_rSJURXCV1K7ClBY5jqKQkCsRL2V4YhkP1uS6ECeSxF7NNOLmElVLeFyAkvgSNOUkiuIWQpMTakNKynyRfH0SrdnPSTwK2V1s1i4VjoYdyZWXKNjeT2tUUX9eCyI5qOf_Dzcai5FhGCSUeKpV0ScUj5lKrn56aamlW9IdmbFJ4VwpQg2Y843Vc0TqpjK9n_uKwuRcQd9jkKHkbwWQ-wyJEbFWXHjQ6LnM84H0CQ2fgBqPPfpQDKjGSUNaCS-jtBcbsBAWQSICwol95BuOAqVFMucx56Wm-OyQOuoQ1jaLt2t-Uxtr-C9wKJWHQ"

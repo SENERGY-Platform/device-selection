@@ -17,6 +17,7 @@
 package mock
 
 import (
+	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"log"
 	"math/rand"
@@ -85,4 +86,27 @@ func FromLegacyService(service Service) (result devicemodel.Service) {
 			SubContentVariables: outputVariables,
 		}}},
 	}
+}
+
+type ImportType struct {
+	Id             string                      `json:"id"`
+	Name           string                      `json:"name"`
+	Description    string                      `json:"description"`
+	Image          string                      `json:"image"`
+	DefaultRestart bool                        `json:"default_restart"`
+	Configs        []model.ImportTypeConfig    `json:"configs"`
+	AspectIds      interface{}                 `json:"aspect_ids"` // permSearch gives string or []string
+	Output         model.ImportContentVariable `json:"output,omitempty"`
+	FunctionIds    interface{}                 `json:"function_ids"` // permSearch gives string or []string
+	Owner          string                      `json:"owner,omitempty"`
+}
+
+func FromLegacyImportTypePointer(importType ImportType) *model.ImportType {
+	e := FromLegacyImportType(importType)
+	return &e
+}
+
+func FromLegacyImportType(importType ImportType) model.ImportType {
+	//TODO
+	return model.ImportType{}
 }

@@ -130,12 +130,11 @@ func TestGroupHelperCriteria(t *testing.T) {
 		},
 	}
 
-	semanticmock, searchmock, devicerepomock, repo, err := grouphelpertestenv(deviceTypes, devicesInstances)
+	searchmock, devicerepomock, repo, err := grouphelpertestenv(deviceTypes, devicesInstances)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer semanticmock.Close()
 	defer searchmock.Close()
 	defer devicerepomock.Close()
 
@@ -235,7 +234,7 @@ func normalizeCriteria(criteria []devicemodel.DeviceGroupFilterCriteria) []devic
 	return criteria
 }
 
-func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (semanticmock *httptest.Server, searchmock *httptest.Server, devicerepomock *httptest.Server, repo *Controller, err error) {
+func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (searchmock *httptest.Server, devicerepomock *httptest.Server, repo *Controller, err error) {
 
 	devicerepomock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, dt := range deviceTypes {
@@ -269,9 +268,8 @@ func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []
 	repo, err = New(ctx, c)
 	if err != nil {
 		searchmock.Close()
-		semanticmock.Close()
 		devicerepomock.Close()
-		return semanticmock, searchmock, devicerepomock, repo, err
+		return searchmock, devicerepomock, repo, err
 	}
 	return
 }

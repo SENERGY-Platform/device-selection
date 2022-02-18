@@ -103,7 +103,7 @@ func TestGetFilteredDevices(t *testing.T) {
 	mux := sync.Mutex{}
 	calls := []string{}
 
-	semanticmock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	repomock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.Lock()
 		defer mux.Unlock()
 		calls = append(calls, r.URL.Path+"?"+r.URL.RawQuery)
@@ -128,7 +128,7 @@ func TestGetFilteredDevices(t *testing.T) {
 		})
 	}))
 
-	defer semanticmock.Close()
+	defer repomock.Close()
 
 	searchmock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.URL.Path + "?" + r.URL.RawQuery)
@@ -158,6 +158,7 @@ func TestGetFilteredDevices(t *testing.T) {
 
 	c := &configuration.ConfigStruct{
 		PermSearchUrl: searchmock.URL,
+		DeviceRepoUrl: repomock.URL,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -122,31 +122,37 @@ func (this *ImportRepo) Url() string {
 }
 
 func extendImportType(importType model.ImportType) ImportTypeExtended {
-	aspectIds := []string{}
-	for _, a := range importType.AspectIds.([]interface{}) {
-		aspectIds = append(aspectIds, a.(string))
-	}
-	functionIds := []string{}
-	for _, a := range importType.FunctionIds.([]interface{}) {
-		functionIds = append(functionIds, a.(string))
-	}
+	/*
+		aspectIds := []string{}
+		for _, a := range importType.AspectIds.([]interface{}) {
+			aspectIds = append(aspectIds, a.(string))
+		}
+		functionIds := []string{}
+		for _, a := range importType.FunctionIds.([]interface{}) {
+			functionIds = append(functionIds, a.(string))
+		}
+
+	*/
 	ex := ImportTypeExtended{
-		Id:              importType.Id,
-		Name:            importType.Name,
-		Description:     importType.Description,
-		Image:           importType.Image,
-		DefaultRestart:  importType.DefaultRestart,
-		Configs:         importType.Configs,
-		AspectIds:       aspectIds,
-		Output:          importType.Output,
-		FunctionIds:     functionIds,
+		Id:             importType.Id,
+		Name:           importType.Name,
+		Description:    importType.Description,
+		Image:          importType.Image,
+		DefaultRestart: importType.DefaultRestart,
+		//Configs:         importType.Configs,
+		//AspectIds:       aspectIds,
+		Output: importType.Output,
+		//FunctionIds:     functionIds,
 		Owner:           importType.Owner,
 		AspectFunctions: []string{},
 	}
-	for _, aspect := range aspectIds {
-		for _, function := range functionIds {
-			ex.AspectFunctions = append(ex.AspectFunctions, aspect+"_"+function)
+	/*
+		for _, aspect := range aspectIds {
+			for _, function := range functionIds {
+				ex.AspectFunctions = append(ex.AspectFunctions, aspect+"_"+function)
+			}
 		}
-	}
+
+	*/
 	return ex
 }

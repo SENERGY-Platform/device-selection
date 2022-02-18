@@ -59,11 +59,11 @@ func (this *Controller) getDeviceGroupCriteria(token string, deviceTypeCache *ma
 }
 
 func (this *Controller) getDeviceCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, deviceId string) (result []devicemodel.DeviceGroupFilterCriteria, err error, code int) {
-	device, err, code := this.getCachedTechnicalDevice(token, deviceId, deviceCache)
+	device, err, code := this.getCachedDevice(token, deviceId, deviceCache)
 	if err != nil {
 		return result, err, code
 	}
-	deviceType, err := this.getCachedTechnicalDeviceType(token, device.DeviceTypeId, deviceTypeCache)
+	deviceType, err := this.getCachedDeviceType(token, device.DeviceTypeId, deviceTypeCache)
 	if err != nil {
 		return result, err, http.StatusInternalServerError
 	}

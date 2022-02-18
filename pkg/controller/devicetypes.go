@@ -22,6 +22,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"runtime/debug"
@@ -30,7 +32,7 @@ import (
 	"time"
 )
 
-func (this *Controller) getCachedTechnicalDeviceType(token string, id string, cache *map[string]devicemodel.DeviceType) (result devicemodel.DeviceType, err error) {
+func (this *Controller) getCachedDeviceType(token string, id string, cache *map[string]devicemodel.DeviceType) (result devicemodel.DeviceType, err error) {
 	if cache != nil {
 		if cacheResult, ok := (*cache)[id]; ok {
 			return cacheResult, nil
@@ -60,6 +62,8 @@ func (this *Controller) getCachedTechnicalDeviceType(token string, id string, ca
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
 		debug.PrintStack()
+		temp, _ := io.ReadAll(resp.Body)
+		log.Println("ERROR: unable to load device-type:", id, string(temp))
 		return result, errors.New("unexpected statuscode")
 	}
 	err = json.NewDecoder(resp.Body).Decode(&result)
@@ -139,7 +143,7 @@ func hashCriteriaAndSet(criteria model.FilterCriteriaAndSet) string {
 	return fmt.Sprint(arr)
 }
 
-func (this *Controller) getCachedTechnicalDevice(token string, id string, cache *map[string]devicemodel.Device) (result devicemodel.Device, err error, code int) {
+func (this *Controller) getCachedDevice(token string, id string, cache *map[string]devicemodel.Device) (result devicemodel.Device, err error, code int) {
 	if cache != nil {
 		if cacheResult, ok := (*cache)[id]; ok {
 			return cacheResult, nil, http.StatusOK
@@ -169,6 +173,8 @@ func (this *Controller) getCachedTechnicalDevice(token string, id string, cache 
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
 		debug.PrintStack()
+		temp, _ := io.ReadAll(resp.Body)
+		log.Println("ERROR: unable to load device:", id, string(temp))
 		return result, errors.New("unable to load device: " + resp.Status), resp.StatusCode
 	}
 	err = json.NewDecoder(resp.Body).Decode(&result)
