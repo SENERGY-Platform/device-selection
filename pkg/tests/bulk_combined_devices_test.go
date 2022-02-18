@@ -77,11 +77,7 @@ func TestApiBulkCombinedDevices(t *testing.T) {
 			return
 		}
 		if result[0].Name != "1" ||
-			result[0].Id != "1" ||
-			!result[0].Permissions.R ||
-			result[0].Permissions.W ||
-			!result[0].Permissions.X ||
-			result[0].Permissions.A {
+			result[0].Id != "1" {
 			t.Error(result[0])
 			return
 		}
@@ -101,7 +97,7 @@ func sendBulkCombinedDevicesRequest(apiurl string, result interface{}, request m
 			t.Error(err)
 			return
 		}
-		req.Header.Set("Authorization", "test-token")
+		req.Header.Set("Authorization", adminjwt)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)

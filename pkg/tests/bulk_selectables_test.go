@@ -105,11 +105,7 @@ func TestApiBulkSelectables(t *testing.T) {
 		if result[0].Selectables[0].Device.Name != "1" ||
 			result[0].Selectables[0].Device.Id != "1" ||
 			len(result[0].Selectables[0].Services) != 1 ||
-			result[0].Selectables[0].Services[0].Id != "11" ||
-			!result[0].Selectables[0].Device.Permissions.R ||
-			result[0].Selectables[0].Device.Permissions.W ||
-			!result[0].Selectables[0].Device.Permissions.X ||
-			result[0].Selectables[0].Device.Permissions.A {
+			result[0].Selectables[0].Services[0].Id != "11" {
 			t.Error(result[0].Selectables[0])
 			return
 		}
@@ -206,11 +202,7 @@ func TestApiCompletedBulkSelectables(t *testing.T) {
 			len(result[0].Selectables[0].Services) != 1 ||
 			result[0].Selectables[0].Services[0].Id != "11" ||
 			len(result[0].Selectables[0].Services[0].Outputs) != 1 ||
-			result[0].Selectables[0].Services[0].Outputs[0].Id != "content1" ||
-			!result[0].Selectables[0].Device.Permissions.R ||
-			result[0].Selectables[0].Device.Permissions.W ||
-			!result[0].Selectables[0].Device.Permissions.X ||
-			result[0].Selectables[0].Device.Permissions.A {
+			result[0].Selectables[0].Services[0].Outputs[0].Id != "content1" {
 			t.Error(result[0].Selectables[0])
 			return
 		}
@@ -241,7 +233,7 @@ func sendBulkRequest(apiurl string, result interface{}, request model.BulkReques
 			t.Error(err)
 			return
 		}
-		req.Header.Set("Authorization", "test-token")
+		req.Header.Set("Authorization", adminjwt)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
@@ -272,7 +264,7 @@ func sendCompletedBulkRequest(apiurl string, result interface{}, request model.B
 			t.Error(err)
 			return
 		}
-		req.Header.Set("Authorization", "test-token")
+		req.Header.Set("Authorization", adminjwt)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
