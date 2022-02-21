@@ -18,13 +18,49 @@ package legacy
 
 import (
 	"context"
+	"device-selection/pkg/api"
+	"device-selection/pkg/configuration"
+	"device-selection/pkg/controller"
 	"device-selection/pkg/model/devicemodel"
 	"device-selection/pkg/tests/helper"
+	"net/http/httptest"
 	"sync"
 	"time"
 )
 
 func Testenv(ctx context.Context, wg *sync.WaitGroup) (managerurl string, repourl string, searchurl string, selectionurl string, err error) {
+	managerurl, repourl, searchurl, err = TestenvWithoutApi(ctx, wg)
+	if err != nil {
+		return managerurl, repourl, searchurl, selectionurl, err
+	}
+
+	c := &configuration.ConfigStruct{
+		PermSearchUrl: searchurl,
+		DeviceRepoUrl: repourl,
+		Debug:         true,
+	}
+
+	ctrl, err := controller.New(ctx, c)
+	if err != nil {
+		return managerurl, repourl, searchurl, selectionurl, err
+	}
+
+	router := api.Router(c, ctrl)
+	selectionApi := httptest.NewServer(router)
+	wg.Add(1)
+	go func() {
+		<-ctx.Done()
+		selectionApi.Close()
+		wg.Done()
+	}()
+	selectionurl = selectionApi.URL
+
+	time.Sleep(2 * time.Second)
+
+	return
+}
+
+func TestenvWithoutApi(ctx context.Context, wg *sync.WaitGroup) (managerurl string, repourl string, searchurl string, err error) {
 	deviceTypes := []devicemodel.DeviceType{
 		{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
 			testTechnicalService("11", "pid", nil, []devicemodel.Content{{
@@ -136,29 +172,29 @@ func Testenv(ctx context.Context, wg *sync.WaitGroup) (managerurl string, repour
 		},
 	}
 
-	managerurl, repourl, searchurl, selectionurl, err = helper.Grouphelpertestenv(ctx, wg, deviceTypes, deviceInstances)
+	managerurl, repourl, searchurl, err = helper.EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
 	if err != nil {
-		return managerurl, repourl, searchurl, selectionurl, err
+		return managerurl, repourl, searchurl, err
 	}
 
 	for _, concept := range concepts {
 		err = helper.SetConcept(managerurl, concept)
 		if err != nil {
-			return managerurl, repourl, searchurl, selectionurl, err
+			return managerurl, repourl, searchurl, err
 		}
 	}
 
 	for _, f := range functions {
 		err = helper.SetFunction(managerurl, f)
 		if err != nil {
-			return managerurl, repourl, searchurl, selectionurl, err
+			return managerurl, repourl, searchurl, err
 		}
 	}
 
 	for _, a := range aspects {
 		err = helper.SetAspect(managerurl, a)
 		if err != nil {
-			return managerurl, repourl, searchurl, selectionurl, err
+			return managerurl, repourl, searchurl, err
 		}
 	}
 

@@ -106,33 +106,6 @@ func TestGetFilteredDevices(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	deviceTypes := []devicemodel.DeviceType{
-		{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-			testService("11", "pid", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
-			testService("11_b", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
-			testService("12", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-		}},
-		{Id: "dt2", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-			testService("21", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-			testService("22", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-		}},
-		{Id: "dt3", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-			testService("31", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
-			testService("32", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-		}},
-		{Id: "dt4", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-			testService("41", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-			testService("42", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-		}},
-	}
-
-	devices := []devicemodel.Device{
-		{Id: "1", Name: "1", DeviceTypeId: "dt1"},
-		{Id: "2", Name: "2", DeviceTypeId: "dt2"},
-		{Id: "3", Name: "3", DeviceTypeId: "dt3"},
-		{Id: "4", Name: "4", DeviceTypeId: "dt4"},
-	}
-
 	concepts := []devicemodel.Concept{
 		{
 			Id: "concept",
@@ -157,7 +130,7 @@ func TestGetFilteredDevices(t *testing.T) {
 		},
 	}
 
-	managerurl, repourl, searchurl, err := helper.EnvWithDevices(ctx, wg, deviceTypes, devices)
+	managerurl, repourl, searchurl, err := legacy.TestenvWithoutApi(ctx, wg)
 
 	for _, concept := range concepts {
 		err = helper.SetConcept(managerurl, concept)
@@ -214,22 +187,6 @@ func TestGetFilteredDevices(t *testing.T) {
 	}
 }
 
-func testService(id string, protocolId string, functionType string) devicemodel.Service {
-	result := legacy.Service{
-		Id:         id,
-		LocalId:    id + "_l",
-		Name:       id + "_name",
-		AspectIds:  []string{"a1"},
-		ProtocolId: protocolId,
-	}
-	if functionType == devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION {
-		result.FunctionIds = []string{devicemodel.MEASURING_FUNCTION_PREFIX + "_1"}
-	} else {
-		result.FunctionIds = []string{devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1"}
-	}
-	return legacy.FromLegacyService(result)
-}
-
 type DeviceDescriptions []DeviceDescription
 type DeviceDescription struct {
 	CharacteristicId string                   `json:"characteristic_id"`
@@ -258,14 +215,4 @@ func (this DeviceDescriptions) ToFilter() (result model.FilterCriteriaAndSet) {
 
 func IsZero(x interface{}) bool {
 	return x == reflect.Zero(reflect.TypeOf(x)).Interface()
-}
-
-type TestPermSearchDevice struct {
-	Id          string            `json:"id"`
-	LocalId     string            `json:"local_id,omitempty"`
-	Name        string            `json:"name,omitempty"`
-	DeviceType  string            `json:"device_type_id,omitempty"`
-	Permissions model.Permissions `json:"permissions"`
-	Shared      bool              `json:"shared"`
-	Creator     string            `json:"creator"`
 }
