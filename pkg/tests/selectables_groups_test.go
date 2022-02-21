@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package devices
+package tests
 
 import (
 	"bytes"
@@ -24,7 +24,8 @@ import (
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"device-selection/pkg/tests/environment"
-	"device-selection/pkg/tests/environment/mock"
+	"device-selection/pkg/tests/environment/legacy"
+	"device-selection/pkg/tests/helper"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -63,11 +64,23 @@ func TestSelectableGroups(t *testing.T) {
 
 	deviceAspect := "urn:infai:ses:aspect:deviceAspect"
 	lightAspect := "urn:infai:ses:aspect:ligthAspect"
+	aspects := []devicemodel.Aspect{
+		{Id: deviceAspect},
+		{Id: lightAspect},
+	}
+
 	setOnFunction := devicemodel.CONTROLLING_FUNCTION_PREFIX + "setOnFunction"
 	setOffFunction := devicemodel.CONTROLLING_FUNCTION_PREFIX + "setOffFunction"
 	setColorFunction := devicemodel.CONTROLLING_FUNCTION_PREFIX + "setColorFunction"
 	getStateFunction := devicemodel.MEASURING_FUNCTION_PREFIX + "getStateFunction"
 	getColorFunction := devicemodel.MEASURING_FUNCTION_PREFIX + "getColorFunction"
+	functions := []devicemodel.Function{
+		{Id: setOnFunction},
+		{Id: setOffFunction},
+		{Id: setColorFunction},
+		{Id: getStateFunction},
+		{Id: getColorFunction},
+	}
 
 	lampDeviceClass := "urn:infai:ses:device-class:lampClass"
 	plugDeviceClass := "urn:infai:ses:device-class:plugClass"
@@ -77,7 +90,7 @@ func TestSelectableGroups(t *testing.T) {
 			Id:            "lamp",
 			Name:          "lamp",
 			DeviceClassId: lampDeviceClass,
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
@@ -87,7 +100,7 @@ func TestSelectableGroups(t *testing.T) {
 			Id:            "both_lamp",
 			Name:          "both_lamp",
 			DeviceClassId: lampDeviceClass,
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
@@ -97,7 +110,7 @@ func TestSelectableGroups(t *testing.T) {
 			Id:            "event_lamp",
 			Name:          "event_lamp",
 			DeviceClassId: lampDeviceClass,
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
@@ -107,7 +120,7 @@ func TestSelectableGroups(t *testing.T) {
 			Id:            "colorlamp",
 			Name:          "colorlamp",
 			DeviceClassId: lampDeviceClass,
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
@@ -119,7 +132,7 @@ func TestSelectableGroups(t *testing.T) {
 			Id:            "plug",
 			Name:          "plug",
 			DeviceClassId: plugDeviceClass,
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "s11", Name: "s11", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{getStateFunction}},
@@ -239,13 +252,28 @@ func TestSelectableGroups(t *testing.T) {
 		},
 	}
 
+	for _, a := range aspects {
+		err = helper.SetAspect(deviceManagerUrl, a)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+	for _, f := range functions {
+		err = helper.SetFunction(deviceManagerUrl, f)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+
 	t.Run("create device-types", testCreateDeviceTypes(deviceManagerUrl, deviceTypes))
 	t.Run("create devices", testCreateDevices(deviceManagerUrl, devicesInstances))
 	t.Run("create devices-groups", testCreateDeviceGroups(deviceManagerUrl, deviceGroups))
 
 	time.Sleep(5 * time.Second)
 
-	t.Run("lamp on/off", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+	t.Run("lamp on/off", testCheckSelectionWithoutOptions(ctrl, model.FilterCriteriaAndSet{
 		{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 		{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 	}, devicemodel.EVENT, false, []model.Selectable{
@@ -257,7 +285,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -270,7 +298,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -283,7 +311,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -296,7 +324,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -309,7 +337,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "event_lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -322,14 +350,14 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
 		},
 	}))
 
-	t.Run("get lamp state", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+	t.Run("get lamp state", testCheckSelectionWithoutOptions(ctrl, model.FilterCriteriaAndSet{
 		{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
 	}, devicemodel.EVENT, false, []model.Selectable{
 		{
@@ -340,7 +368,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -352,7 +380,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -364,7 +392,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -376,7 +404,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -388,13 +416,13 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
 	}))
 
-	t.Run("get lamp state as event", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+	t.Run("get lamp state as event", testCheckSelectionWithoutOptions(ctrl, model.FilterCriteriaAndSet{
 		{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
 	}, devicemodel.REQUEST, false, []model.Selectable{
 		{
@@ -405,7 +433,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -417,13 +445,13 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "event_lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
 	}))
 
-	t.Run("lamp on/off with group", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+	t.Run("lamp on/off with group", testCheckSelectionWithoutOptions(ctrl, model.FilterCriteriaAndSet{
 		{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 		{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 	}, devicemodel.EVENT, true, []model.Selectable{
@@ -435,7 +463,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -448,7 +476,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -461,7 +489,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -474,7 +502,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -487,7 +515,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "event_lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -500,7 +528,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -531,7 +559,7 @@ func TestSelectableGroups(t *testing.T) {
 		},
 	}))
 
-	t.Run("lamp get color with group", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+	t.Run("lamp get color with group", testCheckSelectionWithoutOptions(ctrl, model.FilterCriteriaAndSet{
 		{FunctionId: getColorFunction, DeviceClassId: "", AspectId: lightAspect},
 	}, devicemodel.EVENT, true, []model.Selectable{
 		{
@@ -542,7 +570,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{lightAspect}, FunctionIds: []string{getColorFunction}},
 			}),
 		},
@@ -554,7 +582,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s8", Name: "s8", Interaction: devicemodel.REQUEST, AspectIds: []string{lightAspect}, FunctionIds: []string{getColorFunction}},
 			}),
 		},
@@ -566,7 +594,7 @@ func TestSelectableGroups(t *testing.T) {
 		},
 	}))
 
-	t.Run("plug on/off with group", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+	t.Run("plug on/off with group", testCheckSelectionWithoutOptions(ctrl, model.FilterCriteriaAndSet{
 		{FunctionId: setOnFunction, DeviceClassId: plugDeviceClass, AspectId: ""},
 		{FunctionId: setOffFunction, DeviceClassId: plugDeviceClass, AspectId: ""},
 	}, devicemodel.EVENT, true, []model.Selectable{
@@ -578,7 +606,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "plug",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -591,7 +619,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "plug",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -604,7 +632,7 @@ func TestSelectableGroups(t *testing.T) {
 		},
 	}))
 
-	t.Run("get lamp state with groups", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+	t.Run("get lamp state with groups", testCheckSelectionWithoutOptions(ctrl, model.FilterCriteriaAndSet{
 		{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
 	}, devicemodel.EVENT, true, []model.Selectable{
 		{
@@ -615,7 +643,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -627,7 +655,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -639,7 +667,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -651,7 +679,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -663,7 +691,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -687,7 +715,7 @@ func TestSelectableGroups(t *testing.T) {
 		},
 	}))
 
-	t.Run("get lamp state as event with groups", testCheckSelection(ctrl, model.FilterCriteriaAndSet{
+	t.Run("get lamp state as event with groups", testCheckSelectionWithoutOptions(ctrl, model.FilterCriteriaAndSet{
 		{FunctionId: getStateFunction, DeviceClassId: "", AspectId: lightAspect},
 	}, devicemodel.REQUEST, true, []model.Selectable{
 		{
@@ -698,7 +726,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "both_lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -710,7 +738,7 @@ func TestSelectableGroups(t *testing.T) {
 					DeviceTypeId: "event_lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
 			}),
 		},
@@ -729,14 +757,22 @@ func TestSelectableGroups(t *testing.T) {
 	}))
 }
 
-const token = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJyb2xlcyI6WyJjcmVhdGUtcmVhbG0iLCJvZmZsaW5lX2FjY2VzcyIsImFkbWluIiwiZGV2ZWxvcGVyIiwidW1hX2F1dGhvcml6YXRpb24iLCJ1c2VyIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJjcmVhdGUtcmVhbG0iLCJvZmZsaW5lX2FjY2VzcyIsImFkbWluIiwiZGV2ZWxvcGVyIiwidW1hX2F1dGhvcml6YXRpb24iLCJ1c2VyIl19fQ.s-bPUbJc8e04WmwD7ei_XGRjAMuRKkpfqmgQKXjjqqI`
+const token = helper.AdminJwt
 
-func testCheckSelection(ctrl *controller.Controller, criteria model.FilterCriteriaAndSet, interaction devicemodel.Interaction, includeGroups bool, expectedResult []model.Selectable) func(t *testing.T) {
+func testCheckSelectionWithoutOptions(ctrl *controller.Controller, criteria model.FilterCriteriaAndSet, interaction devicemodel.Interaction, includeGroups bool, expectedResult []model.Selectable) func(t *testing.T) {
 	return func(t *testing.T) {
 		result, err, _ := ctrl.GetFilteredDevices(token, criteria, nil, interaction, includeGroups, false, nil)
 		if err != nil {
 			t.Error(err)
 			return
+		}
+		for i, e := range result {
+			e.ServicePathOptions = nil
+			result[i] = e
+		}
+		for i, e := range expectedResult {
+			e.ServicePathOptions = nil
+			expectedResult[i] = e
 		}
 		normalizeTestSelectables(&result)
 		normalizeTestSelectables(&expectedResult)
@@ -780,12 +816,36 @@ func normalizeTestSelectable(selectable *model.Selectable) {
 		selectable.Device.Creator = ""
 		selectable.Device.Permissions = model.Permissions{}
 		selectable.Device.Shared = false
-
+		for i, v := range selectable.Services {
+			normalizeTestService(&v)
+			selectable.Services[i] = v
+		}
 		sort.SliceStable(selectable.Services, func(i, j int) bool {
 			iName := selectable.Services[i].Name
 			jName := selectable.Services[j].Name
 			return iName < jName
 		})
+	}
+}
+
+func normalizeTestService(service *devicemodel.Service) {
+	for i, v := range service.Inputs {
+		v.Id = ""
+		normalizeTestContentVariable(&v.ContentVariable)
+		service.Inputs[i] = v
+	}
+	for i, v := range service.Outputs {
+		v.Id = ""
+		normalizeTestContentVariable(&v.ContentVariable)
+		service.Outputs[i] = v
+	}
+}
+
+func normalizeTestContentVariable(variable *devicemodel.ContentVariable) {
+	variable.Id = ""
+	for i, v := range variable.SubContentVariables {
+		normalizeTestContentVariable(&v)
+		variable.SubContentVariables[i] = v
 	}
 }
 

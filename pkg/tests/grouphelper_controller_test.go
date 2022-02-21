@@ -14,30 +14,34 @@
  * limitations under the License.
  */
 
-package controller
+package tests
 
 import (
 	"context"
 	"device-selection/pkg/configuration"
+	"device-selection/pkg/controller"
 	"device-selection/pkg/model/devicemodel"
-	"device-selection/pkg/tests/environment/mock"
+	"device-selection/pkg/tests/environment/legacy"
+	"device-selection/pkg/tests/helper"
 	"encoding/json"
-	"log"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"reflect"
 	"sort"
+	"sync"
 	"testing"
 )
 
 func TestGroupHelperCriteria(t *testing.T) {
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	deviceTypes := []devicemodel.DeviceType{
 		{
 			Id:            "lamp",
 			Name:          "lamp",
 			DeviceClassId: "lamp",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
@@ -47,7 +51,7 @@ func TestGroupHelperCriteria(t *testing.T) {
 			Id:            "event_lamp",
 			Name:          "event_lamp",
 			DeviceClassId: "lamp",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
@@ -57,7 +61,7 @@ func TestGroupHelperCriteria(t *testing.T) {
 			Id:            "both_lamp",
 			Name:          "both_lamp",
 			DeviceClassId: "lamp",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
@@ -67,7 +71,7 @@ func TestGroupHelperCriteria(t *testing.T) {
 			Id:            "colorlamp",
 			Name:          "colorlamp",
 			DeviceClassId: "lamp",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
@@ -79,7 +83,7 @@ func TestGroupHelperCriteria(t *testing.T) {
 			Id:            "plug",
 			Name:          "plug",
 			DeviceClassId: "plug",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOn"}},
 				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOff"}},
 				{Id: "s11", Name: "s11", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
@@ -130,13 +134,11 @@ func TestGroupHelperCriteria(t *testing.T) {
 		},
 	}
 
-	searchmock, devicerepomock, repo, err := grouphelpertestenv(deviceTypes, devicesInstances)
+	repo, err := grouphelpertestenv(ctx, wg, deviceTypes, devicesInstances)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	defer searchmock.Close()
-	defer devicerepomock.Close()
 
 	t.Run("empty list", testGroupHelper(repo, []string{}, []devicemodel.DeviceGroupFilterCriteria{}))
 
@@ -202,11 +204,11 @@ func TestGroupHelperCriteria(t *testing.T) {
 	}))
 }
 
-func testGroupHelper(repo *Controller, deviceIds []string, expectedResult []devicemodel.DeviceGroupFilterCriteria) func(t *testing.T) {
+func testGroupHelper(repo *controller.Controller, deviceIds []string, expectedResult []devicemodel.DeviceGroupFilterCriteria) func(t *testing.T) {
 	return func(t *testing.T) {
 		dtCache := &map[string]devicemodel.DeviceType{}
 		dCache := &map[string]devicemodel.Device{}
-		result, err, code := repo.getDeviceGroupCriteria("test-token", dtCache, dCache, deviceIds)
+		result, err, code := repo.GetDeviceGroupCriteria(helper.AdminJwt, dtCache, dCache, deviceIds)
 		if err != nil {
 			t.Error(err, code)
 			return
@@ -234,42 +236,14 @@ func normalizeCriteria(criteria []devicemodel.DeviceGroupFilterCriteria) []devic
 	return criteria
 }
 
-func grouphelpertestenv(deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (searchmock *httptest.Server, devicerepomock *httptest.Server, repo *Controller, err error) {
-
-	devicerepomock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for _, dt := range deviceTypes {
-			if r.URL.Path == "/device-types/"+url.PathEscape(dt.Id) {
-				json.NewEncoder(w).Encode(dt)
-				return
-			}
-		}
-		for _, d := range deviceInstances {
-			if r.URL.Path == "/devices/"+url.PathEscape(d.Id) {
-				json.NewEncoder(w).Encode(d)
-				return
-			}
-		}
-		log.Println("DEBUG: devicerepo call: " + r.URL.Path + "?" + r.URL.RawQuery)
-		http.Error(w, "not implemented", http.StatusNotImplemented)
-	}))
-
-	searchmock = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("DEBUG: search call: " + r.URL.Path + "?" + r.URL.RawQuery)
-		http.Error(w, "not implemented", http.StatusNotImplemented)
-	}))
-
-	c := &configuration.ConfigStruct{
-		PermSearchUrl: searchmock.URL,
-		DeviceRepoUrl: devicerepomock.URL,
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	repo, err = New(ctx, c)
+func grouphelpertestenv(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (repo *controller.Controller, err error) {
+	_, repoUrl, searchurl, err := helper.EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
 	if err != nil {
-		searchmock.Close()
-		devicerepomock.Close()
-		return searchmock, devicerepomock, repo, err
+		return nil, err
 	}
-	return
+	c := &configuration.ConfigStruct{
+		PermSearchUrl: searchurl,
+		DeviceRepoUrl: repoUrl,
+	}
+	return controller.New(ctx, c)
 }

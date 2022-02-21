@@ -26,7 +26,7 @@ import (
 func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, search model.QueryFind, maintainGroupUsability bool) (result model.DeviceGroupHelperResult, err error, code int) {
 	deviceCache := &map[string]devicemodel.Device{}
 	deviceTypeCache := &map[string]devicemodel.DeviceType{}
-	result.Criteria, err, code = this.getDeviceGroupCriteria(token, deviceTypeCache, deviceCache, deviceIds)
+	result.Criteria, err, code = this.GetDeviceGroupCriteria(token, deviceTypeCache, deviceCache, deviceIds)
 	if err != nil {
 		return
 	}
@@ -34,7 +34,7 @@ func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, sear
 	return result, err, code
 }
 
-func (this *Controller) getDeviceGroupCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, deviceIds []string) (result []devicemodel.DeviceGroupFilterCriteria, err error, code int) {
+func (this *Controller) GetDeviceGroupCriteria(token string, deviceTypeCache *map[string]devicemodel.DeviceType, deviceCache *map[string]devicemodel.Device, deviceIds []string) (result []devicemodel.DeviceGroupFilterCriteria, err error, code int) {
 	currentSet := map[string]devicemodel.DeviceGroupFilterCriteria{}
 	for i, deviceId := range deviceIds {
 		deviceCriterias, err, code := this.getDeviceCriteria(token, deviceTypeCache, deviceCache, deviceId)

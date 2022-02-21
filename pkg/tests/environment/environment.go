@@ -23,45 +23,17 @@ import (
 	"device-selection/pkg/tests/environment/mock"
 	"log"
 	"runtime/debug"
-	"strings"
 	"sync"
-	"time"
 )
 
 func New(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceManagerUrl string, deviceRepoUrl string, permSearchUrl string, importRepoUrl string, importDeployUrl string, err error) {
-	_, zk, err := docker.Zookeeper(ctx, wg)
-	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
-		return "", "", "", "", "", "", err
-	}
-	zkUrl := zk + ":2181"
-
-	kafkaBroker, err = docker.Kafka(ctx, wg, zkUrl)
+	kafkaBroker, deviceManagerUrl, deviceRepoUrl, permSearchUrl, err = docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 		return "", "", "", "", "", "", err
 	}
 
-	_, elasticIp, err := docker.ElasticSearch(ctx, wg)
-	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
-		return "", "", "", "", "", "", err
-	}
-
-	_, permIp, err := docker.PermSearch(ctx, wg, kafkaBroker, elasticIp)
-	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
-		return "", "", "", "", "", "", err
-	}
-	permSearchUrl = "http://" + permIp + ":8080"
-
-	time.Sleep(2 * time.Second)
-
-	deviceRepo := mock.NewDeviceRepo(mock.NewConsumer(ctx, zkUrl, "devicerepo"))
 	importRepoProducer, err := kafka.GetProducer([]string{kafkaBroker}, "import-types")
 	if err != nil {
 		log.Println("ERROR:", err)
@@ -73,35 +45,12 @@ func New(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceMan
 
 	go func() {
 		<-ctx.Done()
-		deviceRepo.Stop()
 		importRepo.Stop()
 		importDeploy.Stop()
 	}()
 
-	deviceRepoUrl = deviceRepo.Url()
 	importRepoUrl = importRepo.Url()
 	importDeployUrl = importDeploy.Url()
-
-	hostIp, err := docker.GetHostIp()
-	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
-		return "", "", "", "", "", "", err
-	}
-
-	//transform local-address to address in docker container
-	deviceRepoStruct := strings.Split(deviceRepo.Url(), ":")
-	deviceRepoUrl = "http://" + hostIp + ":" + deviceRepoStruct[len(deviceRepoStruct)-1]
-	log.Println("DEBUG: device-repo url transformation:", deviceRepo.Url(), "-->", deviceRepoUrl)
-
-	_, managerIp, err := docker.DeviceManager(ctx, wg, kafkaBroker, deviceRepoUrl, permSearchUrl)
-	if err != nil {
-		log.Println("ERROR:", err)
-		debug.PrintStack()
-		return "", "", "", "", "", "", err
-	}
-
-	deviceManagerUrl = "http://" + managerIp + ":8080"
 
 	return
 }

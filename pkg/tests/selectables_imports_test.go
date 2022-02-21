@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package devices
+package tests
 
 import (
 	"bytes"
@@ -25,6 +25,7 @@ import (
 	"device-selection/pkg/model/devicemodel"
 	"device-selection/pkg/tests/environment"
 	"device-selection/pkg/tests/environment/kafka"
+	"device-selection/pkg/tests/environment/legacy"
 	"device-selection/pkg/tests/environment/mock"
 	"encoding/json"
 	kafka2 "github.com/segmentio/kafka-go"
@@ -74,7 +75,7 @@ func TestSelectableImports(t *testing.T) {
 	testCharacteristic := "urn:infai:ses:characteristic:test"
 
 	importTypes := []model.ImportType{
-		mock.FromLegacyImportType(mock.ImportType{
+		legacy.FromLegacyImportType(legacy.ImportType{
 			Id:          "lamp",
 			Name:        "lamp",
 			AspectIds:   []string{deviceAspect, airAspect},
@@ -92,7 +93,7 @@ func TestSelectableImports(t *testing.T) {
 			},
 			Owner: "1234567890",
 		}),
-		mock.FromLegacyImportType(mock.ImportType{
+		legacy.FromLegacyImportType(legacy.ImportType{
 			Id:          "never",
 			Name:        "never",
 			AspectIds:   []string{},
@@ -177,7 +178,7 @@ func TestSelectableImports(t *testing.T) {
 				Configs:      nil,
 				Restart:      nil,
 			},
-			ImportType: mock.FromLegacyImportTypePointer(mock.ImportType{
+			ImportType: legacy.FromLegacyImportTypePointer(legacy.ImportType{
 				Id:          "lamp",
 				Name:        "lamp",
 				AspectIds:   []string{deviceAspect, airAspect},
@@ -198,7 +199,7 @@ func TestSelectableImports(t *testing.T) {
 					Configs:      nil,
 					Restart:      nil,
 				},
-				ImportType: mock.FromLegacyImportTypePointer(mock.ImportType{
+				ImportType: legacy.FromLegacyImportTypePointer(legacy.ImportType{
 					Id:          "lamp",
 					Name:        "lamp",
 					AspectIds:   []string{deviceAspect, airAspect},
@@ -238,7 +239,7 @@ func TestSelectableImports(t *testing.T) {
 					Configs:      nil,
 					Restart:      nil,
 				},
-				ImportType: mock.FromLegacyImportTypePointer(mock.ImportType{
+				ImportType: legacy.FromLegacyImportTypePointer(legacy.ImportType{
 					Id:          "lamp",
 					Name:        "lamp",
 					AspectIds:   []string{deviceAspect, airAspect},

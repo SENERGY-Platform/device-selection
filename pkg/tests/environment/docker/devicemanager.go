@@ -19,6 +19,7 @@ package docker
 import (
 	"context"
 	"github.com/ory/dockertest/v3"
+	"github.com/ory/dockertest/v3/docker"
 	"log"
 	"net/http"
 	"sync"
@@ -30,11 +31,17 @@ func DeviceManager(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, dev
 	if err != nil {
 		return "", "", err
 	}
-	container, err := pool.Run("ghcr.io/senergy-platform/device-manager", "dev", []string{
-		"KAFKA_URL=" + kafkaUrl,
-		"DEVICE_REPO_URL=" + devicerepo,
-		"PERMISSIONS_URL=" + permsearch,
-		"DISABLE_VALIDATION=true",
+	container, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "ghcr.io/senergy-platform/device-manager",
+		Tag:        "dev",
+		Env: []string{
+			"KAFKA_URL=" + kafkaUrl,
+			"DEVICE_REPO_URL=" + devicerepo,
+			"PERMISSIONS_URL=" + permsearch,
+			"DISABLE_VALIDATION=true",
+		},
+	}, func(config *docker.HostConfig) {
+		config.RestartPolicy = docker.RestartPolicy{Name: "unless-stopped"}
 	})
 	if err != nil {
 		return "", "", err
@@ -60,6 +67,11 @@ func DeviceManager(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, dev
 }
 
 func DeviceManagerWithDependencies(basectx context.Context, wg *sync.WaitGroup) (managerUrl string, repoUrl string, searchUrl string, err error) {
+	_, managerUrl, repoUrl, searchUrl, err = DeviceManagerWithDependenciesAndKafka(basectx, wg)
+	return
+}
+
+func DeviceManagerWithDependenciesAndKafka(basectx context.Context, wg *sync.WaitGroup) (kafkaUrl string, managerUrl string, repoUrl string, searchUrl string, err error) {
 	ctx, cancel := context.WithCancel(basectx)
 	defer func() {
 		if err != nil {
@@ -69,42 +81,42 @@ func DeviceManagerWithDependencies(basectx context.Context, wg *sync.WaitGroup) 
 
 	_, zkIp, err := Zookeeper(ctx, wg)
 	if err != nil {
-		return managerUrl, repoUrl, searchUrl, err
+		return kafkaUrl, managerUrl, repoUrl, searchUrl, err
 	}
 	zookeeperUrl := zkIp + ":2181"
 
-	kafkaUrl, err := Kafka(ctx, wg, zookeeperUrl)
+	kafkaUrl, err = Kafka(ctx, wg, zookeeperUrl)
 	if err != nil {
-		return managerUrl, repoUrl, searchUrl, err
+		return kafkaUrl, managerUrl, repoUrl, searchUrl, err
 	}
 
 	_, elasticIp, err := ElasticSearch(ctx, wg)
 	if err != nil {
-		return managerUrl, repoUrl, searchUrl, err
+		return kafkaUrl, managerUrl, repoUrl, searchUrl, err
 	}
 
 	_, permIp, err := PermSearch(ctx, wg, kafkaUrl, elasticIp)
 	if err != nil {
-		return managerUrl, repoUrl, searchUrl, err
+		return kafkaUrl, managerUrl, repoUrl, searchUrl, err
 	}
 	searchUrl = "http://" + permIp + ":8080"
 
 	_, mongoIp, err := MongoDB(ctx, wg)
 	if err != nil {
-		return managerUrl, repoUrl, searchUrl, err
+		return kafkaUrl, managerUrl, repoUrl, searchUrl, err
 	}
 
 	_, repoIp, err := DeviceRepo(ctx, wg, kafkaUrl, "mongodb://"+mongoIp+":27017", searchUrl)
 	if err != nil {
-		return managerUrl, repoUrl, searchUrl, err
+		return kafkaUrl, managerUrl, repoUrl, searchUrl, err
 	}
 	repoUrl = "http://" + repoIp + ":8080"
 
 	_, managerIp, err := DeviceManager(ctx, wg, kafkaUrl, repoUrl, searchUrl)
 	if err != nil {
-		return managerUrl, repoUrl, searchUrl, err
+		return kafkaUrl, managerUrl, repoUrl, searchUrl, err
 	}
 	managerUrl = "http://" + managerIp + ":8080"
 
-	return managerUrl, repoUrl, searchUrl, err
+	return kafkaUrl, managerUrl, repoUrl, searchUrl, err
 }

@@ -19,6 +19,7 @@ package docker
 import (
 	"context"
 	"github.com/ory/dockertest/v3"
+	"github.com/ory/dockertest/v3/docker"
 	"log"
 	"net/http"
 	"sync"
@@ -30,7 +31,12 @@ func MongoDB(ctx context.Context, wg *sync.WaitGroup) (hostPort string, ipAddres
 	if err != nil {
 		return "", "", err
 	}
-	container, err := pool.Run("mongo", "4.1.11", []string{})
+	container, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "mongo",
+		Tag:        "4.1.11",
+	}, func(config *docker.HostConfig) {
+		config.Tmpfs = map[string]string{"/data/db": "rw"}
+	})
 	if err != nil {
 		return "", "", err
 	}
@@ -44,7 +50,7 @@ func MongoDB(ctx context.Context, wg *sync.WaitGroup) (hostPort string, ipAddres
 	//go Dockerlog(pool, ctx, container, "MONGODB")
 	hostPort = container.GetPort("27017/tcp")
 	err = pool.Retry(func() error {
-		log.Println("try device-manager connection...")
+		log.Println("try mongo connection...")
 		_, err := http.Get("http://localhost:" + hostPort)
 		if err != nil {
 			log.Println(err)

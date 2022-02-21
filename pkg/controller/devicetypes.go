@@ -79,7 +79,7 @@ func (this *Controller) getCachedDeviceType(token string, id string, cache *map[
 	return result, err
 }
 
-func (this *Controller) getFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, interactions []string) (result []devicemodel.DeviceType, err error, code int) {
+func (this *Controller) GetFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, interactions []string) (result []devicemodel.DeviceType, err error, code int) {
 	return this.getCachedFilteredDeviceTypes(token, descriptions, interactions, nil)
 }
 

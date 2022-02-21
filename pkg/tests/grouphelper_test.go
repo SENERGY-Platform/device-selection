@@ -14,31 +14,16 @@
  * limitations under the License.
  */
 
-package devices
+package tests
 
 import (
-	"bytes"
 	"context"
-	"device-selection/pkg/api"
-	"device-selection/pkg/configuration"
-	"device-selection/pkg/controller"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
-	"device-selection/pkg/tests/environment/docker"
-	"device-selection/pkg/tests/environment/mock"
-	"encoding/json"
-	"errors"
-	"io"
-	"log"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"reflect"
-	"runtime/debug"
-	"sort"
+	"device-selection/pkg/tests/environment/legacy"
+	"device-selection/pkg/tests/helper"
 	"sync"
 	"testing"
-	"time"
 )
 
 func TestGroupHelper(t *testing.T) {
@@ -52,7 +37,7 @@ func TestGroupHelper(t *testing.T) {
 			Id:            "temperature",
 			Name:          "temperature",
 			DeviceClassId: "temperature",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "st1", Name: "st1", Interaction: devicemodel.REQUEST, AspectIds: []string{"air"}, FunctionIds: []string{"getTemperature"}},
 			}),
 		},
@@ -60,7 +45,7 @@ func TestGroupHelper(t *testing.T) {
 			Id:            "lamp",
 			Name:          "lamp",
 			DeviceClassId: "lamp",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
@@ -70,7 +55,7 @@ func TestGroupHelper(t *testing.T) {
 			Id:            "event_lamp",
 			Name:          "event_lamp",
 			DeviceClassId: "lamp",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
@@ -80,7 +65,7 @@ func TestGroupHelper(t *testing.T) {
 			Id:            "both_lamp",
 			Name:          "both_lamp",
 			DeviceClassId: "lamp",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
@@ -90,7 +75,7 @@ func TestGroupHelper(t *testing.T) {
 			Id:            "colorlamp",
 			Name:          "colorlamp",
 			DeviceClassId: "lamp",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOn"}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{"setOff"}},
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{"device", "light"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
@@ -102,7 +87,7 @@ func TestGroupHelper(t *testing.T) {
 			Id:            "plug",
 			Name:          "plug",
 			DeviceClassId: "plug",
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOn"}},
 				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOff"}},
 				{Id: "s11", Name: "s11", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
@@ -158,13 +143,13 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}
 
-	_, _, _, selectionurl, err := grouphelpertestenv(ctx, wg, deviceTypes, devicesInstances)
+	_, _, _, selectionurl, err := helper.Grouphelpertestenv(ctx, wg, deviceTypes, devicesInstances)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	t.Run("empty list", testGroupHelper(selectionurl, false, []string{}, model.DeviceGroupHelperResult{
+	t.Run("empty list", helper.GroupHelper(selectionurl, false, []string{}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{},
 		Options: []model.DeviceGroupOption{
 			{
@@ -251,7 +236,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("blamp", testGroupHelper(selectionurl, false, []string{"blamp"}, model.DeviceGroupHelperResult{
+	t.Run("blamp", helper.GroupHelper(selectionurl, false, []string{"blamp"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -370,7 +355,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("lamp1", testGroupHelper(selectionurl, false, []string{"lamp1"}, model.DeviceGroupHelperResult{
+	t.Run("lamp1", helper.GroupHelper(selectionurl, false, []string{"lamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -469,7 +454,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("colorlamp1", testGroupHelper(selectionurl, false, []string{"colorlamp1"}, model.DeviceGroupHelperResult{
+	t.Run("colorlamp1", helper.GroupHelper(selectionurl, false, []string{"colorlamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -587,7 +572,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("lamp1 colorlamp1", testGroupHelper(selectionurl, false, []string{"lamp1", "colorlamp1"}, model.DeviceGroupHelperResult{
+	t.Run("lamp1 colorlamp1", helper.GroupHelper(selectionurl, false, []string{"lamp1", "colorlamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -677,7 +662,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("lamp1 colorlamp1 plug1", testGroupHelper(selectionurl, false, []string{"lamp1", "colorlamp1", "plug1"}, model.DeviceGroupHelperResult{
+	t.Run("lamp1 colorlamp1 plug1", helper.GroupHelper(selectionurl, false, []string{"lamp1", "colorlamp1", "plug1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		},
@@ -743,7 +728,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability empty list", testGroupHelper(selectionurl, true, []string{}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability empty list", helper.GroupHelper(selectionurl, true, []string{}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{},
 		Options: []model.DeviceGroupOption{
 			{
@@ -830,7 +815,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability blamp", testGroupHelper(selectionurl, true, []string{"blamp"}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability blamp", helper.GroupHelper(selectionurl, true, []string{"blamp"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -933,7 +918,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability lamp1", testGroupHelper(selectionurl, true, []string{"lamp1"}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability lamp1", helper.GroupHelper(selectionurl, true, []string{"lamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1018,7 +1003,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability colorlamp1", testGroupHelper(selectionurl, true, []string{"colorlamp1"}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability colorlamp1", helper.GroupHelper(selectionurl, true, []string{"colorlamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1120,7 +1105,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability lamp1 colorlamp1", testGroupHelper(selectionurl, true, []string{"lamp1", "colorlamp1"}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability lamp1 colorlamp1", helper.GroupHelper(selectionurl, true, []string{"lamp1", "colorlamp1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1196,7 +1181,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 
-	t.Run("maintainUsability lamp1 colorlamp1 plug1", testGroupHelper(selectionurl, true, []string{"lamp1", "colorlamp1", "plug1"}, model.DeviceGroupHelperResult{
+	t.Run("maintainUsability lamp1 colorlamp1 plug1", helper.GroupHelper(selectionurl, true, []string{"lamp1", "colorlamp1", "plug1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		},
@@ -1240,199 +1225,3 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}))
 }
-
-func testGroupHelper(selectionurl string, maintainUsability bool, deviceIds []string, expectedResult model.DeviceGroupHelperResult) func(t *testing.T) {
-	return func(t *testing.T) {
-		buff := new(bytes.Buffer)
-		err := json.NewEncoder(buff).Encode(deviceIds)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		query := ""
-		if maintainUsability {
-			query = "?maintains_group_usability=true"
-		}
-		req, err := http.NewRequest("POST", selectionurl+"/device-group-helper"+query, buff)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		req.Header.Set("Authorization", adminjwt)
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		if resp.StatusCode != 200 {
-			temp, _ := io.ReadAll(resp.Body)
-			t.Error(resp.StatusCode, string(temp))
-			return
-		}
-		result := model.DeviceGroupHelperResult{}
-		err = json.NewDecoder(resp.Body).Decode(&result)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		result = normalizeGroupHelperResult(result)
-		expectedResult = normalizeGroupHelperResult(expectedResult)
-		if !reflect.DeepEqual(result, expectedResult) {
-			resultJson, _ := json.Marshal(result)
-			expectedJson, _ := json.Marshal(expectedResult)
-			t.Error(string(resultJson), "\n", string(expectedJson))
-		}
-	}
-}
-
-func normalizeGroupHelperResult(result model.DeviceGroupHelperResult) model.DeviceGroupHelperResult {
-	sort.SliceStable(result.Criteria, func(i, j int) bool {
-		return result.Criteria[i].AspectId < result.Criteria[j].AspectId
-	})
-	sort.SliceStable(result.Criteria, func(i, j int) bool {
-		return result.Criteria[i].FunctionId < result.Criteria[j].FunctionId
-	})
-	sort.SliceStable(result.Criteria, func(i, j int) bool {
-		return result.Criteria[i].Interaction < result.Criteria[j].Interaction
-	})
-	sort.SliceStable(result.Options, func(i, j int) bool {
-		return result.Options[i].Device.Id < result.Options[j].Device.Id
-	})
-	for i, option := range result.Options {
-		option.Device.LocalId = option.Device.Id
-		sort.SliceStable(option.RemovesCriteria, func(i, j int) bool {
-			return option.RemovesCriteria[i].AspectId < option.RemovesCriteria[j].AspectId
-		})
-		sort.SliceStable(option.RemovesCriteria, func(i, j int) bool {
-			return option.RemovesCriteria[i].FunctionId < option.RemovesCriteria[j].FunctionId
-		})
-		sort.SliceStable(option.RemovesCriteria, func(i, j int) bool {
-			return option.RemovesCriteria[i].Interaction < option.RemovesCriteria[j].Interaction
-		})
-		result.Options[i] = option
-	}
-	return result
-}
-
-func grouphelpertestenv(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (managerurl string, repourl string, searchurl string, selectionurl string, err error) {
-	managerurl, repourl, searchurl, err = docker.DeviceManagerWithDependencies(ctx, wg)
-	if err != nil {
-		return managerurl, repourl, searchurl, selectionurl, err
-	}
-
-	for _, dt := range deviceTypes {
-		err = testSetDeviceType(managerurl, dt)
-		if err != nil {
-			return managerurl, repourl, searchurl, selectionurl, err
-		}
-	}
-
-	for _, d := range deviceInstances {
-		err = testSetDevice(managerurl, d)
-		if err != nil {
-			return managerurl, repourl, searchurl, selectionurl, err
-		}
-	}
-
-	c := &configuration.ConfigStruct{
-		PermSearchUrl: searchurl,
-		DeviceRepoUrl: repourl,
-		Debug:         true,
-	}
-
-	ctrl, err := controller.New(ctx, c)
-	if err != nil {
-		return managerurl, repourl, searchurl, selectionurl, err
-	}
-
-	router := api.Router(c, ctrl)
-	selectionApi := httptest.NewServer(router)
-	wg.Add(1)
-	go func() {
-		<-ctx.Done()
-		selectionApi.Close()
-		wg.Done()
-	}()
-	selectionurl = selectionApi.URL
-
-	return
-}
-
-func testSetDeviceType(devicemanagerUrl string, dt devicemodel.DeviceType) error {
-	temp, _ := json.Marshal(dt)
-	log.Println("test create device-type:", string(temp))
-	resp, err := Jwtpost(adminjwt, devicemanagerUrl+"/device-types", dt)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		temp, _ := io.ReadAll(resp.Body)
-		err = errors.New(string(temp))
-		log.Println("ERROR:", err)
-		debug.PrintStack()
-		return err
-	}
-	return nil
-}
-
-func testSetDevice(devicemanagerUrl string, d devicemodel.Device) error {
-	d.LocalId = d.Id
-	resp, err := Jwtput(adminjwt, devicemanagerUrl+"/devices/"+url.PathEscape(d.Id), d)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		temp, _ := io.ReadAll(resp.Body)
-		err = errors.New(string(temp))
-		log.Println("ERROR:", err)
-		debug.PrintStack()
-		return err
-	}
-	return nil
-}
-
-var SleepAfterEdit = 2 * time.Second
-
-func Jwtpost(token string, url string, msg interface{}) (resp *http.Response, err error) {
-	body := new(bytes.Buffer)
-	err = json.NewEncoder(body).Encode(msg)
-	if err != nil {
-		return resp, err
-	}
-	req, err := http.NewRequest("POST", url, body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", token)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err = http.DefaultClient.Do(req)
-	if SleepAfterEdit != 0 {
-		time.Sleep(SleepAfterEdit)
-	}
-	return
-}
-
-func Jwtput(token string, url string, msg interface{}) (resp *http.Response, err error) {
-	body := new(bytes.Buffer)
-	err = json.NewEncoder(body).Encode(msg)
-	if err != nil {
-		return resp, err
-	}
-	req, err := http.NewRequest("PUT", url, body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", token)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err = http.DefaultClient.Do(req)
-	if SleepAfterEdit != 0 {
-		time.Sleep(SleepAfterEdit)
-	}
-	return
-}
-
-const userjwt = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIzaUtabW9aUHpsMmRtQnBJdS1vSkY4ZVVUZHh4OUFIckVOcG5CcHM5SjYwIn0.eyJqdGkiOiJiOGUyNGZkNy1jNjJlLTRhNWQtOTQ4ZC1mZGI2ZWVkM2JmYzYiLCJleHAiOjE1MzA1MzIwMzIsIm5iZiI6MCwiaWF0IjoxNTMwNTI4NDMyLCJpc3MiOiJodHRwczovL2F1dGguc2VwbC5pbmZhaS5vcmcvYXV0aC9yZWFsbXMvbWFzdGVyIiwiYXVkIjoiZnJvbnRlbmQiLCJzdWIiOiJkZDY5ZWEwZC1mNTUzLTQzMzYtODBmMy03ZjQ1NjdmODVjN2IiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZCIsIm5vbmNlIjoiMjJlMGVjZjgtZjhhMS00NDQ1LWFmMjctNGQ1M2JmNWQxOGI5IiwiYXV0aF90aW1lIjoxNTMwNTI4NDIzLCJzZXNzaW9uX3N0YXRlIjoiMWQ3NWE5ODQtNzM1OS00MWJlLTgxYjktNzMyZDgyNzRjMjNlIiwiYWNyIjoiMCIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJjcmVhdGUtcmVhbG0iLCJhZG1pbiIsImRldmVsb3BlciIsInVtYV9hdXRob3JpemF0aW9uIiwidXNlciJdfSwicmVzb3VyY2VfYWNjZXNzIjp7Im1hc3Rlci1yZWFsbSI6eyJyb2xlcyI6WyJ2aWV3LWlkZW50aXR5LXByb3ZpZGVycyIsInZpZXctcmVhbG0iLCJtYW5hZ2UtaWRlbnRpdHktcHJvdmlkZXJzIiwiaW1wZXJzb25hdGlvbiIsImNyZWF0ZS1jbGllbnQiLCJtYW5hZ2UtdXNlcnMiLCJxdWVyeS1yZWFsbXMiLCJ2aWV3LWF1dGhvcml6YXRpb24iLCJxdWVyeS1jbGllbnRzIiwicXVlcnktdXNlcnMiLCJtYW5hZ2UtZXZlbnRzIiwibWFuYWdlLXJlYWxtIiwidmlldy1ldmVudHMiLCJ2aWV3LXVzZXJzIiwidmlldy1jbGllbnRzIiwibWFuYWdlLWF1dGhvcml6YXRpb24iLCJtYW5hZ2UtY2xpZW50cyIsInF1ZXJ5LWdyb3VwcyJdfSwiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwicm9sZXMiOlsidW1hX2F1dGhvcml6YXRpb24iLCJhZG1pbiIsImNyZWF0ZS1yZWFsbSIsImRldmVsb3BlciIsInVzZXIiLCJvZmZsaW5lX2FjY2VzcyJdLCJuYW1lIjoiZGYgZGZmZmYiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJzZXBsIiwiZ2l2ZW5fbmFtZSI6ImRmIiwiZmFtaWx5X25hbWUiOiJkZmZmZiIsImVtYWlsIjoic2VwbEBzZXBsLmRlIn0.eOwKV7vwRrWr8GlfCPFSq5WwR_p-_rSJURXCV1K7ClBY5jqKQkCsRL2V4YhkP1uS6ECeSxF7NNOLmElVLeFyAkvgSNOUkiuIWQpMTakNKynyRfH0SrdnPSTwK2V1s1i4VjoYdyZWXKNjeT2tUUX9eCyI5qOf_Dzcai5FhGCSUeKpV0ScUj5lKrn56aamlW9IdmbFJ4VwpQg2Y843Vc0TqpjK9n_uKwuRcQd9jkKHkbwWQ-wyJEbFWXHjQ6LnM84H0CQ2fgBqPPfpQDKjGSUNaCS-jtBcbsBAWQSICwol95BuOAqVFMucx56Wm-OyQOuoQ1jaLt2t-Uxtr-C9wKJWHQ"
-const userid = "dd69ea0d-f553-4336-80f3-7f4567f85c7b"
-const adminjwt = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIzaUtabW9aUHpsMmRtQnBJdS1vSkY4ZVVUZHh4OUFIckVOcG5CcHM5SjYwIn0.eyJqdGkiOiJiOGUyNGZkNy1jNjJlLTRhNWQtOTQ4ZC1mZGI2ZWVkM2JmYzYiLCJleHAiOjE1MzA1MzIwMzIsIm5iZiI6MCwiaWF0IjoxNTMwNTI4NDMyLCJpc3MiOiJodHRwczovL2F1dGguc2VwbC5pbmZhaS5vcmcvYXV0aC9yZWFsbXMvbWFzdGVyIiwiYXVkIjoiZnJvbnRlbmQiLCJzdWIiOiJkZDY5ZWEwZC1mNTUzLTQzMzYtODBmMy03ZjQ1NjdmODVjN2IiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZCIsIm5vbmNlIjoiMjJlMGVjZjgtZjhhMS00NDQ1LWFmMjctNGQ1M2JmNWQxOGI5IiwiYXV0aF90aW1lIjoxNTMwNTI4NDIzLCJzZXNzaW9uX3N0YXRlIjoiMWQ3NWE5ODQtNzM1OS00MWJlLTgxYjktNzMyZDgyNzRjMjNlIiwiYWNyIjoiMCIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJjcmVhdGUtcmVhbG0iLCJhZG1pbiIsImRldmVsb3BlciIsInVtYV9hdXRob3JpemF0aW9uIiwidXNlciJdfSwicmVzb3VyY2VfYWNjZXNzIjp7Im1hc3Rlci1yZWFsbSI6eyJyb2xlcyI6WyJ2aWV3LWlkZW50aXR5LXByb3ZpZGVycyIsInZpZXctcmVhbG0iLCJtYW5hZ2UtaWRlbnRpdHktcHJvdmlkZXJzIiwiaW1wZXJzb25hdGlvbiIsImNyZWF0ZS1jbGllbnQiLCJtYW5hZ2UtdXNlcnMiLCJxdWVyeS1yZWFsbXMiLCJ2aWV3LWF1dGhvcml6YXRpb24iLCJxdWVyeS1jbGllbnRzIiwicXVlcnktdXNlcnMiLCJtYW5hZ2UtZXZlbnRzIiwibWFuYWdlLXJlYWxtIiwidmlldy1ldmVudHMiLCJ2aWV3LXVzZXJzIiwidmlldy1jbGllbnRzIiwibWFuYWdlLWF1dGhvcml6YXRpb24iLCJtYW5hZ2UtY2xpZW50cyIsInF1ZXJ5LWdyb3VwcyJdfSwiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwicm9sZXMiOlsidW1hX2F1dGhvcml6YXRpb24iLCJhZG1pbiIsImNyZWF0ZS1yZWFsbSIsImRldmVsb3BlciIsInVzZXIiLCJvZmZsaW5lX2FjY2VzcyJdLCJuYW1lIjoiZGYgZGZmZmYiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJzZXBsIiwiZ2l2ZW5fbmFtZSI6ImRmIiwiZmFtaWx5X25hbWUiOiJkZmZmZiIsImVtYWlsIjoic2VwbEBzZXBsLmRlIn0.eOwKV7vwRrWr8GlfCPFSq5WwR_p-_rSJURXCV1K7ClBY5jqKQkCsRL2V4YhkP1uS6ECeSxF7NNOLmElVLeFyAkvgSNOUkiuIWQpMTakNKynyRfH0SrdnPSTwK2V1s1i4VjoYdyZWXKNjeT2tUUX9eCyI5qOf_Dzcai5FhGCSUeKpV0ScUj5lKrn56aamlW9IdmbFJ4VwpQg2Y843Vc0TqpjK9n_uKwuRcQd9jkKHkbwWQ-wyJEbFWXHjQ6LnM84H0CQ2fgBqPPfpQDKjGSUNaCS-jtBcbsBAWQSICwol95BuOAqVFMucx56Wm-OyQOuoQ1jaLt2t-Uxtr-C9wKJWHQ"

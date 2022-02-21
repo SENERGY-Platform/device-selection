@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package devices
+package tests
 
 import (
 	"context"
@@ -23,7 +23,8 @@ import (
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"device-selection/pkg/tests/environment"
-	"device-selection/pkg/tests/environment/mock"
+	"device-selection/pkg/tests/environment/legacy"
+	"device-selection/pkg/tests/helper"
 	"encoding/json"
 	"reflect"
 	"sync"
@@ -59,11 +60,23 @@ func TestSelectableLocalId(t *testing.T) {
 
 	deviceAspect := "urn:infai:ses:aspect:deviceAspect"
 	lightAspect := "urn:infai:ses:aspect:ligthAspect"
+	aspects := []devicemodel.Aspect{
+		{Id: deviceAspect},
+		{Id: lightAspect},
+	}
+
 	setOnFunction := devicemodel.CONTROLLING_FUNCTION_PREFIX + "setOnFunction"
 	setOffFunction := devicemodel.CONTROLLING_FUNCTION_PREFIX + "setOffFunction"
 	setColorFunction := devicemodel.CONTROLLING_FUNCTION_PREFIX + "setColorFunction"
 	getStateFunction := devicemodel.MEASURING_FUNCTION_PREFIX + "getStateFunction"
 	getColorFunction := devicemodel.MEASURING_FUNCTION_PREFIX + "getColorFunction"
+	functions := []devicemodel.Function{
+		{Id: setOnFunction},
+		{Id: setOffFunction},
+		{Id: setColorFunction},
+		{Id: getStateFunction},
+		{Id: getColorFunction},
+	}
 
 	lampDeviceClass := "urn:infai:ses:device-class:lampClass"
 	plugDeviceClass := "urn:infai:ses:device-class:plugClass"
@@ -73,7 +86,7 @@ func TestSelectableLocalId(t *testing.T) {
 			Id:            "lamp",
 			Name:          "lamp",
 			DeviceClassId: lampDeviceClass,
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "s3", Name: "s3", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
@@ -83,7 +96,7 @@ func TestSelectableLocalId(t *testing.T) {
 			Id:            "both_lamp",
 			Name:          "both_lamp",
 			DeviceClassId: lampDeviceClass,
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "sb1", Name: "sb1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "sb2", Name: "sb2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "sb3", Name: "sb3", Interaction: devicemodel.EVENT_AND_REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
@@ -93,7 +106,7 @@ func TestSelectableLocalId(t *testing.T) {
 			Id:            "event_lamp",
 			Name:          "event_lamp",
 			DeviceClassId: lampDeviceClass,
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "se1", Name: "se1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "se2", Name: "se2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "se3", Name: "se3", Interaction: devicemodel.EVENT, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
@@ -103,7 +116,7 @@ func TestSelectableLocalId(t *testing.T) {
 			Id:            "colorlamp",
 			Name:          "colorlamp",
 			DeviceClassId: lampDeviceClass,
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "s6", Name: "s6", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{getStateFunction}},
@@ -115,7 +128,7 @@ func TestSelectableLocalId(t *testing.T) {
 			Id:            "plug",
 			Name:          "plug",
 			DeviceClassId: plugDeviceClass,
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s9", Name: "s9", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s10", Name: "s10", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{setOffFunction}},
 				{Id: "s11", Name: "s11", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect}, FunctionIds: []string{getStateFunction}},
@@ -174,12 +187,27 @@ func TestSelectableLocalId(t *testing.T) {
 		},
 	}
 
+	for _, a := range aspects {
+		err = helper.SetAspect(deviceManagerUrl, a)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+	for _, f := range functions {
+		err = helper.SetFunction(deviceManagerUrl, f)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+
 	t.Run("create device-types", testCreateDeviceTypes(deviceManagerUrl, deviceTypes))
 	t.Run("create devices", testCreateDevices(deviceManagerUrl, devicesInstances))
 
 	time.Sleep(5 * time.Second)
 
-	t.Run("lamp on/off", testCheckSelectionWithLocalIds(ctrl, model.FilterCriteriaAndSet{
+	t.Run("lamp on/off", testCheckSelectionWithLocalIdsWithoutOptions(ctrl, model.FilterCriteriaAndSet{
 		{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 		{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: ""},
 	}, devicemodel.EVENT, false, []string{"colorlamp1", "lamp2"}, []model.Selectable{
@@ -191,7 +219,7 @@ func TestSelectableLocalId(t *testing.T) {
 					DeviceTypeId: "colorlamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -204,7 +232,7 @@ func TestSelectableLocalId(t *testing.T) {
 					DeviceTypeId: "lamp",
 				},
 			},
-			Services: mock.FromLegacyServices([]mock.Service{
+			Services: legacy.FromLegacyServices([]legacy.Service{
 				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
 				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
 			}),
@@ -212,12 +240,20 @@ func TestSelectableLocalId(t *testing.T) {
 	}))
 }
 
-func testCheckSelectionWithLocalIds(ctrl *controller.Controller, criteria model.FilterCriteriaAndSet, interaction devicemodel.Interaction, includeGroups bool, localIds []string, expectedResult []model.Selectable) func(t *testing.T) {
+func testCheckSelectionWithLocalIdsWithoutOptions(ctrl *controller.Controller, criteria model.FilterCriteriaAndSet, interaction devicemodel.Interaction, includeGroups bool, localIds []string, expectedResult []model.Selectable) func(t *testing.T) {
 	return func(t *testing.T) {
 		result, err, _ := ctrl.GetFilteredDevices(token, criteria, nil, interaction, includeGroups, false, localIds)
 		if err != nil {
 			t.Error(err)
 			return
+		}
+		for i, e := range result {
+			e.ServicePathOptions = nil
+			result[i] = e
+		}
+		for i, e := range expectedResult {
+			e.ServicePathOptions = nil
+			expectedResult[i] = e
 		}
 		normalizeTestSelectables(&result)
 		normalizeTestSelectables(&expectedResult)

@@ -28,7 +28,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 func GetHostIp() (string, error) {
@@ -52,7 +51,7 @@ func Kafka(ctx context.Context, wg *sync.WaitGroup, zookeeperUrl string) (kafkaU
 	}
 	kafkaport, err := GetFreePort()
 	if err != nil {
-		return kafkaUrl, err
+		return "", errors.New("Could not find new port")
 	}
 	networks, _ := pool.Client.ListNetworks()
 	hostIp := ""
@@ -63,7 +62,7 @@ func Kafka(ctx context.Context, wg *sync.WaitGroup, zookeeperUrl string) (kafkaU
 	}
 	kafkaUrl = hostIp + ":" + strconv.Itoa(kafkaport)
 	log.Println("host ip: ", hostIp)
-	log.Println("kafkaUrl url: ", kafkaUrl)
+	log.Println("kafka url:", kafkaUrl)
 	env := []string{
 		"ALLOW_PLAINTEXT_LISTENER=yes",
 		"KAFKA_LISTENERS=OUTSIDE://:9092",
@@ -73,20 +72,31 @@ func Kafka(ctx context.Context, wg *sync.WaitGroup, zookeeperUrl string) (kafkaU
 		"KAFKA_ZOOKEEPER_CONNECT=" + zookeeperUrl,
 	}
 	log.Println("start kafka with env ", env)
-	container, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: "bitnami/kafka", Tag: "latest", Env: env, PortBindings: map[docker.Port][]docker.PortBinding{
-		"9092/tcp": {{HostIP: "", HostPort: strconv.Itoa(kafkaport)}},
-	}})
+	container, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "bitnami/kafka",
+		Tag:        "latest",
+		Env:        env,
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			"9092/tcp": {{HostIP: "", HostPort: strconv.Itoa(kafkaport)}},
+		},
+	}, func(config *docker.HostConfig) {
+		config.Tmpfs = map[string]string{
+			"/var/lib/kafka/data": "rw",
+		}
+	})
 	if err != nil {
 		return kafkaUrl, err
 	}
+	wg.Add(1)
 	go func() {
 		<-ctx.Done()
 		log.Println("DEBUG: remove container " + container.Container.Name)
 		container.Close()
+		wg.Done()
 	}()
 	err = pool.Retry(func() error {
 		log.Println("try kafka connection...")
-		conn, err := kafka.Dial("tcp", kafkaUrl)
+		conn, err := kafka.Dial("tcp", hostIp+":"+strconv.Itoa(kafkaport))
 		if err != nil {
 			log.Println(err)
 			return err
@@ -94,7 +104,6 @@ func Kafka(ctx context.Context, wg *sync.WaitGroup, zookeeperUrl string) (kafkaU
 		defer conn.Close()
 		return nil
 	})
-	time.Sleep(5 * time.Second)
 	return kafkaUrl, err
 }
 
@@ -105,24 +114,34 @@ func Zookeeper(ctx context.Context, wg *sync.WaitGroup) (hostPort string, ipAddr
 	}
 	zkport, err := GetFreePort()
 	if err != nil {
-		log.Fatalf("Could not find new port: %s", err)
+		return "", "", errors.New("Could not find new port")
 	}
 	env := []string{}
 	log.Println("start zookeeper on ", zkport)
-	container, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: "wurstmeister/zookeeper", Tag: "latest", Env: env, PortBindings: map[docker.Port][]docker.PortBinding{
-		"2181/tcp": {{HostIP: "", HostPort: strconv.Itoa(zkport)}},
-	}})
+	container, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "wurstmeister/zookeeper",
+		Tag:        "latest",
+		Env:        env,
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			"2181/tcp": {{HostIP: "", HostPort: strconv.Itoa(zkport)}},
+		},
+	}, func(config *docker.HostConfig) {
+		config.Tmpfs = map[string]string{
+			"/var/lib/zookeeper/data": "rw",
+			"/var/lib/zookeeper/log":  "rw",
+		}
+	})
 	if err != nil {
 		return "", "", err
 	}
+	hostPort = strconv.Itoa(zkport)
 	wg.Add(1)
 	go func() {
-		defer wg.Done()
 		<-ctx.Done()
 		log.Println("DEBUG: remove container " + container.Container.Name)
 		container.Close()
+		wg.Done()
 	}()
-	hostPort = strconv.Itoa(zkport)
 	err = pool.Retry(func() error {
 		log.Println("try zk connection...")
 		zookeeper := kazoo.NewConfig()

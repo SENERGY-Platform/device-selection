@@ -46,7 +46,7 @@ func (this *Controller) GetAspectNode(id string, token string) (result devicemod
 			debug.PrintStack()
 			return nil, errors.New(buf.String())
 		}
-		var aspect []devicemodel.AspectNode
+		var aspect devicemodel.AspectNode
 		err = json.NewDecoder(resp.Body).Decode(&aspect)
 		return aspect, err
 	}, &result)

@@ -19,6 +19,7 @@ package docker
 import (
 	"context"
 	"github.com/ory/dockertest/v3"
+	"github.com/ory/dockertest/v3/docker"
 	"log"
 	"net/http"
 	"sync"
@@ -30,11 +31,17 @@ func DeviceRepo(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, mongoU
 	if err != nil {
 		return "", "", err
 	}
-	container, err := pool.Run("ghcr.io/senergy-platform/device-repository", "dev", []string{
-		"KAFKA_URL=" + kafkaUrl,
-		"PERMISSIONS_URL=" + permsearch,
-		"MONGO_URL=" + mongoUrl,
-		"DEBUG=true",
+	container, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "ghcr.io/senergy-platform/device-repository",
+		Tag:        "dev",
+		Env: []string{
+			"KAFKA_URL=" + kafkaUrl,
+			"PERMISSIONS_URL=" + permsearch,
+			"MONGO_URL=" + mongoUrl,
+			"DEBUG=true",
+		},
+	}, func(config *docker.HostConfig) {
+		config.RestartPolicy = docker.RestartPolicy{Name: "unless-stopped"}
 	})
 	if err != nil {
 		return "", "", err

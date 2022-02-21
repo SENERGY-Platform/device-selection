@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package controller
+package tests
 
 import (
 	"context"
 	"device-selection/pkg/configuration"
+	"device-selection/pkg/controller"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
-	"device-selection/pkg/tests/environment/mock"
+	"device-selection/pkg/tests/environment/legacy"
+	"device-selection/pkg/tests/helper"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestGetFilteredDeviceTypes(t *testing.T) {
@@ -52,13 +54,13 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	repo, err := New(ctx, c)
+	repo, err := controller.New(ctx, c)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	_, err, _ = repo.getFilteredDeviceTypes("token", DeviceDescriptions{{
+	_, err, _ = repo.GetFilteredDeviceTypes(helper.AdminJwt, DeviceDescriptions{{
 		CharacteristicId: "chid1",
 		Function:         devicemodel.Function{Id: "fid"},
 		DeviceClass:      nil,
@@ -70,7 +72,7 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 		return
 	}
 
-	dt, err, _ := repo.getFilteredDeviceTypes("token", DeviceDescriptions{{
+	dt, err, _ := repo.GetFilteredDeviceTypes(helper.AdminJwt, DeviceDescriptions{{
 		CharacteristicId: "chid1",
 		Function:         devicemodel.Function{Id: "fid"},
 		DeviceClass:      &devicemodel.DeviceClass{Id: "dc1"},
@@ -99,77 +101,102 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 }
 
 func TestGetFilteredDevices(t *testing.T) {
-
-	mux := sync.Mutex{}
-	calls := []string{}
-
-	repomock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mux.Lock()
-		defer mux.Unlock()
-		calls = append(calls, r.URL.Path+"?"+r.URL.RawQuery)
-		json.NewEncoder(w).Encode([]devicemodel.DeviceType{
-			{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("11", "pid", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
-				testService("11_b", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
-				testService("12", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-			}},
-			{Id: "dt2", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("21", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-				testService("22", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-			}},
-			{Id: "dt3", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("31", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
-				testService("32", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-			}},
-			{Id: "dt4", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
-				testService("41", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-				testService("42", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
-			}},
-		})
-	}))
-
-	defer repomock.Close()
-
-	searchmock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.URL.Path + "?" + r.URL.RawQuery)
-		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt1")+"&rights=x&limit=1000" {
-			json.NewEncoder(w).Encode([]TestPermSearchDevice{
-				{Id: "1", Name: "1", DeviceType: "dt1"},
-			})
-		}
-		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt2")+"&rights=x&limit=1000" {
-			json.NewEncoder(w).Encode([]TestPermSearchDevice{
-				{Id: "2", Name: "2", DeviceType: "dt2"},
-			})
-		}
-		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt3")+"&rights=x&limit=1000" {
-			json.NewEncoder(w).Encode([]TestPermSearchDevice{
-				{Id: "3", Name: "3", DeviceType: "dt3"},
-			})
-		}
-		if r.URL.Path+"?"+r.URL.RawQuery == "/v3/resources/devices?filter="+url.PathEscape("device_type_id:dt4")+"&rights=x&limit=1000" {
-			json.NewEncoder(w).Encode([]TestPermSearchDevice{
-				{Id: "4", Name: "4", DeviceType: "dt4"},
-			})
-		}
-	}))
-
-	defer searchmock.Close()
-
-	c := &configuration.ConfigStruct{
-		PermSearchUrl: searchmock.URL,
-		DeviceRepoUrl: repomock.URL,
-	}
-
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	repo, err := New(ctx, c)
+
+	deviceTypes := []devicemodel.DeviceType{
+		{Id: "dt1", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+			testService("11", "pid", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
+			testService("11_b", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
+			testService("12", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
+		}},
+		{Id: "dt2", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+			testService("21", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
+			testService("22", "pid", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
+		}},
+		{Id: "dt3", Name: "dt1name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+			testService("31", "mqtt", devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION),
+			testService("32", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
+		}},
+		{Id: "dt4", Name: "dt2name", DeviceClassId: "dc1", Services: []devicemodel.Service{
+			testService("41", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
+			testService("42", "mqtt", devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION),
+		}},
+	}
+
+	devices := []devicemodel.Device{
+		{Id: "1", Name: "1", DeviceTypeId: "dt1"},
+		{Id: "2", Name: "2", DeviceTypeId: "dt2"},
+		{Id: "3", Name: "3", DeviceTypeId: "dt3"},
+		{Id: "4", Name: "4", DeviceTypeId: "dt4"},
+	}
+
+	concepts := []devicemodel.Concept{
+		{
+			Id: "concept",
+		},
+	}
+
+	functions := []devicemodel.Function{
+		{
+			Id:        devicemodel.MEASURING_FUNCTION_PREFIX + "_1",
+			ConceptId: "concept",
+		},
+		{
+			Id:        devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1",
+			ConceptId: "concept",
+		},
+	}
+
+	aspects := []devicemodel.Aspect{
+		{
+			Id:   "a1",
+			Name: "a1",
+		},
+	}
+
+	managerurl, repourl, searchurl, err := helper.EnvWithDevices(ctx, wg, deviceTypes, devices)
+
+	for _, concept := range concepts {
+		err = helper.SetConcept(managerurl, concept)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+
+	for _, f := range functions {
+		err = helper.SetFunction(managerurl, f)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+
+	for _, a := range aspects {
+		err = helper.SetAspect(managerurl, a)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+
+	c := &configuration.ConfigStruct{
+		PermSearchUrl: searchurl,
+		DeviceRepoUrl: repourl,
+	}
+
+	repo, err := controller.New(ctx, c)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	d, err, _ := repo.GetFilteredDevices("token", DeviceDescriptions{{
+	time.Sleep(2 * time.Second)
+
+	d, err, _ := repo.GetFilteredDevices(helper.AdminJwt, DeviceDescriptions{{
 		CharacteristicId: "chid1",
 		Function:         devicemodel.Function{Id: devicemodel.MEASURING_FUNCTION_PREFIX + "_1"},
 		DeviceClass:      &devicemodel.DeviceClass{Id: "dc1"},
@@ -185,19 +212,10 @@ func TestGetFilteredDevices(t *testing.T) {
 		t.Error(len(d), d)
 		return
 	}
-
-	mux.Lock()
-	defer mux.Unlock()
-	if !reflect.DeepEqual(calls, []string{
-		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"`+devicemodel.MEASURING_FUNCTION_PREFIX+`_1","aspect_id":"a1","device_class_id":"dc1"}]`),
-	}) {
-		temp, _ := json.Marshal(calls)
-		t.Error(string(temp))
-	}
 }
 
 func testService(id string, protocolId string, functionType string) devicemodel.Service {
-	result := mock.Service{
+	result := legacy.Service{
 		Id:         id,
 		LocalId:    id + "_l",
 		Name:       id + "_name",
@@ -209,7 +227,7 @@ func testService(id string, protocolId string, functionType string) devicemodel.
 	} else {
 		result.FunctionIds = []string{devicemodel.CONTROLLING_FUNCTION_PREFIX + "_1"}
 	}
-	return mock.FromLegacyService(result)
+	return legacy.FromLegacyService(result)
 }
 
 type DeviceDescriptions []DeviceDescription

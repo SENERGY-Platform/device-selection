@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package devices
+package tests
 
 import (
 	"bytes"
 	"context"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
+	"device-selection/pkg/tests/environment/legacy"
+	"device-selection/pkg/tests/helper"
 	"encoding/json"
 	"net/http"
 	"reflect"
@@ -33,7 +35,7 @@ func TestApiBulkSelectables(t *testing.T) {
 	defer wg.Wait()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, _, selectionurl, err := testenv(ctx, wg)
+	_, _, _, selectionurl, err := legacy.Testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -128,7 +130,7 @@ func TestApiCompletedBulkSelectables(t *testing.T) {
 	defer wg.Wait()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, _, selectionurl, err := testenv(ctx, wg)
+	_, _, _, selectionurl, err := legacy.Testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -233,7 +235,7 @@ func sendBulkRequest(apiurl string, result interface{}, request model.BulkReques
 			t.Error(err)
 			return
 		}
-		req.Header.Set("Authorization", adminjwt)
+		req.Header.Set("Authorization", helper.AdminJwt)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
@@ -264,7 +266,7 @@ func sendCompletedBulkRequest(apiurl string, result interface{}, request model.B
 			t.Error(err)
 			return
 		}
-		req.Header.Set("Authorization", adminjwt)
+		req.Header.Set("Authorization", helper.AdminJwt)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)

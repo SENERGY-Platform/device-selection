@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 )
 
 func ElasticSearch(ctx context.Context, wg *sync.WaitGroup) (hostPort string, ipAddress string, err error) {
@@ -32,21 +33,34 @@ func ElasticSearch(ctx context.Context, wg *sync.WaitGroup) (hostPort string, ip
 	if err != nil {
 		return "", "", err
 	}
-	container, err := pool.Run("docker.elastic.co/elasticsearch/elasticsearch", "7.6.1", []string{"discovery.type=single-node"})
-	if err != nil {
-		return "", "", err
-	}
+	container, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "docker.elastic.co/elasticsearch/elasticsearch",
+		Tag:        "7.6.1",
+		Env: []string{
+			"discovery.type=single-node",
+			"path.data=/opt/elasticsearch/volatile/data",
+			"path.logs=/opt/elasticsearch/volatile/logs",
+		},
+	}, func(config *docker.HostConfig) {
+		config.Tmpfs = map[string]string{
+			"/opt/elasticsearch/volatile/data": "rw",
+			"/opt/elasticsearch/volatile/logs": "rw",
+			"/tmp":                             "rw",
+		}
+	})
+
 	wg.Add(1)
 	go func() {
-		defer wg.Done()
 		<-ctx.Done()
 		log.Println("DEBUG: remove container " + container.Container.Name)
 		container.Close()
+		wg.Done()
 	}()
+
 	hostPort = container.GetPort("9200/tcp")
 	err = pool.Retry(func() error {
 		log.Println("try elastic connection...")
-		_, err := http.Get("http://localhost:" + hostPort + "/_cluster/health")
+		_, err := http.Get("http://" + container.Container.NetworkSettings.IPAddress + ":9200/_cluster/health")
 		return err
 	})
 	if err != nil {
@@ -61,9 +75,16 @@ func PermSearch(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, elasti
 	if err != nil {
 		return "", "", err
 	}
-	container, err := pool.Run("ghcr.io/senergy-platform/permission-search", "dev", []string{
-		"KAFKA_URL=" + kafkaUrl,
-		"ELASTIC_URL=" + "http://" + elasticIp + ":9200",
+	container, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "ghcr.io/senergy-platform/permission-search",
+		Tag:        "dev",
+		Env: []string{
+			"KAFKA_URL=" + kafkaUrl,
+			"ELASTIC_URL=" + "http://" + elasticIp + ":9200",
+			"DEBUG=true",
+		},
+	}, func(config *docker.HostConfig) {
+		config.RestartPolicy = docker.RestartPolicy{Name: "unless-stopped"}
 	})
 	if err != nil {
 		return "", "", err
@@ -85,6 +106,10 @@ func PermSearch(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, elasti
 		}
 		return err
 	})
+	if err != nil {
+		return hostPort, container.Container.NetworkSettings.IPAddress, err
+	}
+	time.Sleep(10 * time.Second)
 	return hostPort, container.Container.NetworkSettings.IPAddress, err
 }
 
