@@ -19,38 +19,47 @@ package environment
 import (
 	"context"
 	"device-selection/pkg/tests/environment/docker"
-	"device-selection/pkg/tests/environment/kafka"
 	"device-selection/pkg/tests/environment/mock"
 	"log"
 	"runtime/debug"
 	"sync"
 )
 
-func New(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceManagerUrl string, deviceRepoUrl string, permSearchUrl string, importRepoUrl string, importDeployUrl string, err error) {
+func NewWithImport(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceManagerUrl string, deviceRepoUrl string, permSearchUrl string, importRepoUrl string, importDeployUrl string, err error) {
 	kafkaBroker, deviceManagerUrl, deviceRepoUrl, permSearchUrl, err = docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 		return "", "", "", "", "", "", err
 	}
-
-	importRepoProducer, err := kafka.GetProducer([]string{kafkaBroker}, "import-types")
+	_, mongoIp, err := docker.MongoDB(ctx, wg)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 		return "", "", "", "", "", "", err
 	}
-	importRepo := mock.NewImportRepo(importRepoProducer)
+
+	importMongo := "mongodb://" + mongoIp + ":27017"
+	_, importRepoIp, err := docker.ImportRepo(ctx, wg, kafkaBroker, importMongo, permSearchUrl, deviceRepoUrl)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+		return "", "", "", "", "", "", err
+	}
+
+	importRepoUrl = "http://" + importRepoIp + ":8080"
 	importDeploy := mock.NewImportDeploy()
 
 	go func() {
 		<-ctx.Done()
-		importRepo.Stop()
 		importDeploy.Stop()
 	}()
 
-	importRepoUrl = importRepo.Url()
 	importDeployUrl = importDeploy.Url()
 
 	return
 }
+
+const ConceptTopic = "concepts"
+const FunctionTopic = "functions"
+const ImportTypeTopic = "import-types"

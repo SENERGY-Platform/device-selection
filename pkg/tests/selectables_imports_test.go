@@ -25,8 +25,7 @@ import (
 	"device-selection/pkg/model/devicemodel"
 	"device-selection/pkg/tests/environment"
 	"device-selection/pkg/tests/environment/kafka"
-	"device-selection/pkg/tests/environment/legacy"
-	"device-selection/pkg/tests/environment/mock"
+	"device-selection/pkg/tests/helper"
 	"encoding/json"
 	kafka2 "github.com/segmentio/kafka-go"
 	"io/ioutil"
@@ -43,7 +42,7 @@ func TestSelectableImports(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	kafkabroker, _, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
+	kafkabroker, deviceManagerUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.NewWithImport(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -65,6 +64,17 @@ func TestSelectableImports(t *testing.T) {
 
 	deviceAspect := "urn:infai:ses:aspect:deviceAspect"
 	airAspect := "urn:infai:ses:aspect:airAspect"
+	aspects := []devicemodel.Aspect{
+		{Id: deviceAspect},
+		{Id: airAspect},
+	}
+	for _, a := range aspects {
+		err = helper.SetAspect(deviceManagerUrl, a)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
 
 	getColorFunction := devicemodel.MEASURING_FUNCTION_PREFIX + "getColorFunction"
 	getHumidityFunction := devicemodel.MEASURING_FUNCTION_PREFIX + "getHumidityFunction"
@@ -75,34 +85,40 @@ func TestSelectableImports(t *testing.T) {
 	testCharacteristic := "urn:infai:ses:characteristic:test"
 
 	importTypes := []model.ImportType{
-		legacy.FromLegacyImportType(legacy.ImportType{
-			Id:          "lamp",
-			Name:        "lamp",
-			AspectIds:   []string{deviceAspect, airAspect},
-			FunctionIds: []string{getColorFunction, getHumidityFunction},
+		{
+			Id:   "lamp",
+			Name: "lamp",
 			Output: model.ImportContentVariable{
 				Name: "output",
 				SubContentVariables: []model.ImportContentVariable{
 					{
 						Name: "value",
-						SubContentVariables: []model.ImportContentVariable{{
-							Name:             "value",
-							CharacteristicId: testCharacteristic,
-						}}},
+						SubContentVariables: []model.ImportContentVariable{
+							{
+								Name:             "value",
+								CharacteristicId: testCharacteristic,
+								AspectId:         deviceAspect,
+								FunctionId:       getColorFunction,
+							},
+							{
+								Name:       "foo",
+								AspectId:   airAspect,
+								FunctionId: getHumidityFunction,
+							},
+						},
+					},
 				},
 			},
-			Owner: "1234567890",
-		}),
-		legacy.FromLegacyImportType(legacy.ImportType{
-			Id:          "never",
-			Name:        "never",
-			AspectIds:   []string{},
-			FunctionIds: []string{},
+			Owner: helper.JwtSubject,
+		},
+		{
+			Id:   "never",
+			Name: "never",
 			Output: model.ImportContentVariable{
 				Name: "output",
 			},
-			Owner: "1234567890",
-		}),
+			Owner: helper.JwtSubject,
+		},
 	}
 
 	importInstances := []model.Import{
@@ -118,7 +134,7 @@ func TestSelectableImports(t *testing.T) {
 		},
 	}
 
-	functionProducer, err := kafka.GetProducer([]string{kafkabroker}, mock.FunctionTopic)
+	functionProducer, err := kafka.GetProducer([]string{kafkabroker}, environment.FunctionTopic)
 	if err != nil {
 		t.Error(err)
 		return
@@ -139,7 +155,7 @@ func TestSelectableImports(t *testing.T) {
 		return
 	}
 
-	conceptProducer, err := kafka.GetProducer([]string{kafkabroker}, mock.ConceptTopic)
+	conceptProducer, err := kafka.GetProducer([]string{kafkabroker}, environment.ConceptTopic)
 	if err != nil {
 		t.Error(err)
 		return
@@ -158,7 +174,7 @@ func TestSelectableImports(t *testing.T) {
 		return
 	}
 
-	t.Run("create import-types", testCreateImportTypes(importRepoUrl, importTypes))
+	t.Run("create import-types", testCreateImportTypes(kafkabroker, importRepoUrl, importTypes))
 	t.Run("create imports", testCreateImports(importDeployUrl, importInstances))
 
 	time.Sleep(10 * time.Second)
@@ -178,12 +194,10 @@ func TestSelectableImports(t *testing.T) {
 				Configs:      nil,
 				Restart:      nil,
 			},
-			ImportType: legacy.FromLegacyImportTypePointer(legacy.ImportType{
-				Id:          "lamp",
-				Name:        "lamp",
-				AspectIds:   []string{deviceAspect, airAspect},
-				FunctionIds: []string{getColorFunction, getHumidityFunction},
-			}),
+			ImportType: &model.ImportType{
+				Id:   "lamp",
+				Name: "lamp",
+			},
 		},
 	}))
 
@@ -199,23 +213,10 @@ func TestSelectableImports(t *testing.T) {
 					Configs:      nil,
 					Restart:      nil,
 				},
-				ImportType: legacy.FromLegacyImportTypePointer(legacy.ImportType{
-					Id:          "lamp",
-					Name:        "lamp",
-					AspectIds:   []string{deviceAspect, airAspect},
-					FunctionIds: []string{getColorFunction, getHumidityFunction},
-					Output: model.ImportContentVariable{
-						Name: "output",
-						SubContentVariables: []model.ImportContentVariable{
-							{
-								Name: "value",
-								SubContentVariables: []model.ImportContentVariable{{
-									Name:             "value",
-									CharacteristicId: testCharacteristic,
-								}}},
-						},
-					},
-				}),
+				ImportType: &model.ImportType{
+					Id:   "lamp",
+					Name: "lamp",
+				},
 			},
 		}
 		selectables, err := ctrl.CompleteServices(token, selectables, criteria)
@@ -239,28 +240,16 @@ func TestSelectableImports(t *testing.T) {
 					Configs:      nil,
 					Restart:      nil,
 				},
-				ImportType: legacy.FromLegacyImportTypePointer(legacy.ImportType{
-					Id:          "lamp",
-					Name:        "lamp",
-					AspectIds:   []string{deviceAspect, airAspect},
-					FunctionIds: []string{getColorFunction, getHumidityFunction},
-					Output: model.ImportContentVariable{
-						Name: "output",
-						SubContentVariables: []model.ImportContentVariable{
-							{
-								Name: "value",
-								SubContentVariables: []model.ImportContentVariable{{
-									Name:             "value",
-									CharacteristicId: testCharacteristic,
-								}}},
-						},
-					},
-					Owner: "1234567890",
-				}),
+				ImportType: &model.ImportType{
+					Id:    "lamp",
+					Name:  "lamp",
+					Owner: helper.JwtSubject,
+				},
 				ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 					"lamp": {{
 						Path:             "value.value",
 						CharacteristicId: testCharacteristic,
+						AspectNodeId:     deviceAspect,
 					}},
 				},
 			},
@@ -330,8 +319,25 @@ func testCreateImports(deployUrl string, imports []model.Import) func(t *testing
 
 }
 
-func testCreateImportTypes(repoUrl string, importTypes []model.ImportType) func(t *testing.T) {
+func testCreateImportTypes(kafkabroker string, repoUrl string, importTypes []model.ImportType) func(t *testing.T) {
 	return func(t *testing.T) {
+		//ensure existing ids
+		producer, err := kafka.GetProducer([]string{kafkabroker}, environment.ImportTypeTopic)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		for _, importType := range importTypes {
+			ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+			err = producer.WriteMessages(ctx, kafka2.Message{Key: []byte(importType.Id), Value: []byte(
+				`{"command": "PUT", "id": "` + importType.Id + `", "owner": "` + helper.JwtSubject + `", "import_type":{"id": "` + importType.Id + `", "owner": "` + helper.JwtSubject + `"}}`)})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+		}
+		time.Sleep(2 * time.Second)
+		//set values
 		for _, importType := range importTypes {
 			buff := new(bytes.Buffer)
 			err := json.NewEncoder(buff).Encode(importType)
@@ -344,6 +350,8 @@ func testCreateImportTypes(repoUrl string, importTypes []model.ImportType) func(
 				t.Error(err)
 				return
 			}
+			req.Header.Set("Authorization", token)
+			req.Header.Set("Content-Type", "application/json")
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				t.Error(err)
@@ -351,7 +359,7 @@ func testCreateImportTypes(repoUrl string, importTypes []model.ImportType) func(
 			}
 			if resp.StatusCode != 200 {
 				temp, _ := ioutil.ReadAll(resp.Body)
-				t.Error(resp.StatusCode, string(temp))
+				t.Error(resp.StatusCode, string(temp), importType.Id, importType)
 				return
 			}
 		}
@@ -359,6 +367,11 @@ func testCreateImportTypes(repoUrl string, importTypes []model.ImportType) func(
 }
 
 func normalizeImportSelectable(selectable []model.Selectable) (out []model.Selectable, err error) {
+	for _, v := range selectable {
+		if v.ImportType != nil {
+			v.ImportType.Output = model.ImportContentVariable{}
+		}
+	}
 	tmp, err := json.Marshal(selectable)
 	if err != nil {
 		return []model.Selectable{}, err

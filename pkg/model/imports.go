@@ -24,7 +24,7 @@ type ImportType struct {
 	Description    string                `json:"description"`
 	Image          string                `json:"image"`
 	DefaultRestart bool                  `json:"default_restart"`
-	Configs        []ImportConfig        `json:"configs"`
+	Configs        []ImportTypeConfig    `json:"configs"`
 	Output         ImportContentVariable `json:"output"`
 	Owner          string                `json:"owner"`
 }

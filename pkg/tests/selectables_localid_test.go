@@ -22,7 +22,7 @@ import (
 	"device-selection/pkg/controller"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
-	"device-selection/pkg/tests/environment"
+	"device-selection/pkg/tests/environment/docker"
 	"device-selection/pkg/tests/environment/legacy"
 	"device-selection/pkg/tests/helper"
 	"encoding/json"
@@ -38,18 +38,16 @@ func TestSelectableLocalId(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	_, deviceManagerUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.New(ctx, wg)
+	deviceManagerUrl, deviceRepoUrl, permSearchUrl, err := docker.DeviceManagerWithDependencies(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
 	c := &configuration.ConfigStruct{
-		PermSearchUrl:   permSearchUrl,
-		DeviceRepoUrl:   deviceRepoUrl,
-		ImportRepoUrl:   importRepoUrl,
-		ImportDeployUrl: importDeployUrl,
-		Debug:           true,
+		PermSearchUrl: permSearchUrl,
+		DeviceRepoUrl: deviceRepoUrl,
+		Debug:         true,
 	}
 
 	ctrl, err := controller.New(ctx, c)
