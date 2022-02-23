@@ -87,10 +87,14 @@ func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentv
 		return err
 	}
 	if ok {
+		aspectNode, err := this.getAspectNodeWithCache(token, aspectCache, contentVariable.GetAspectId())
+		if err != nil {
+			return err
+		}
 		*res = append(*res, model.PathCharacteristicIdPair{
 			Path:             path,
 			CharacteristicId: contentVariable.GetCharacteristicId(),
-			AspectNodeId:     contentVariable.GetAspectId(),
+			AspectNode:       aspectNode,
 		})
 	}
 	for _, subContentVariable := range contentVariable.GetSubContentVariables() {
@@ -118,15 +122,9 @@ func (this *Controller) contentVariableContainsAnyCriteria(variable basecontentv
 func (this *Controller) contentVariableContainsCriteria(variable basecontentvariable.Descriptor, criteria devicemodel.FilterCriteria, token string, aspectCache *map[string]devicemodel.AspectNode) (result bool, err error) {
 	aspectNode := devicemodel.AspectNode{}
 	if criteria.AspectId != "" {
-		var ok bool
-		aspectNode, ok = (*aspectCache)[criteria.AspectId]
-		if !ok {
-			aspectNode, err = this.GetAspectNode(criteria.AspectId, token)
-			if err != nil {
-				log.Println("WARNING: unable to load aspect node", criteria.AspectId, err)
-				return false, err
-			}
-			(*aspectCache)[criteria.AspectId] = aspectNode
+		aspectNode, err = this.getAspectNodeWithCache(token, aspectCache, criteria.AspectId)
+		if err != nil {
+			return false, err
 		}
 	}
 	if variable.GetFunctionId() == criteria.FunctionId &&
@@ -136,6 +134,20 @@ func (this *Controller) contentVariableContainsCriteria(variable basecontentvari
 		return true, nil
 	}
 	return false, nil
+}
+
+func (this *Controller) getAspectNodeWithCache(token string, aspectCache *map[string]devicemodel.AspectNode, aspectId string) (aspectNode devicemodel.AspectNode, err error) {
+	var ok bool
+	aspectNode, ok = (*aspectCache)[aspectId]
+	if !ok {
+		aspectNode, err = this.GetAspectNode(aspectId, token)
+		if err != nil {
+			log.Println("WARNING: unable to load aspect node", aspectId, err)
+			return aspectNode, err
+		}
+		(*aspectCache)[aspectId] = aspectNode
+	}
+	return aspectNode, nil
 }
 
 func listContains(list []string, search string) bool {

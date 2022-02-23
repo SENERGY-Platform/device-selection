@@ -63,6 +63,15 @@ func TestSelectableImports(t *testing.T) {
 	}
 
 	deviceAspect := "urn:infai:ses:aspect:deviceAspect"
+	deviceAspectNode := devicemodel.AspectNode{
+		Id:            deviceAspect,
+		Name:          "",
+		RootId:        deviceAspect,
+		ParentId:      "",
+		ChildIds:      []string{},
+		AncestorIds:   []string{},
+		DescendentIds: []string{},
+	}
 	airAspect := "urn:infai:ses:aspect:airAspect"
 	aspects := []devicemodel.Aspect{
 		{Id: deviceAspect},
@@ -249,7 +258,7 @@ func TestSelectableImports(t *testing.T) {
 					"lamp": {{
 						Path:             "value.value",
 						CharacteristicId: testCharacteristic,
-						AspectNodeId:     deviceAspect,
+						AspectNode:       deviceAspectNode,
 					}},
 				},
 			},

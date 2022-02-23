@@ -198,7 +198,7 @@ func getServicePathOptionsFromDeviceRepoResult(in map[string][]devicemodel.Servi
 					temp = append(temp, model.PathCharacteristicIdPair{
 						Path:             element.Path,
 						CharacteristicId: element.CharacteristicId,
-						AspectNodeId:     element.AspectNodeId,
+						AspectNode:       element.AspectNode,
 					})
 				}
 			}
