@@ -259,6 +259,7 @@ func TestSelectableImports(t *testing.T) {
 						Path:             "value.value",
 						CharacteristicId: testCharacteristic,
 						AspectNode:       deviceAspectNode,
+						FunctionId:       getColorFunction,
 					}},
 				},
 			},

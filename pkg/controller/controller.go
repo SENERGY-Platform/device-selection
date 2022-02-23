@@ -199,6 +199,7 @@ func getServicePathOptionsFromDeviceRepoResult(in map[string][]devicemodel.Servi
 						Path:             element.Path,
 						CharacteristicId: element.CharacteristicId,
 						AspectNode:       element.AspectNode,
+						FunctionId:       element.FunctionId,
 					})
 				}
 			}

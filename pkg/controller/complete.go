@@ -95,6 +95,7 @@ func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentv
 			Path:             path,
 			CharacteristicId: contentVariable.GetCharacteristicId(),
 			AspectNode:       aspectNode,
+			FunctionId:       contentVariable.GetFunctionId(),
 		})
 	}
 	for _, subContentVariable := range contentVariable.GetSubContentVariables() {

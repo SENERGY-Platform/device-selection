@@ -84,4 +84,5 @@ type PathCharacteristicIdPair struct {
 	Path             string                 `json:"path"`
 	CharacteristicId string                 `json:"characteristicId"`
 	AspectNode       devicemodel.AspectNode `json:"aspectNode"`
+	FunctionId       string                 `json:"functionId"`
 }
