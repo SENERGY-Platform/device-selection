@@ -38,4 +38,5 @@ type ServicePathOption struct {
 	CharacteristicId string     `json:"characteristic_id"`
 	AspectNode       AspectNode `json:"aspect_node"`
 	FunctionId       string     `json:"function_id"`
+	IsVoid           bool       `json:"is_void"`
 }

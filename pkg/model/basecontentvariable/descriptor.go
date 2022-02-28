@@ -6,4 +6,5 @@ type Descriptor interface {
 	GetSubContentVariables() []Descriptor
 	GetFunctionId() string
 	GetAspectId() string
+	GetIsVoid() bool
 }

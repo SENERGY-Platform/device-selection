@@ -85,4 +85,5 @@ type PathCharacteristicIdPair struct {
 	CharacteristicId string                 `json:"characteristicId"`
 	AspectNode       devicemodel.AspectNode `json:"aspectNode"`
 	FunctionId       string                 `json:"functionId"`
+	IsVoid           bool                   `json:"isVoid"`
 }

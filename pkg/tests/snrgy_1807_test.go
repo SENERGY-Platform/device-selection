@@ -1841,6 +1841,15 @@ func createTestMetadata(devicemanager string, interaction devicemodel.Interactio
 					{
 						Id:          "triggerToggle",
 						Interaction: interaction,
+						Inputs: []devicemodel.Content{
+							{
+								ContentVariable: devicemodel.ContentVariable{
+									Id:         "void",
+									IsVoid:     true,
+									FunctionId: devicemodel.CONTROLLING_FUNCTION_PREFIX + "toggle",
+								},
+							},
+						},
 					},
 				},
 			},

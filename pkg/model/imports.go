@@ -39,6 +39,7 @@ type ImportContentVariable struct {
 	UseAsTag            bool                    `json:"use_as_tag"`
 	FunctionId          string                  `json:"function_id,omitempty"`
 	AspectId            string                  `json:"aspect_id,omitempty"`
+	IsVoid              bool                    `json:"is_void"`
 }
 
 type ImportTypeConfig struct {
@@ -94,4 +95,8 @@ func (this *ImportContentVariable) GetFunctionId() string {
 
 func (this *ImportContentVariable) GetAspectId() string {
 	return this.AspectId
+}
+
+func (this *ImportContentVariable) GetIsVoid() bool {
+	return this.IsVoid
 }

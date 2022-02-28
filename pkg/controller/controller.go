@@ -200,6 +200,7 @@ func getServicePathOptionsFromDeviceRepoResult(in map[string][]devicemodel.Servi
 						CharacteristicId: element.CharacteristicId,
 						AspectNode:       element.AspectNode,
 						FunctionId:       element.FunctionId,
+						IsVoid:           element.IsVoid,
 					})
 				}
 			}
