@@ -31,6 +31,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"reflect"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -67,7 +68,6 @@ func createTestEnv(ctx context.Context, wg *sync.WaitGroup, t *testing.T) (devic
 }
 
 func TestDeviceTypeMeasuringSelectables(t *testing.T) {
-	//t.Skip("not implemented") //TODO
 	wg := &sync.WaitGroup{}
 	defer wg.Wait()
 	ctx, cancel := context.WithCancel(context.Background())
@@ -121,7 +121,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getInsideTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -136,7 +136,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 				},
 				"getOutsideTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "outside_air",
@@ -177,7 +177,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getInsideTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -213,7 +213,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -254,7 +254,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "air",
@@ -304,7 +304,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getInsideTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -319,7 +319,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 				},
 				"getOutsideTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "outside_air",
@@ -355,7 +355,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -414,7 +414,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTemperatures": {
 					{
-						Path:             "value.temperatures.case",
+						Path:             "temperatures.case",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case",
@@ -427,7 +427,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 						FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getTemperature",
 					},
 					{
-						Path:             "value.temperatures.cpu",
+						Path:             "temperatures.cpu",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "cpu",
@@ -440,7 +440,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 						FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getTemperature",
 					},
 					{
-						Path:             "value.temperatures.gpu",
+						Path:             "temperatures.gpu",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "gpu",
@@ -499,7 +499,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTemperatures": {
 					{
-						Path:             "value.temperatures.cpu",
+						Path:             "temperatures.cpu",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "cpu",
@@ -564,7 +564,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getFanSpeeds": {
 					{
-						Path:             "value.speeds.case_fan_1",
+						Path:             "speeds.case_fan_1",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case_fan_1",
@@ -577,7 +577,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 						FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getFanSpeed",
 					},
 					{
-						Path:             "value.speeds.case_fan_2",
+						Path:             "speeds.case_fan_2",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case_fan_2",
@@ -590,7 +590,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 						FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getFanSpeed",
 					},
 					{
-						Path:             "value.speeds.cpu_fan",
+						Path:             "speeds.cpu_fan",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "cpu_fan",
@@ -603,7 +603,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 						FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getFanSpeed",
 					},
 					{
-						Path:             "value.speeds.gpu_fan",
+						Path:             "speeds.gpu_fan",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "gpu_fan",
@@ -668,7 +668,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getFanSpeeds": {
 					{
-						Path:             "value.speeds.cpu_fan",
+						Path:             "speeds.cpu_fan",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "cpu_fan",
@@ -733,7 +733,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getFanSpeeds": {
 					{
-						Path:             "value.speeds.case_fan_1",
+						Path:             "speeds.case_fan_1",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case_fan_1",
@@ -746,7 +746,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 						FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getFanSpeed",
 					},
 					{
-						Path:             "value.speeds.case_fan_2",
+						Path:             "speeds.case_fan_2",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case_fan_2",
@@ -811,7 +811,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getFanSpeeds": {
 					{
-						Path:             "value.speeds.case_fan_1",
+						Path:             "speeds.case_fan_1",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case_fan_1",
@@ -887,7 +887,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -923,7 +923,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path: "value.temperature",
+						Path: "temperature",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
 							RootId:        "air",
@@ -958,7 +958,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "air",
@@ -1008,7 +1008,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setInsideTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -1023,7 +1023,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 				},
 				"setOutsideTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "outside_air",
@@ -1071,7 +1071,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path:             "value.temperature.inside",
+						Path:             "temperature.inside",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -1084,7 +1084,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 						FunctionId: devicemodel.CONTROLLING_FUNCTION_PREFIX + "setTemperature",
 					},
 					{
-						Path:             "value.temperature.outside",
+						Path:             "temperature.outside",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "outside_air",
@@ -1120,7 +1120,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode:       devicemodel.AspectNode{},
 						FunctionId:       devicemodel.CONTROLLING_FUNCTION_PREFIX + "setTemperature",
@@ -1152,7 +1152,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -1188,7 +1188,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path: "value.temperature",
+						Path: "temperature",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
 							RootId:        "air",
@@ -1223,7 +1223,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "air",
@@ -1273,7 +1273,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setInsideTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -1288,7 +1288,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 				},
 				"setOutsideTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "outside_air",
@@ -1336,7 +1336,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path:             "value.temperature.inside",
+						Path:             "temperature.inside",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -1349,7 +1349,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 						FunctionId: devicemodel.CONTROLLING_FUNCTION_PREFIX + "setTemperature",
 					},
 					{
-						Path:             "value.temperature.outside",
+						Path:             "temperature.outside",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "outside_air",
@@ -1388,7 +1388,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -1424,7 +1424,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path: "value.temperature",
+						Path: "temperature",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
 							RootId:        "air",
@@ -1459,7 +1459,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setInsideTargetTemperature": {
 					{
-						Path:             "value.temperature",
+						Path:             "temperature",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -1507,7 +1507,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
-						Path:             "value.temperature.inside",
+						Path:             "temperature.inside",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "inside_air",
@@ -1590,7 +1590,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setCaseFan1Speed": {
 					{
-						Path:             "value.speed",
+						Path:             "speed",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case_fan_1",
@@ -1605,7 +1605,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 				},
 				"setCaseFan2Speed": {
 					{
-						Path:             "value.speed",
+						Path:             "speed",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case_fan_2",
@@ -1620,7 +1620,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 				},
 				"setCpuSpeed": {
 					{
-						Path:             "value.speed",
+						Path:             "speed",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "cpu_fan",
@@ -1635,7 +1635,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 				},
 				"setGpuSpeed": {
 					{
-						Path:             "value.speed",
+						Path:             "speed",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "gpu_fan",
@@ -1690,7 +1690,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setCaseFan1Speed": {
 					{
-						Path:             "value.speed",
+						Path:             "speed",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case_fan_1",
@@ -1705,7 +1705,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 				},
 				"setCaseFan2Speed": {
 					{
-						Path:             "value.speed",
+						Path:             "speed",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case_fan_2",
@@ -1746,7 +1746,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setCaseFan1Speed": {
 					{
-						Path:             "value.speed",
+						Path:             "speed",
 						CharacteristicId: "",
 						AspectNode: devicemodel.AspectNode{
 							Id:            "case_fan_1",
@@ -1771,14 +1771,27 @@ func testSnrgy1807Selectables(config configuration.Config, criteria []devicemode
 			t.Error(err)
 			return
 		}
-		normalizeTestSelectables(&result)
-		normalizeTestSelectables(&expectedResult)
+		result = sortServices(result)
+		expectedResult = sortServices(expectedResult)
+		normalizeTestSelectables(&result, true)
+		normalizeTestSelectables(&expectedResult, true)
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)
 			expectedJson, _ := json.Marshal(expectedResult)
 			t.Error("\n", string(resultJson), "\n", string(expectedJson))
 		}
 	}
+}
+
+func sortServices(list []model.Selectable) (result []model.Selectable) {
+	result = []model.Selectable{}
+	for _, e := range list {
+		sort.Slice(e.Services, func(i, j int) bool {
+			return e.Services[i].Id < e.Services[j].Id
+		})
+		result = append(result, e)
+	}
+	return
 }
 
 func createTestMetadata(devicemanager string, interaction devicemodel.Interaction) func(t *testing.T) {

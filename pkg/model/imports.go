@@ -16,7 +16,10 @@
 
 package model
 
-import "device-selection/pkg/model/basecontentvariable"
+import (
+	"device-selection/pkg/model/basecontentvariable"
+	"device-selection/pkg/model/devicemodel"
+)
 
 type ImportType struct {
 	Id             string                `json:"id"`
@@ -29,7 +32,7 @@ type ImportType struct {
 	Owner          string                `json:"owner"`
 }
 
-type Type string
+type Type = devicemodel.Type
 
 type ImportContentVariable struct {
 	Name                string                  `json:"name"`

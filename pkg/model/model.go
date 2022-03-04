@@ -81,9 +81,12 @@ type DeviceGroupOption struct {
 }
 
 type PathCharacteristicIdPair struct {
-	Path             string                 `json:"path"`
-	CharacteristicId string                 `json:"characteristicId"`
-	AspectNode       devicemodel.AspectNode `json:"aspectNode"`
-	FunctionId       string                 `json:"functionId"`
-	IsVoid           bool                   `json:"isVoid"`
+	Path             string                     `json:"path"`
+	CharacteristicId string                     `json:"characteristicId"`
+	AspectNode       devicemodel.AspectNode     `json:"aspectNode"`
+	FunctionId       string                     `json:"functionId"`
+	IsVoid           bool                       `json:"isVoid"`
+	Value            interface{}                `json:"value,omitempty"`
+	Type             Type                       `json:"type,omitempty"`
+	Configurables    []devicemodel.Configurable `json:"configurables,omitempty"`
 }

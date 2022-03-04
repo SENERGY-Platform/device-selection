@@ -33,10 +33,23 @@ type DeviceTypeSelectable struct {
 }
 
 type ServicePathOption struct {
-	ServiceId        string     `json:"service_id"`
-	Path             string     `json:"path"`
-	CharacteristicId string     `json:"characteristic_id"`
-	AspectNode       AspectNode `json:"aspect_node"`
-	FunctionId       string     `json:"function_id"`
-	IsVoid           bool       `json:"is_void"`
+	ServiceId             string         `json:"service_id"`
+	Path                  string         `json:"path"`
+	CharacteristicId      string         `json:"characteristic_id"`
+	AspectNode            AspectNode     `json:"aspect_node"`
+	FunctionId            string         `json:"function_id"`
+	IsVoid                bool           `json:"is_void"`
+	Value                 interface{}    `json:"value,omitempty"`
+	IsControllingFunction bool           `json:"is_controlling_function"`
+	Configurables         []Configurable `json:"configurables,omitempty"`
+	Type                  Type           `json:"type,omitempty"`
+}
+
+type Configurable struct {
+	Path             string      `json:"path"`
+	CharacteristicId string      `json:"characteristic_id"`
+	AspectNode       AspectNode  `json:"aspect_node"`
+	FunctionId       string      `json:"function_id"`
+	Value            interface{} `json:"value,omitempty"`
+	Type             Type        `json:"type,omitempty"`
 }

@@ -201,6 +201,9 @@ func getServicePathOptionsFromDeviceRepoResult(in map[string][]devicemodel.Servi
 						AspectNode:       element.AspectNode,
 						FunctionId:       element.FunctionId,
 						IsVoid:           element.IsVoid,
+						Value:            element.Value,
+						Type:             element.Type,
+						Configurables:    element.Configurables,
 					})
 				}
 			}

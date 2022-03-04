@@ -253,8 +253,8 @@ func testCheckSelectionWithLocalIdsWithoutOptions(ctrl *controller.Controller, c
 			e.ServicePathOptions = nil
 			expectedResult[i] = e
 		}
-		normalizeTestSelectables(&result)
-		normalizeTestSelectables(&expectedResult)
+		normalizeTestSelectables(&result, true)
+		normalizeTestSelectables(&expectedResult, true)
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)
 			expectedJson, _ := json.Marshal(expectedResult)

@@ -25,7 +25,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"runtime/debug"
 	"time"
 )
@@ -37,8 +36,6 @@ func (this *Controller) GetDeviceTypeSelectablesCached(token string, description
 	}, &result)
 	return
 }
-
-const DeviceTypeSelectablePathPrefix = "value."
 
 func (this *Controller) GetDeviceTypeSelectables(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
 	client := http.Client{
@@ -52,7 +49,7 @@ func (this *Controller) GetDeviceTypeSelectables(token string, descriptions mode
 	}
 	req, err := http.NewRequest(
 		"POST",
-		this.config.DeviceRepoUrl+"/query/device-type-selectables?path-prefix="+url.QueryEscape(DeviceTypeSelectablePathPrefix),
+		this.config.DeviceRepoUrl+"/query/device-type-selectables",
 		payload,
 	)
 	if err != nil {
@@ -78,6 +75,9 @@ func (this *Controller) GetDeviceTypeSelectables(token string, descriptions mode
 		debug.PrintStack()
 		return result, err
 	}
+
+	temp, _ := json.Marshal(result)
+	log.Println("TEST:", string(temp))
 
 	return result, err
 }

@@ -772,8 +772,8 @@ func testCheckSelectionWithoutOptions(ctrl *controller.Controller, criteria mode
 			e.ServicePathOptions = nil
 			expectedResult[i] = e
 		}
-		normalizeTestSelectables(&result)
-		normalizeTestSelectables(&expectedResult)
+		normalizeTestSelectables(&result, true)
+		normalizeTestSelectables(&expectedResult, true)
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)
 			expectedJson, _ := json.Marshal(expectedResult)
@@ -782,9 +782,9 @@ func testCheckSelectionWithoutOptions(ctrl *controller.Controller, criteria mode
 	}
 }
 
-func normalizeTestSelectables(selectables *[]model.Selectable) {
+func normalizeTestSelectables(selectables *[]model.Selectable, removeConfigurables bool) {
 	for i, v := range *selectables {
-		normalizeTestSelectable(&v)
+		normalizeTestSelectable(&v, removeConfigurables)
 		(*selectables)[i] = v
 	}
 	sort.SliceStable(*selectables, func(i, j int) bool {
@@ -807,13 +807,24 @@ func normalizeTestSelectables(selectables *[]model.Selectable) {
 	})
 }
 
-func normalizeTestSelectable(selectable *model.Selectable) {
+func normalizeTestSelectable(selectable *model.Selectable, removeConfigurables bool) {
 	if selectable.Device != nil {
 		selectable.Device.Id = ""
 		selectable.Device.LocalId = ""
 		selectable.Device.Creator = ""
 		selectable.Device.Permissions = model.Permissions{}
 		selectable.Device.Shared = false
+		if removeConfigurables {
+			for sid, options := range selectable.ServicePathOptions {
+				for i, option := range options {
+					temp := option
+					temp.Configurables = []devicemodel.Configurable{}
+					options[i] = temp
+				}
+				selectable.ServicePathOptions[sid] = options
+			}
+		}
+
 		for i, v := range selectable.Services {
 			normalizeTestService(&v)
 			selectable.Services[i] = v
