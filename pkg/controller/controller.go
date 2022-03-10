@@ -188,14 +188,14 @@ func (this *Controller) getFilteredDevices(
 	return result, nil, 200
 }
 
-func getServicePathOptionsFromDeviceRepoResult(in map[string][]devicemodel.ServicePathOption, serviceBlocketByProtocolIndex map[string]bool, serviceBlocketByInteractionIndex map[string]bool) (out map[string][]model.PathCharacteristicIdPair) {
-	out = map[string][]model.PathCharacteristicIdPair{}
+func getServicePathOptionsFromDeviceRepoResult(in map[string][]devicemodel.ServicePathOption, serviceBlocketByProtocolIndex map[string]bool, serviceBlocketByInteractionIndex map[string]bool) (out map[string][]model.PathOption) {
+	out = map[string][]model.PathOption{}
 	for serviceId, list := range in {
 		if !serviceBlocketByInteractionIndex[serviceId] {
-			temp := []model.PathCharacteristicIdPair{}
+			temp := []model.PathOption{}
 			for _, element := range list {
 				if !(isMeasuringFunctionId(element.FunctionId) && serviceBlocketByProtocolIndex[serviceId]) { //legacy check; should be covered by interaction check
-					temp = append(temp, model.PathCharacteristicIdPair{
+					temp = append(temp, model.PathOption{
 						Path:             element.Path,
 						CharacteristicId: element.CharacteristicId,
 						AspectNode:       element.AspectNode,
