@@ -254,7 +254,7 @@ func TestSelectableImports(t *testing.T) {
 					Name:  "lamp",
 					Owner: helper.JwtSubject,
 				},
-				ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
+				PathOptions: map[string][]model.PathOption{
 					"lamp": {{
 						Path:             "value.value",
 						CharacteristicId: testCharacteristic,

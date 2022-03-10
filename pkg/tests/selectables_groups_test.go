@@ -765,11 +765,11 @@ func testCheckSelectionWithoutOptions(ctrl *controller.Controller, criteria mode
 			return
 		}
 		for i, e := range result {
-			e.ServicePathOptions = nil
+			e.PathOptions = nil
 			result[i] = e
 		}
 		for i, e := range expectedResult {
-			e.ServicePathOptions = nil
+			e.PathOptions = nil
 			expectedResult[i] = e
 		}
 		normalizeTestSelectables(&result, true)
@@ -815,13 +815,13 @@ func normalizeTestSelectable(selectable *model.Selectable, removeConfigurables b
 		selectable.Device.Permissions = model.Permissions{}
 		selectable.Device.Shared = false
 		if removeConfigurables {
-			for sid, options := range selectable.ServicePathOptions {
+			for sid, options := range selectable.PathOptions {
 				for i, option := range options {
 					temp := option
 					temp.Configurables = []devicemodel.Configurable{}
 					options[i] = temp
 				}
-				selectable.ServicePathOptions[sid] = options
+				selectable.PathOptions[sid] = options
 			}
 		}
 

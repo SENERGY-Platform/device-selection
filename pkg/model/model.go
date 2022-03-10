@@ -33,12 +33,12 @@ type Permissions struct {
 }
 
 type Selectable struct {
-	Device             *PermSearchDevice                     `json:"device,omitempty"`
-	Services           []devicemodel.Service                 `json:"services,omitempty"`
-	DeviceGroup        *DeviceGroup                          `json:"device_group,omitempty"`
-	Import             *Import                               `json:"import,omitempty"`
-	ImportType         *ImportType                           `json:"importType,omitempty"`
-	ServicePathOptions map[string][]PathCharacteristicIdPair `json:"servicePathOptions,omitempty"`
+	Device      *PermSearchDevice       `json:"device,omitempty"`
+	Services    []devicemodel.Service   `json:"services,omitempty"`
+	DeviceGroup *DeviceGroup            `json:"device_group,omitempty"`
+	Import      *Import                 `json:"import,omitempty"`
+	ImportType  *ImportType             `json:"importType,omitempty"`
+	PathOptions map[string][]PathOption `json:"pathOptions,omitempty"` //map of serviceId|importTypeId to list of path options
 }
 
 type DeviceGroup struct {
@@ -80,7 +80,7 @@ type DeviceGroupOption struct {
 	MaintainsGroupUsability bool                                    `json:"maintains_group_usability"`
 }
 
-type PathCharacteristicIdPair struct {
+type PathOption struct {
 	Path             string                     `json:"path"`
 	CharacteristicId string                     `json:"characteristicId"`
 	AspectNode       devicemodel.AspectNode     `json:"aspectNode"`
