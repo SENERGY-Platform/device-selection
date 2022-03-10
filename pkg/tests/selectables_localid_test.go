@@ -246,11 +246,11 @@ func testCheckSelectionWithLocalIdsWithoutOptions(ctrl *controller.Controller, c
 			return
 		}
 		for i, e := range result {
-			e.PathOptions = nil
+			e.ServicePathOptions = nil
 			result[i] = e
 		}
 		for i, e := range expectedResult {
-			e.PathOptions = nil
+			e.ServicePathOptions = nil
 			expectedResult[i] = e
 		}
 		normalizeTestSelectables(&result, true)

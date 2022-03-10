@@ -145,9 +145,9 @@ func (this *Controller) getFilteredDevices(
 			for _, device := range devices {
 				temp := device //make copy to prevent that Selectable.Device is the last element of devices every time
 				result = append(result, model.Selectable{
-					Device:      &temp,
-					Services:    usedServices,
-					PathOptions: pathOptions,
+					Device:             &temp,
+					Services:           usedServices,
+					ServicePathOptions: pathOptions,
 				})
 			}
 		}
@@ -188,14 +188,14 @@ func (this *Controller) getFilteredDevices(
 	return result, nil, 200
 }
 
-func getServicePathOptionsFromDeviceRepoResult(in map[string][]devicemodel.ServicePathOption, serviceBlocketByProtocolIndex map[string]bool, serviceBlocketByInteractionIndex map[string]bool) (out map[string][]model.PathOption) {
-	out = map[string][]model.PathOption{}
+func getServicePathOptionsFromDeviceRepoResult(in map[string][]devicemodel.ServicePathOption, serviceBlocketByProtocolIndex map[string]bool, serviceBlocketByInteractionIndex map[string]bool) (out map[string][]model.PathCharacteristicIdPair) {
+	out = map[string][]model.PathCharacteristicIdPair{}
 	for serviceId, list := range in {
 		if !serviceBlocketByInteractionIndex[serviceId] {
-			temp := []model.PathOption{}
+			temp := []model.PathCharacteristicIdPair{}
 			for _, element := range list {
 				if !(isMeasuringFunctionId(element.FunctionId) && serviceBlocketByProtocolIndex[serviceId]) { //legacy check; should be covered by interaction check
-					temp = append(temp, model.PathOption{
+					temp = append(temp, model.PathCharacteristicIdPair{
 						Path:             element.Path,
 						CharacteristicId: element.CharacteristicId,
 						AspectNode:       element.AspectNode,

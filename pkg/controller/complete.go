@@ -41,7 +41,7 @@ func (this *Controller) CompleteBulkServices(token string, bulk model.BulkResult
 func (this *Controller) completeServices(token string, selectables []model.Selectable, filter []devicemodel.FilterCriteria) (_ []model.Selectable, err error) {
 	aspectCache := &map[string]devicemodel.AspectNode{}
 	for selectableIndex, selectable := range selectables {
-		selectable.PathOptions = map[string][]model.PathOption{}
+		selectable.ServicePathOptions = map[string][]model.PathCharacteristicIdPair{}
 		if selectable.Device != nil {
 			//already fully handled
 		} else if selectable.Import != nil {
@@ -51,11 +51,11 @@ func (this *Controller) completeServices(token string, selectables []model.Selec
 			}
 			selectable.ImportType = &fullType
 			selectables[selectableIndex] = selectable
-			_, ok := selectable.PathOptions[fullType.Id]
+			_, ok := selectable.ServicePathOptions[fullType.Id]
 			if !ok {
-				var pathCharacteristicPairs []model.PathOption
+				var pathCharacteristicPairs []model.PathCharacteristicIdPair
 				for _, subOutput := range fullType.Output.SubContentVariables { // root element has to be ignored to find correct path
-					var subPathCharacteristicPairs []model.PathOption
+					var subPathCharacteristicPairs []model.PathCharacteristicIdPair
 					err = this.findPathCharacteristicPairs(&subOutput, filter, "", &subPathCharacteristicPairs, token, aspectCache)
 					if err != nil {
 						return nil, err
@@ -63,14 +63,14 @@ func (this *Controller) completeServices(token string, selectables []model.Selec
 					pathCharacteristicPairs = append(pathCharacteristicPairs, subPathCharacteristicPairs...)
 				}
 
-				selectable.PathOptions[fullType.Id] = pathCharacteristicPairs
+				selectable.ServicePathOptions[fullType.Id] = pathCharacteristicPairs
 			}
 		}
 	}
 	return selectables, nil
 }
 
-func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentvariable.Descriptor, filterCriteria []devicemodel.FilterCriteria, prefix string, res *[]model.PathOption, token string, aspectCache *map[string]devicemodel.AspectNode) (err error) {
+func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentvariable.Descriptor, filterCriteria []devicemodel.FilterCriteria, prefix string, res *[]model.PathCharacteristicIdPair, token string, aspectCache *map[string]devicemodel.AspectNode) (err error) {
 	if res == nil || contentVariable == nil {
 		return errors.New("encountered nil pointer")
 	}
@@ -91,7 +91,7 @@ func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentv
 		if err != nil {
 			return err
 		}
-		*res = append(*res, model.PathOption{
+		*res = append(*res, model.PathCharacteristicIdPair{
 			Path:             path,
 			CharacteristicId: contentVariable.GetCharacteristicId(),
 			AspectNode:       aspectNode,

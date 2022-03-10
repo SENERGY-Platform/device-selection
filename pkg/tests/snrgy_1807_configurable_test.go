@@ -127,7 +127,7 @@ func TestConfigurables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTemperatures": {
 					{
 						Path:             "avg_temperatures.case",

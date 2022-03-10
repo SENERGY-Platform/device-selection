@@ -118,7 +118,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getInsideTemperature": {
 					{
 						Path:             "temperature",
@@ -174,7 +174,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getInsideTemperature": {
 					{
 						Path:             "temperature",
@@ -210,7 +210,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -251,7 +251,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTemperature": {
 					{
 						Path:             "temperature",
@@ -301,7 +301,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getInsideTemperature": {
 					{
 						Path:             "temperature",
@@ -352,7 +352,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -411,7 +411,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTemperatures": {
 					{
 						Path:             "temperatures.case",
@@ -496,7 +496,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getTemperatures": {
 					{
 						Path:             "temperatures.cpu",
@@ -561,7 +561,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getFanSpeeds": {
 					{
 						Path:             "speeds.case_fan_1",
@@ -665,7 +665,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getFanSpeeds": {
 					{
 						Path:             "speeds.cpu_fan",
@@ -730,7 +730,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getFanSpeeds": {
 					{
 						Path:             "speeds.case_fan_1",
@@ -808,7 +808,7 @@ func TestDeviceTypeMeasuringSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"getFanSpeeds": {
 					{
 						Path:             "speeds.case_fan_1",
@@ -884,7 +884,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			}},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -920,7 +920,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path: "temperature",
@@ -955,7 +955,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -1005,7 +1005,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setInsideTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -1068,7 +1068,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path:             "temperature.inside",
@@ -1117,7 +1117,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -1149,7 +1149,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			}},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -1185,7 +1185,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path: "temperature",
@@ -1220,7 +1220,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -1270,7 +1270,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setInsideTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -1333,7 +1333,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path:             "temperature.inside",
@@ -1385,7 +1385,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			}},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -1421,7 +1421,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path: "temperature",
@@ -1456,7 +1456,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setInsideTargetTemperature": {
 					{
 						Path:             "temperature",
@@ -1504,7 +1504,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setTargetTemperature": {
 					{
 						Path:             "temperature.inside",
@@ -1587,7 +1587,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setCaseFan1Speed": {
 					{
 						Path:             "speed",
@@ -1687,7 +1687,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setCaseFan1Speed": {
 					{
 						Path:             "speed",
@@ -1743,7 +1743,7 @@ func TestDeviceTypeControllingSelectables(t *testing.T) {
 					},
 				},
 			},
-			PathOptions: map[string][]model.PathOption{
+			ServicePathOptions: map[string][]model.PathCharacteristicIdPair{
 				"setCaseFan1Speed": {
 					{
 						Path:             "speed",
