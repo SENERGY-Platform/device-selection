@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strconv"
+	"strings"
 )
 
 func init() {
@@ -55,7 +56,13 @@ func DeviceGroupsHelper(router *httprouter.Router, config configuration.Config, 
 			filterMaintainsGroupUsability, _ = strconv.ParseBool(maintainsGroupUsability)
 		}
 
-		result, err, code := ctrl.DeviceGroupHelper(token, deviceIds, search, filterMaintainsGroupUsability)
+		functionBlockList := []string{}
+		functionBlockListStr := request.URL.Query().Get("function_block_list")
+		if functionBlockListStr != "" {
+			functionBlockList = strings.Split(functionBlockListStr, ",")
+		}
+
+		result, err, code := ctrl.DeviceGroupHelper(token, deviceIds, search, filterMaintainsGroupUsability, functionBlockList)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

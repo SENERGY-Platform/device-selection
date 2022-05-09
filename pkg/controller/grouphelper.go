@@ -21,16 +21,17 @@ import (
 	"device-selection/pkg/model/devicemodel"
 	"log"
 	"net/http"
+	"strings"
 )
 
-func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, search model.QueryFind, maintainGroupUsability bool) (result model.DeviceGroupHelperResult, err error, code int) {
+func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, search model.QueryFind, maintainGroupUsability bool, functionBlockList []string) (result model.DeviceGroupHelperResult, err error, code int) {
 	deviceCache := &map[string]devicemodel.Device{}
 	deviceTypeCache := &map[string]devicemodel.DeviceType{}
 	result.Criteria, err, code = this.GetDeviceGroupCriteria(token, deviceTypeCache, deviceCache, deviceIds)
 	if err != nil {
 		return
 	}
-	result.Options, err, code = this.getDeviceGroupOptions(token, deviceTypeCache, deviceCache, deviceIds, result.Criteria, search, maintainGroupUsability)
+	result.Options, err, code = this.getDeviceGroupOptions(token, deviceTypeCache, deviceCache, deviceIds, result.Criteria, search, maintainGroupUsability, functionBlockList)
 	return result, err, code
 }
 
@@ -124,6 +125,7 @@ func (this *Controller) getDeviceGroupOptions(
 	criteria []devicemodel.DeviceGroupFilterCriteria,
 	search model.QueryFind,
 	maintainGroupUsability bool,
+	functionBlockList []string,
 ) (
 	result []model.DeviceGroupOption,
 	err error,
@@ -145,7 +147,7 @@ func (this *Controller) getDeviceGroupOptions(
 	}
 
 	if maintainGroupUsability && len(criteria) > 0 {
-		validDeviceTypes, err := this.getValidDeviceTypesForDeviceGroup(token, criteria)
+		validDeviceTypes, err := this.getValidDeviceTypesForDeviceGroup(token, criteria, functionBlockList)
 		if err != nil {
 			log.Println("ERROR: getValidDeviceTypesForDeviceGroup()", err)
 			err = nil
@@ -226,16 +228,22 @@ func (this *Controller) getDeviceGroupOptionCriteria(
 	return
 }
 
-func (this *Controller) getValidDeviceTypesForDeviceGroup(token string, criteria []devicemodel.DeviceGroupFilterCriteria) (deviceTypeIds []string, err error) {
+func (this *Controller) getValidDeviceTypesForDeviceGroup(token string, criteria []devicemodel.DeviceGroupFilterCriteria, functionBlockList []string) (deviceTypeIds []string, err error) {
+	functionBlockSet := map[string]bool{}
+	for _, fId := range functionBlockList {
+		functionBlockSet[strings.TrimSpace(fId)] = true
+	}
 	deviceTypeIds = []string{}
 	deviceIdSet := map[string]bool{}
 	for _, c := range criteria {
-		temp, err := this.cachedGetValidDeviceTypesForDeviceGroupCriteria(token, c)
-		if err != nil {
-			return deviceTypeIds, err
-		}
-		for _, id := range temp {
-			deviceIdSet[id] = true
+		if !functionBlockSet[c.FunctionId] {
+			temp, err := this.cachedGetValidDeviceTypesForDeviceGroupCriteria(token, c)
+			if err != nil {
+				return deviceTypeIds, err
+			}
+			for _, id := range temp {
+				deviceIdSet[id] = true
+			}
 		}
 	}
 	for id, _ := range deviceIdSet {
