@@ -20,6 +20,7 @@ import "device-selection/pkg/model/devicemodel"
 
 type PermSearchDevice struct {
 	devicemodel.Device
+	DisplayName string      `json:"display_name"`
 	Permissions Permissions `json:"permissions"`
 	Shared      bool        `json:"shared"`
 	Creator     string      `json:"creator"`
