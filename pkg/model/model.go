@@ -76,7 +76,7 @@ type DeviceGroupHelperResult struct {
 }
 
 type DeviceGroupOption struct {
-	Device                  devicemodel.Device                      `json:"device"`
+	Device                  PermSearchDevice                        `json:"device"`
 	RemovesCriteria         []devicemodel.DeviceGroupFilterCriteria `json:"removes_criteria"`
 	MaintainsGroupUsability bool                                    `json:"maintains_group_usability"`
 }

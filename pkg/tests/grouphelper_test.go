@@ -153,83 +153,83 @@ func TestGroupHelper(t *testing.T) {
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
@@ -247,11 +247,11 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -259,11 +259,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
@@ -271,11 +271,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
@@ -283,11 +283,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
@@ -295,11 +295,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
@@ -307,11 +307,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -322,11 +322,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -337,11 +337,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -364,11 +364,11 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -376,47 +376,47 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -425,11 +425,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -438,11 +438,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -465,11 +465,11 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
@@ -479,11 +479,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -491,11 +491,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -503,11 +503,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -515,20 +515,20 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -539,11 +539,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -554,11 +554,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -581,11 +581,11 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -593,38 +593,38 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -633,11 +633,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -646,11 +646,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -668,58 +668,58 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: false,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 				},
@@ -732,83 +732,83 @@ func TestGroupHelper(t *testing.T) {
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
@@ -826,11 +826,11 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -838,11 +838,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
@@ -850,11 +850,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
@@ -862,11 +862,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
@@ -874,11 +874,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
@@ -886,11 +886,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -901,11 +901,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -927,11 +927,11 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -939,47 +939,47 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -988,11 +988,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1014,11 +1014,11 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
@@ -1028,11 +1028,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -1040,11 +1040,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -1052,11 +1052,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -1064,20 +1064,20 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1088,11 +1088,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1114,11 +1114,11 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
@@ -1126,38 +1126,38 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1166,11 +1166,11 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
@@ -1187,38 +1187,38 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: devicemodel.Device{
+				Device: model.PermSearchDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
-				},
+				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
 				MaintainsGroupUsability: true,
 			},

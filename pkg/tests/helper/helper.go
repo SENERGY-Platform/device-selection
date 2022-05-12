@@ -108,6 +108,8 @@ func normalizeGroupHelperResult(result model.DeviceGroupHelperResult) model.Devi
 		sort.SliceStable(option.RemovesCriteria, func(i, j int) bool {
 			return option.RemovesCriteria[i].Interaction < option.RemovesCriteria[j].Interaction
 		})
+		option.Device.Permissions = model.Permissions{}
+		option.Device.Creator = ""
 		result.Options[i] = option
 	}
 	return result

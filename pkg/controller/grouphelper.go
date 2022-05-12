@@ -178,7 +178,7 @@ func (this *Controller) getDeviceGroupOptions(
 	deviceTypeToCriteriaCache := map[string][]devicemodel.DeviceGroupFilterCriteria{}
 	for _, device := range devices {
 		option := model.DeviceGroupOption{
-			Device:          device.Device,
+			Device:          device,
 			RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{},
 		}
 		deviceCriteria := []devicemodel.DeviceGroupFilterCriteria{}
