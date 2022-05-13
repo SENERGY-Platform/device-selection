@@ -76,8 +76,5 @@ func (this *Controller) GetDeviceTypeSelectables(token string, descriptions mode
 		return result, err
 	}
 
-	temp, _ := json.Marshal(result)
-	log.Println("TEST:", string(temp))
-
 	return result, err
 }
