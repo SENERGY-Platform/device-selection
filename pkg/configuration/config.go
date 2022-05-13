@@ -35,6 +35,10 @@ type ConfigStruct struct {
 	ImportRepoUrl   string   `json:"import_repo_url"`
 	MemcachedUrls   []string `json:"memcached_urls"`
 	Debug           bool     `json:"debug"`
+
+	KafkaUrl                        string   `json:"kafka_url"`
+	KafkaConsumerGroup              string   `json:"kafka_consumer_group"`
+	KafkaTopicsForCacheInvalidation []string `json:"kafka_topics_for_cache_invalidation"`
 }
 
 type Config = *ConfigStruct

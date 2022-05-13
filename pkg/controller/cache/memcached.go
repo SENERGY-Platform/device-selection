@@ -43,6 +43,10 @@ func (this *GlobalCache) Get(key string) (value []byte, err error) {
 	return
 }
 
+func (this *GlobalCache) Invalidate() {
+	this.l1.DeleteAll()
+}
+
 func (this *GlobalCache) Set(key string, value []byte) {
 	err := this.l1.Set(&memcache.Item{
 		Key:        key,

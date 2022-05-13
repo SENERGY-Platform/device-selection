@@ -172,7 +172,7 @@ func TestenvWithoutApi(ctx context.Context, wg *sync.WaitGroup) (managerurl stri
 		},
 	}
 
-	managerurl, repourl, searchurl, err = helper.EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
+	_, managerurl, repourl, searchurl, err = helper.EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
 	if err != nil {
 		return managerurl, repourl, searchurl, err
 	}

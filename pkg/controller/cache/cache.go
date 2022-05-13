@@ -26,6 +26,7 @@ var ErrNotFound = errors.New("key not found in cache")
 
 type Cache interface {
 	Use(key string, getter func() (interface{}, error), result interface{}) (err error)
+	Invalidate()
 }
 
 func New(memcachedUrls []string) Cache {

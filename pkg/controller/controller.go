@@ -20,6 +20,7 @@ import (
 	"context"
 	"device-selection/pkg/configuration"
 	"device-selection/pkg/controller/cache"
+	"device-selection/pkg/controller/cacheinvalidator"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"log"
@@ -33,9 +34,17 @@ type Controller struct {
 }
 
 func New(ctx context.Context, config configuration.Config) (*Controller, error) {
+	c := cache.New(config.MemcachedUrls)
+	if config.KafkaUrl != "" && config.KafkaConsumerGroup != "" && len(config.KafkaTopicsForCacheInvalidation) > 0 {
+		log.Println("start listeners to invalidate cache on kafka message to:", config.KafkaTopicsForCacheInvalidation)
+		err := cacheinvalidator.StartCacheInvalidator(ctx, config, c)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &Controller{
 		config: config,
-		cache:  cache.New(config.MemcachedUrls),
+		cache:  c,
 	}, nil
 }
 

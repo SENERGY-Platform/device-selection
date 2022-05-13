@@ -42,16 +42,19 @@ func TestSelectableGroups(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	deviceManagerUrl, deviceRepoUrl, permSearchUrl, err := docker.DeviceManagerWithDependencies(ctx, wg)
+	kafkaUrl, deviceManagerUrl, deviceRepoUrl, permSearchUrl, err := docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
 	c := &configuration.ConfigStruct{
-		PermSearchUrl: permSearchUrl,
-		DeviceRepoUrl: deviceRepoUrl,
-		Debug:         true,
+		PermSearchUrl:                   permSearchUrl,
+		DeviceRepoUrl:                   deviceRepoUrl,
+		Debug:                           true,
+		KafkaUrl:                        kafkaUrl,
+		KafkaConsumerGroup:              "device_selection",
+		KafkaTopicsForCacheInvalidation: []string{"device-types", "aspects", "functions"},
 	}
 
 	ctrl, err := controller.New(ctx, c)

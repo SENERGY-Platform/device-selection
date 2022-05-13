@@ -39,6 +39,10 @@ func (this *LocalCache) Get(key string) (value []byte, err error) {
 	return
 }
 
+func (this *LocalCache) Invalidate() {
+	this.l1.Clear()
+}
+
 func (this *LocalCache) Set(key string, value []byte) {
 	err := this.l1.Set([]byte(key), value, this.expiration)
 	if err != nil {

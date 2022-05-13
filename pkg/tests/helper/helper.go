@@ -115,23 +115,23 @@ func normalizeGroupHelperResult(result model.DeviceGroupHelperResult) model.Devi
 	return result
 }
 
-func EnvWithDevices(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (managerurl string, repourl string, searchurl string, err error) {
-	managerurl, repourl, searchurl, err = docker.DeviceManagerWithDependencies(ctx, wg)
+func EnvWithDevices(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (kafkaUrl string, managerurl string, repourl string, searchurl string, err error) {
+	kafkaUrl, managerurl, repourl, searchurl, err = docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
 	if err != nil {
-		return managerurl, repourl, searchurl, err
+		return kafkaUrl, managerurl, repourl, searchurl, err
 	}
 
 	for _, dt := range deviceTypes {
 		err = SetDeviceType(managerurl, dt)
 		if err != nil {
-			return managerurl, repourl, searchurl, err
+			return kafkaUrl, managerurl, repourl, searchurl, err
 		}
 	}
 
 	for _, d := range deviceInstances {
 		err = SetDevice(managerurl, d)
 		if err != nil {
-			return managerurl, repourl, searchurl, err
+			return kafkaUrl, managerurl, repourl, searchurl, err
 		}
 	}
 
@@ -141,15 +141,19 @@ func EnvWithDevices(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devic
 }
 
 func Grouphelpertestenv(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (managerurl string, repourl string, searchurl string, selectionurl string, err error) {
-	managerurl, repourl, searchurl, err = EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
+	var kafkaUrl string
+	kafkaUrl, managerurl, repourl, searchurl, err = EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
 	if err != nil {
 		return managerurl, repourl, searchurl, selectionurl, err
 	}
 
 	c := &configuration.ConfigStruct{
-		PermSearchUrl: searchurl,
-		DeviceRepoUrl: repourl,
-		Debug:         true,
+		PermSearchUrl:                   searchurl,
+		DeviceRepoUrl:                   repourl,
+		Debug:                           true,
+		KafkaUrl:                        kafkaUrl,
+		KafkaConsumerGroup:              "device_selection",
+		KafkaTopicsForCacheInvalidation: []string{"device-types", "aspects", "functions"},
 	}
 
 	ctrl, err := controller.New(ctx, c)
