@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -43,7 +43,7 @@ func (this *Controller) GetConcept(id string, token string) (c devicemodel.Conce
 		if resp.StatusCode >= 300 {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(resp.Body)
-			err := errors.New(buf.String())
+			err := fmt.Errorf("unable to find concept: %v %v", id, buf.String())
 			log.Println("ERROR:", err)
 			debug.PrintStack()
 			return nil, err

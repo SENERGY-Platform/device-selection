@@ -21,6 +21,7 @@ import (
 	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"runtime/debug"
 )
@@ -56,7 +57,7 @@ func (this *Controller) GetFunctions(token string) (functions []devicemodel.Func
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(resp.Body)
 			debug.PrintStack()
-			return nil, errors.New(buf.String())
+			return nil, fmt.Errorf("unable to find functions: %v", buf.String())
 		}
 		var fu []devicemodel.Function
 		err = json.NewDecoder(resp.Body).Decode(&fu)
