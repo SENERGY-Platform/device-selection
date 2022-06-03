@@ -37,6 +37,14 @@ func (this *Controller) GetDeviceTypeSelectablesCached(token string, description
 	return
 }
 
+func (this *Controller) GetDeviceTypeSelectablesCachedV2(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
+	hash := hashCriteriaAndSet(descriptions)
+	err = this.cache.Use("device-type-selectables.v2."+hash, func() (interface{}, error) {
+		return this.GetDeviceTypeSelectablesV2(token, descriptions)
+	}, &result)
+	return
+}
+
 func (this *Controller) GetDeviceTypeSelectables(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
 	client := http.Client{
 		Timeout: 5 * time.Second,
@@ -50,6 +58,48 @@ func (this *Controller) GetDeviceTypeSelectables(token string, descriptions mode
 	req, err := http.NewRequest(
 		"POST",
 		this.config.DeviceRepoUrl+"/query/device-type-selectables",
+		payload,
+	)
+	if err != nil {
+		debug.PrintStack()
+		return result, err
+	}
+	req.Header.Set("Authorization", token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		debug.PrintStack()
+		return result, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		debug.PrintStack()
+		temp, _ := io.ReadAll(resp.Body)
+		log.Println("ERROR: GetDeviceTypeSelectables():", resp.StatusCode, string(temp))
+		return result, errors.New("unexpected statuscode")
+	}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		debug.PrintStack()
+		return result, err
+	}
+
+	return result, err
+}
+
+func (this *Controller) GetDeviceTypeSelectablesV2(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+	payload := new(bytes.Buffer)
+	err = json.NewEncoder(payload).Encode(descriptions)
+	if err != nil {
+		debug.PrintStack()
+		return result, err
+	}
+	req, err := http.NewRequest(
+		"POST",
+		this.config.DeviceRepoUrl+"/v2/query/device-type-selectables",
 		payload,
 	)
 	if err != nil {

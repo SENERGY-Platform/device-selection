@@ -99,6 +99,7 @@ func normalizeGroupHelperResult(result model.DeviceGroupHelperResult) model.Devi
 	})
 	for i, option := range result.Options {
 		option.Device.LocalId = option.Device.Id
+		option.Device.DisplayName = ""
 		sort.SliceStable(option.RemovesCriteria, func(i, j int) bool {
 			return option.RemovesCriteria[i].AspectId < option.RemovesCriteria[j].AspectId
 		})

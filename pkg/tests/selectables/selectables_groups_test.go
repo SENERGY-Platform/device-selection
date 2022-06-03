@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package tests
+package selectables
 
 import (
 	"bytes"
@@ -817,6 +817,7 @@ func normalizeTestSelectable(selectable *model.Selectable, removeConfigurables b
 		selectable.Device.Creator = ""
 		selectable.Device.Permissions = model.Permissions{}
 		selectable.Device.Shared = false
+		selectable.Device.DisplayName = ""
 		if removeConfigurables {
 			for sid, options := range selectable.ServicePathOptions {
 				for i, option := range options {

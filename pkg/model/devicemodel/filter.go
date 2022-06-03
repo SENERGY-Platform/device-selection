@@ -17,6 +17,7 @@
 package devicemodel
 
 type FilterCriteria struct {
+	Interaction   string `json:"interaction,omitempty"`
 	FunctionId    string `json:"function_id"`
 	AspectId      string `json:"aspect_id"`
 	DeviceClassId string `json:"device_class_id"`

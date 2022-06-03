@@ -107,3 +107,89 @@ func (this *Controller) getFilteredDeviceGroups(token string, descriptions model
 	}
 	return
 }
+
+func (this *Controller) getFilteredDeviceGroupsV2(token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
+	groups := []model.DeviceGroup{}
+	filter := []model.Selection{}
+	for _, criteria := range descriptions {
+		aspectIds := []string{}
+		aspectIds = append(aspectIds, criteria.AspectId)
+		if criteria.AspectId != "" {
+			aspect, err := this.GetAspectNode(criteria.AspectId, token)
+			if err != nil {
+				return result, err, http.StatusInternalServerError
+			}
+			aspectIds = append(aspectIds, aspect.DescendentIds...)
+		}
+		or := []model.Selection{}
+		for _, aspectId := range aspectIds {
+			if devicemodel.Interaction(criteria.Interaction) == devicemodel.EVENT_AND_REQUEST {
+				groupCriteriaEvent := devicemodel.DeviceGroupFilterCriteria{
+					Interaction:   devicemodel.EVENT,
+					FunctionId:    criteria.FunctionId,
+					AspectId:      aspectId,
+					DeviceClassId: criteria.DeviceClassId,
+				}
+				groupCriteriaRequest := devicemodel.DeviceGroupFilterCriteria{
+					Interaction:   devicemodel.REQUEST,
+					FunctionId:    criteria.FunctionId,
+					AspectId:      aspectId,
+					DeviceClassId: criteria.DeviceClassId,
+				}
+				or = append(or, model.Selection{
+					Condition: model.ConditionConfig{
+						Feature:   "features.criteria_short",
+						Operation: model.QueryEqualOperation,
+						Value:     groupCriteriaEvent.Short(),
+					},
+				})
+				or = append(or, model.Selection{
+					Condition: model.ConditionConfig{
+						Feature:   "features.criteria_short",
+						Operation: model.QueryEqualOperation,
+						Value:     groupCriteriaRequest.Short(),
+					},
+				})
+			} else {
+				groupCriteria := devicemodel.DeviceGroupFilterCriteria{
+					Interaction:   devicemodel.Interaction(criteria.Interaction),
+					FunctionId:    criteria.FunctionId,
+					AspectId:      aspectId,
+					DeviceClassId: criteria.DeviceClassId,
+				}
+				or = append(or, model.Selection{
+					Condition: model.ConditionConfig{
+						Feature:   "features.criteria_short",
+						Operation: model.QueryEqualOperation,
+						Value:     groupCriteria.Short(),
+					},
+				})
+			}
+		}
+		filter = append(filter, model.Selection{Or: or})
+	}
+	err, code = this.Search(token, model.QueryMessage{
+		Resource: "device-groups",
+		Find: &model.QueryFind{
+			QueryListCommons: model.QueryListCommons{
+				Limit:    1000,
+				Offset:   0,
+				Rights:   "rx",
+				SortBy:   "name",
+				SortDesc: false,
+			},
+			Search: "",
+			Filter: &model.Selection{
+				And: filter,
+			},
+		},
+	}, &groups)
+	if err != nil {
+		return
+	}
+	for _, group := range groups {
+		temp := group //prevent that every result element becomes the last element of groups
+		result = append(result, model.Selectable{DeviceGroup: &temp})
+	}
+	return
+}

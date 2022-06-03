@@ -75,6 +75,46 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 			debug.PrintStack()
 		}
 	})
+
+	router.GET("/v2/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		token := request.Header.Get("Authorization")
+		criteria, err := getCriteriaFromRequestV2(request)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		includeGroups, _ := strconv.ParseBool(request.URL.Query().Get("include_groups"))
+		includeImports, _ := strconv.ParseBool(request.URL.Query().Get("include_imports"))
+		includeDevices, _ := strconv.ParseBool(request.URL.Query().Get("include_devices"))
+
+		var withLocalDeviceIds []string
+		localDevicesQueryParam := request.URL.Query().Get("local_devices")
+		if localDevicesQueryParam != "" {
+			for _, localId := range strings.Split(localDevicesQueryParam, ",") {
+				withLocalDeviceIds = append(withLocalDeviceIds, strings.TrimSpace(localId))
+			}
+		}
+
+		result, err, code := ctrl.GetFilteredDevicesV2(token, criteria, includeDevices, includeGroups, includeImports, withLocalDeviceIds)
+		if err != nil {
+			http.Error(writer, err.Error(), code)
+			return
+		}
+		if request.URL.Query().Get("complete_services") == "true" {
+			result, err = ctrl.CompleteServices(token, result, criteria)
+			if err != nil {
+				http.Error(writer, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+		err = json.NewEncoder(writer).Encode(result)
+		if err != nil {
+			log.Println("ERROR:", err)
+			debug.PrintStack()
+		}
+	})
 }
 
 func getCriteriaFromRequest(request *http.Request) (criteria model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, err error) {
@@ -100,6 +140,26 @@ func getCriteriaFromRequest(request *http.Request) (criteria model.FilterCriteri
 	}
 
 	criteria = []devicemodel.FilterCriteria{{
+		FunctionId:    request.URL.Query().Get("function_id"),
+		DeviceClassId: request.URL.Query().Get("device_class_id"),
+		AspectId:      request.URL.Query().Get("aspect_id"),
+	}}
+	return
+}
+
+func getCriteriaFromRequestV2(request *http.Request) (criteria model.FilterCriteriaAndSet, err error) {
+	if b64 := request.URL.Query().Get("base64"); b64 != "" {
+		criteria, err = getCriteriaFromBase64(b64)
+		return
+	}
+
+	if jsonStr := request.URL.Query().Get("json"); jsonStr != "" {
+		err = json.Unmarshal([]byte(jsonStr), &criteria)
+		return
+	}
+
+	criteria = []devicemodel.FilterCriteria{{
+		Interaction:   request.URL.Query().Get("interaction"),
 		FunctionId:    request.URL.Query().Get("function_id"),
 		DeviceClassId: request.URL.Query().Get("device_class_id"),
 		AspectId:      request.URL.Query().Get("aspect_id"),

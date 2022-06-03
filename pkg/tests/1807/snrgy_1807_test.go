@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package tests
+package _807
 
 import (
 	"context"
@@ -39,7 +39,7 @@ import (
 )
 
 func createTestEnv(ctx context.Context, wg *sync.WaitGroup, t *testing.T) (devicemanager string, config configuration.Config, err error) {
-	config, err = configuration.Load("../../config.json")
+	config, err = configuration.Load("../../../config.json")
 	if err != nil {
 		return
 	}
@@ -2307,4 +2307,81 @@ func GetSelectables(config configuration.Config, interactionsFilter []devicemode
 		return result, err
 	}
 	return result, err
+}
+
+func normalizeTestSelectables(selectables *[]model.Selectable, removeConfigurables bool) {
+	for i, v := range *selectables {
+		normalizeTestSelectable(&v, removeConfigurables)
+		(*selectables)[i] = v
+	}
+	sort.SliceStable(*selectables, func(i, j int) bool {
+		iName := ""
+		if (*selectables)[i].Device != nil {
+			iName = (*selectables)[i].Device.Name
+		}
+		if (*selectables)[i].DeviceGroup != nil {
+			iName = (*selectables)[i].DeviceGroup.Name
+		}
+
+		jName := ""
+		if (*selectables)[j].Device != nil {
+			jName = (*selectables)[j].Device.Name
+		}
+		if (*selectables)[j].DeviceGroup != nil {
+			jName = (*selectables)[j].DeviceGroup.Name
+		}
+		return iName < jName
+	})
+}
+
+func normalizeTestSelectable(selectable *model.Selectable, removeConfigurables bool) {
+	if selectable.Device != nil {
+		selectable.Device.Id = ""
+		selectable.Device.LocalId = ""
+		selectable.Device.Creator = ""
+		selectable.Device.Permissions = model.Permissions{}
+		selectable.Device.Shared = false
+		selectable.Device.DisplayName = ""
+		if removeConfigurables {
+			for sid, options := range selectable.ServicePathOptions {
+				for i, option := range options {
+					temp := option
+					temp.Configurables = []devicemodel.Configurable{}
+					options[i] = temp
+				}
+				selectable.ServicePathOptions[sid] = options
+			}
+		}
+
+		for i, v := range selectable.Services {
+			normalizeTestService(&v)
+			selectable.Services[i] = v
+		}
+		sort.SliceStable(selectable.Services, func(i, j int) bool {
+			iName := selectable.Services[i].Name
+			jName := selectable.Services[j].Name
+			return iName < jName
+		})
+	}
+}
+
+func normalizeTestService(service *devicemodel.Service) {
+	for i, v := range service.Inputs {
+		v.Id = ""
+		normalizeTestContentVariable(&v.ContentVariable)
+		service.Inputs[i] = v
+	}
+	for i, v := range service.Outputs {
+		v.Id = ""
+		normalizeTestContentVariable(&v.ContentVariable)
+		service.Outputs[i] = v
+	}
+}
+
+func normalizeTestContentVariable(variable *devicemodel.ContentVariable) {
+	variable.Id = ""
+	for i, v := range variable.SubContentVariables {
+		normalizeTestContentVariable(&v)
+		variable.SubContentVariables[i] = v
+	}
 }

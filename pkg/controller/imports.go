@@ -19,12 +19,14 @@ package controller
 import (
 	"bytes"
 	"device-selection/pkg/model"
+	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 	"runtime/debug"
 	"strconv"
+	"strings"
 )
 
 func (this *Controller) getFilteredImports(token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
@@ -94,11 +96,56 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 		for _, importType := range importTypes {
 			if importType.Id == temp.ImportTypeId {
 				tempType := importType
-				result = append(result, model.Selectable{Import: &temp, ImportType: &tempType})
+				pathOptions := getImportPathOptions(tempType.Output, descriptions, nil)
+				var pathOptionsMap map[string][]model.PathOption
+				if pathOptions != nil && len(pathOptions) > 0 {
+					pathOptionsMap = map[string][]model.PathOption{temp.Id: pathOptions}
+				}
+				result = append(result, model.Selectable{Import: &temp, ImportType: &tempType, ServicePathOptions: pathOptionsMap})
 			}
 		}
 	}
 	return
+}
+
+func getImportPathOptions(variable model.ImportContentVariable, criteria model.FilterCriteriaAndSet, currentPath []string) (result []model.PathOption) {
+	currentPath = append(currentPath, variable.Name)
+	if importVariableMatchesACriteria(variable, criteria) {
+		result = append(result, model.PathOption{
+			Path:             strings.Join(currentPath, "."),
+			CharacteristicId: variable.CharacteristicId,
+			AspectNode: devicemodel.AspectNode{
+				Id: variable.AspectId,
+			},
+			FunctionId:  variable.FunctionId,
+			IsVoid:      false,
+			Type:        variable.Type,
+			Interaction: devicemodel.EVENT,
+		})
+	}
+	for _, sub := range variable.SubContentVariables {
+		result = append(result, getImportPathOptions(sub, criteria, currentPath)...)
+	}
+	return result
+}
+
+func importVariableMatchesACriteria(variable model.ImportContentVariable, criteria []devicemodel.FilterCriteria) bool {
+	for _, c := range criteria {
+		if importVariableMatchesCriteria(variable, c) {
+			return true
+		}
+	}
+	return false
+}
+
+func importVariableMatchesCriteria(variable model.ImportContentVariable, criteria devicemodel.FilterCriteria) bool {
+	if criteria.FunctionId != "" && variable.FunctionId != criteria.FunctionId {
+		return false
+	}
+	if criteria.AspectId != "" && variable.FunctionId != criteria.AspectId {
+		return false
+	}
+	return true
 }
 
 func (this *Controller) getImportsByTypes(token string, typeIds []string) (result []model.Import, err error, code int) {

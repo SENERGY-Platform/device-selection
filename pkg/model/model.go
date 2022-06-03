@@ -90,4 +90,5 @@ type PathOption struct {
 	Value            interface{}                `json:"value,omitempty"`
 	Type             Type                       `json:"type,omitempty"`
 	Configurables    []devicemodel.Configurable `json:"configurables,omitempty"`
+	Interaction      devicemodel.Interaction    `json:"interaction,omitempty"`
 }
