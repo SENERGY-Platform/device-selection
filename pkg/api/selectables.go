@@ -115,6 +115,48 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 			debug.PrintStack()
 		}
 	})
+
+	router.POST("/v2/query/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		token := request.Header.Get("Authorization")
+
+		var criteria model.FilterCriteriaAndSet
+		err := json.NewDecoder(request.Body).Decode(&criteria)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		includeGroups, _ := strconv.ParseBool(request.URL.Query().Get("include_groups"))
+		includeImports, _ := strconv.ParseBool(request.URL.Query().Get("include_imports"))
+		includeDevices, _ := strconv.ParseBool(request.URL.Query().Get("include_devices"))
+
+		var withLocalDeviceIds []string
+		localDevicesQueryParam := request.URL.Query().Get("local_devices")
+		if localDevicesQueryParam != "" {
+			for _, localId := range strings.Split(localDevicesQueryParam, ",") {
+				withLocalDeviceIds = append(withLocalDeviceIds, strings.TrimSpace(localId))
+			}
+		}
+
+		result, err, code := ctrl.GetFilteredDevicesV2(token, criteria, includeDevices, includeGroups, includeImports, withLocalDeviceIds)
+		if err != nil {
+			http.Error(writer, err.Error(), code)
+			return
+		}
+		if request.URL.Query().Get("complete_services") == "true" {
+			result, err = ctrl.CompleteServices(token, result, criteria)
+			if err != nil {
+				http.Error(writer, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+		err = json.NewEncoder(writer).Encode(result)
+		if err != nil {
+			log.Println("ERROR:", err)
+			debug.PrintStack()
+		}
+	})
 }
 
 func getCriteriaFromRequest(request *http.Request) (criteria model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, err error) {

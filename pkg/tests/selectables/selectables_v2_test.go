@@ -17,6 +17,7 @@
 package selectables
 
 import (
+	"bytes"
 	"context"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
@@ -99,6 +100,18 @@ func TestApiSelectablesV2(t *testing.T) {
 		}
 	})
 
+	resultPost := []model.Selectable{}
+	t.Run("send post request", sendPostRequestV2(selectionurl, &resultPost, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", devicemodel.REQUEST))
+	t.Run("check post result", func(t *testing.T) {
+		if len(resultPost) != 1 ||
+			resultPost[0].Device.Name != "1" ||
+			resultPost[0].Device.Id != "1" ||
+			len(resultPost[0].Services) != 1 ||
+			resultPost[0].Services[0].Id != "11" {
+			t.Error(resultPost)
+			return
+		}
+	})
 }
 
 func sendSimpleRequestV2(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, interaction devicemodel.Interaction) func(t *testing.T) {
@@ -169,6 +182,44 @@ func sendJsonRequestV2(apiurl string, result interface{}, functionId string, dev
 		}
 		endpoint := apiurl + "/v2/selectables?include_devices=true&json=" + url.QueryEscape(string(jsonStr))
 		req, err := http.NewRequest("GET", endpoint, nil)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		req.Header.Set("Authorization", helper.AdminJwt)
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if resp.StatusCode != 200 {
+			t.Error(resp.StatusCode)
+			return
+		}
+		err = json.NewDecoder(resp.Body).Decode(result)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	}
+}
+
+func sendPostRequestV2(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, interaction devicemodel.Interaction) func(t *testing.T) {
+	return func(t *testing.T) {
+		requestBody := new(bytes.Buffer)
+		err := json.NewEncoder(requestBody).Encode(model.FilterCriteriaAndSet{{
+			FunctionId:    functionId,
+			DeviceClassId: deviceClassId,
+			AspectId:      aspectId,
+			Interaction:   string(interaction),
+		}})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		endpoint := apiurl + "/v2/query/selectables?include_devices=true"
+		req, err := http.NewRequest("POST", endpoint, requestBody)
 		if err != nil {
 			t.Error(err)
 			return
