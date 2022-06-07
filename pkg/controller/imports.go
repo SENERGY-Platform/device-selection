@@ -72,7 +72,7 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 		},
 	}, &importTypes)
 	if err != nil {
-		return
+		return result, err, code
 	}
 	importTypeIds := []string{}
 	for _, importType := range importTypes {
@@ -85,7 +85,7 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 
 	instances, err, code := this.getImportsByTypes(token, importTypeIds)
 	if err != nil {
-		return
+		return result, err, code
 	}
 	if this.config.Debug {
 		log.Println("DEBUG: getFilteredImports()::Found " + strconv.Itoa(len(instances)) + " matching import instances")
@@ -96,16 +96,91 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 		for _, importType := range importTypes {
 			if importType.Id == temp.ImportTypeId {
 				tempType := importType
-				pathOptions := getImportPathOptions(tempType.Output, descriptions, nil)
-				var pathOptionsMap map[string][]model.PathOption
-				if pathOptions != nil && len(pathOptions) > 0 {
-					pathOptionsMap = map[string][]model.PathOption{temp.Id: pathOptions}
-				}
-				result = append(result, model.Selectable{Import: &temp, ImportType: &tempType, ServicePathOptions: pathOptionsMap})
+				result = append(result, model.Selectable{Import: &temp, ImportType: &tempType})
 			}
 		}
 	}
-	return
+	return result, err, code
+}
+
+func (this *Controller) getFilteredImportsV2(token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
+	importTypes := []model.ImportType{}
+	filter := []model.Selection{}
+	for _, criteria := range descriptions {
+		aspect, err := this.GetAspectNode(criteria.AspectId, token)
+		if err != nil {
+			return result, err, http.StatusInternalServerError
+		}
+		or := []model.Selection{}
+		validAspects := append(aspect.DescendentIds, aspect.Id)
+		for _, aid := range validAspects {
+			importTypeCriteria := model.ImportTypeFilterCriteria{
+				FunctionId: criteria.FunctionId,
+				AspectId:   aid,
+			}
+			or = append(or, model.Selection{
+				Condition: model.ConditionConfig{
+					Feature:   "features.aspect_functions",
+					Operation: model.QueryEqualOperation,
+					Value:     importTypeCriteria.Short(),
+				},
+			})
+		}
+		filter = append(filter, model.Selection{Or: or})
+	}
+
+	err, code = this.Search(token, model.QueryMessage{
+		Resource: "import-types",
+		Find: &model.QueryFind{
+			QueryListCommons: model.QueryListCommons{
+				Limit:    1000,
+				Offset:   0,
+				Rights:   "r",
+				SortBy:   "name",
+				SortDesc: false,
+			},
+			Search: "",
+			Filter: &model.Selection{
+				And: filter,
+			},
+		},
+	}, &importTypes)
+	if err != nil {
+		return result, err, code
+	}
+	importTypeIds := []string{}
+	for _, importType := range importTypes {
+		importTypeIds = append(importTypeIds, importType.Id)
+	}
+
+	if this.config.Debug {
+		log.Println("DEBUG: getFilteredImports()::Found " + strconv.Itoa(len(importTypeIds)) + " matching import types")
+	}
+
+	instances, err, code := this.getImportsByTypes(token, importTypeIds)
+	if err != nil {
+		return result, err, code
+	}
+	if this.config.Debug {
+		log.Println("DEBUG: getFilteredImports()::Found " + strconv.Itoa(len(instances)) + " matching import instances")
+	}
+
+	for _, instance := range instances {
+		temp := instance //prevent that every result element becomes the last element of groups
+		if temp.ImportTypeId != "" {
+			fullType, err := this.getFullImportType(token, temp.ImportTypeId)
+			if err != nil {
+				return result, err, code
+			}
+			pathOptions := getImportPathOptions(fullType.Output, descriptions, nil)
+			var pathOptionsMap map[string][]model.PathOption
+			if pathOptions != nil && len(pathOptions) > 0 {
+				pathOptionsMap = map[string][]model.PathOption{fullType.Id: pathOptions}
+			}
+			result = append(result, model.Selectable{Import: &temp, ImportType: &fullType, ServicePathOptions: pathOptionsMap})
+		}
+	}
+	return result, nil, http.StatusOK
 }
 
 func getImportPathOptions(variable model.ImportContentVariable, criteria model.FilterCriteriaAndSet, currentPath []string) (result []model.PathOption) {

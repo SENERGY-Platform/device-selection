@@ -262,7 +262,7 @@ func (this *Controller) getFilteredDevicesV2(
 		result = append(result, groupResult...)
 	}
 	if includeImports && !criteriaContainRequestInteraction(descriptions) {
-		importResult, err, code := this.getFilteredImports(token, descriptions)
+		importResult, err, code := this.getFilteredImportsV2(token, descriptions)
 		if err != nil {
 			return result, err, code
 		}
