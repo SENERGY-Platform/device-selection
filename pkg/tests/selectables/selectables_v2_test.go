@@ -59,21 +59,6 @@ func TestApiSelectablesV2(t *testing.T) {
 		}
 	})
 
-	resultComplete := []model.Selectable{}
-	t.Run("send simple request with complete", sendCompletedSimpleRequestV2(selectionurl, &resultComplete, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", devicemodel.REQUEST))
-	t.Run("check result with complete", func(t *testing.T) {
-		if len(resultComplete) != 1 ||
-			resultComplete[0].Device.Name != "1" ||
-			resultComplete[0].Device.Id != "1" ||
-			len(resultComplete[0].Services) != 1 ||
-			resultComplete[0].Services[0].Id != "11" ||
-			len(resultComplete[0].Services[0].Outputs) != 1 ||
-			resultComplete[0].Services[0].Outputs[0].Id != "content1" {
-			t.Error(resultComplete)
-			return
-		}
-	})
-
 	resultJson := []model.Selectable{}
 	t.Run("send json request", sendJsonRequestV2(selectionurl, &resultJson, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", devicemodel.REQUEST))
 	t.Run("check json result", func(t *testing.T) {
@@ -117,33 +102,6 @@ func TestApiSelectablesV2(t *testing.T) {
 func sendSimpleRequestV2(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, interaction devicemodel.Interaction) func(t *testing.T) {
 	return func(t *testing.T) {
 		endpoint := apiurl + "/v2/selectables?include_devices=true&function_id=" + url.QueryEscape(functionId) + "&device_class_id=" + url.QueryEscape(deviceClassId) + "&aspect_id=" + url.QueryEscape(aspectId) + "&interaction=" + url.QueryEscape(string(interaction))
-		req, err := http.NewRequest("GET", endpoint, nil)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		req.Header.Set("Authorization", helper.AdminJwt)
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		if resp.StatusCode != 200 {
-			t.Error(resp.StatusCode)
-			return
-		}
-		err = json.NewDecoder(resp.Body).Decode(result)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-	}
-}
-
-func sendCompletedSimpleRequestV2(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, interaction devicemodel.Interaction) func(t *testing.T) {
-	return func(t *testing.T) {
-		endpoint := apiurl + "/v2/selectables?include_devices=true&complete_services=true&function_id=" + url.QueryEscape(functionId) + "&device_class_id=" + url.QueryEscape(deviceClassId) + "&aspect_id=" + url.QueryEscape(aspectId) + "&interaction=" + url.QueryEscape(string(interaction))
 		req, err := http.NewRequest("GET", endpoint, nil)
 		if err != nil {
 			t.Error(err)
