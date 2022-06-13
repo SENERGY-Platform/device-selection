@@ -165,6 +165,8 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 		log.Println("DEBUG: getFilteredImports()::Found " + strconv.Itoa(len(instances)) + " matching import instances")
 	}
 
+	aspectCache := &map[string]devicemodel.AspectNode{}
+
 	for _, instance := range instances {
 		temp := instance //prevent that every result element becomes the last element of groups
 		if temp.ImportTypeId != "" {
@@ -172,7 +174,10 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 			if err != nil {
 				return result, err, code
 			}
-			pathOptions := getImportPathOptions(fullType.Output, descriptions, nil)
+			pathOptions, err := this.getImportPathOptions(token, fullType.Output, descriptions, nil, aspectCache)
+			if err != nil {
+				return result, err, code
+			}
 			var pathOptionsMap map[string][]model.PathOption
 			if pathOptions != nil && len(pathOptions) > 0 {
 				pathOptionsMap = map[string][]model.PathOption{fullType.Id: pathOptions}
@@ -183,9 +188,14 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 	return result, nil, http.StatusOK
 }
 
-func getImportPathOptions(variable model.ImportContentVariable, criteria model.FilterCriteriaAndSet, currentPath []string) (result []model.PathOption) {
+func (this *Controller) getImportPathOptions(token string, variable model.ImportContentVariable, criteria model.FilterCriteriaAndSet, currentPath []string, aspectCache *map[string]devicemodel.AspectNode) (result []model.PathOption, err error) {
 	currentPath = append(currentPath, variable.Name)
-	if importVariableMatchesACriteria(variable, criteria) {
+	match, err := this.contentVariableContainsAnyCriteria(&variable, criteria, token, aspectCache)
+	//match, err := this.importVariableMatchesAllCriteria(token, variable, criteria, aspectCache)
+	if err != nil {
+		return result, err
+	}
+	if match {
 		result = append(result, model.PathOption{
 			Path:             strings.Join(currentPath, "."),
 			CharacteristicId: variable.CharacteristicId,
@@ -199,28 +209,26 @@ func getImportPathOptions(variable model.ImportContentVariable, criteria model.F
 		})
 	}
 	for _, sub := range variable.SubContentVariables {
-		result = append(result, getImportPathOptions(sub, criteria, currentPath)...)
+		temp, err := this.getImportPathOptions(token, sub, criteria, currentPath, aspectCache)
+		if err != nil {
+			return result, err
+		}
+		result = append(result, temp...)
 	}
-	return result
+	return result, nil
 }
 
-func importVariableMatchesACriteria(variable model.ImportContentVariable, criteria []devicemodel.FilterCriteria) bool {
+func (this *Controller) importVariableMatchesAllCriteria(token string, variable model.ImportContentVariable, criteria []devicemodel.FilterCriteria, cache *map[string]devicemodel.AspectNode) (match bool, err error) {
 	for _, c := range criteria {
-		if importVariableMatchesCriteria(variable, c) {
-			return true
+		match, err = this.contentVariableContainsCriteria(&variable, c, token, cache)
+		if err != nil {
+			return false, err
+		}
+		if match {
+			return true, nil
 		}
 	}
-	return false
-}
-
-func importVariableMatchesCriteria(variable model.ImportContentVariable, criteria devicemodel.FilterCriteria) bool {
-	if criteria.FunctionId != "" && variable.FunctionId != criteria.FunctionId {
-		return false
-	}
-	if criteria.AspectId != "" && variable.FunctionId != criteria.AspectId {
-		return false
-	}
-	return true
+	return false, nil
 }
 
 func (this *Controller) getImportsByTypes(token string, typeIds []string) (result []model.Import, err error, code int) {
