@@ -23,6 +23,7 @@ import (
 	"device-selection/pkg/controller/cacheinvalidator"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
+	"encoding/json"
 	"log"
 	"net/http"
 	"strings"
@@ -217,10 +218,17 @@ func (this *Controller) getFilteredDevicesV2(
 	if len(descriptions) == 0 {
 		return []model.Selectable{}, nil, 200
 	}
+	if this.config.Debug {
+		temp, _ := json.Marshal(descriptions)
+		log.Println("DEBUG: getFilteredDevicesV2() inputs:", includeDevices, includeGroups, includeImports, string(temp), withLocalDeviceIds)
+	}
 	if includeDevices {
 		deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCachedV2(token, descriptions)
 		if err != nil {
 			return result, err, code
+		}
+		if this.config.Debug {
+			log.Println("DEBUG: getFilteredDevicesV2()::GetDeviceTypeSelectablesCachedV2()", len(deviceTypeSelectables))
 		}
 		for _, dtSelectable := range deviceTypeSelectables {
 			pathOptions := getServicePathOptionsFromDeviceRepoResultV2(dtSelectable.ServicePathOptions)
@@ -237,6 +245,9 @@ func (this *Controller) getFilteredDevicesV2(
 				var devices []model.PermSearchDevice
 				if len(withLocalDeviceIds) == 0 {
 					devices, err, code = this.getCachedDevicesOfType(token, dtSelectable.DeviceTypeId, devicesByDeviceTypeCache)
+					if this.config.Debug {
+						log.Println("DEBUG: getFilteredDevicesV2()::getCachedDevicesOfType()", dtSelectable.DeviceTypeId, len(devices))
+					}
 				} else {
 					devices, err, code = this.getCachedDevicesOfTypeFilteredByLocalIdList(token, dtSelectable.DeviceTypeId, devicesByDeviceTypeCache, withLocalDeviceIds)
 				}
