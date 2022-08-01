@@ -107,26 +107,36 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 	importTypes := []model.ImportType{}
 	filter := []model.Selection{}
 	for _, criteria := range descriptions {
-		aspect, err := this.GetAspectNode(criteria.AspectId, token)
-		if err != nil {
-			return result, err, http.StatusInternalServerError
-		}
-		or := []model.Selection{}
-		validAspects := append(aspect.DescendentIds, aspect.Id)
-		for _, aid := range validAspects {
-			importTypeCriteria := model.ImportTypeFilterCriteria{
-				FunctionId: criteria.FunctionId,
-				AspectId:   aid,
-			}
-			or = append(or, model.Selection{
+		if criteria.AspectId == "" {
+			filter = append(filter, model.Selection{
 				Condition: model.ConditionConfig{
-					Feature:   "features.aspect_functions",
+					Feature:   "features.content_function_ids",
 					Operation: model.QueryEqualOperation,
-					Value:     importTypeCriteria.Short(),
+					Value:     criteria.FunctionId,
 				},
 			})
+		} else {
+			or := []model.Selection{}
+			aspect, err := this.GetAspectNode(criteria.AspectId, token)
+			if err != nil {
+				return result, err, http.StatusInternalServerError
+			}
+			validAspects := append(aspect.DescendentIds, aspect.Id)
+			for _, aid := range validAspects {
+				importTypeCriteria := model.ImportTypeFilterCriteria{
+					FunctionId: criteria.FunctionId,
+					AspectId:   aid,
+				}
+				or = append(or, model.Selection{
+					Condition: model.ConditionConfig{
+						Feature:   "features.aspect_functions",
+						Operation: model.QueryEqualOperation,
+						Value:     importTypeCriteria.Short(),
+					},
+				})
+			}
+			filter = append(filter, model.Selection{Or: or})
 		}
-		filter = append(filter, model.Selection{Or: or})
 	}
 
 	err, code = this.Search(token, model.QueryMessage{
