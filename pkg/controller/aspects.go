@@ -21,6 +21,7 @@ import (
 	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"runtime/debug"
@@ -47,7 +48,14 @@ func (this *Controller) GetAspectNode(id string, token string) (result devicemod
 			return nil, fmt.Errorf("unable to find aspect: %v %v", id, buf.String())
 		}
 		var aspect devicemodel.AspectNode
-		err = json.NewDecoder(resp.Body).Decode(&aspect)
+		temp, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("unable to load aspect (%v): %w", id, err)
+		}
+		err = json.Unmarshal(temp, &aspect)
+		if err != nil {
+			return nil, fmt.Errorf("unable to load aspect (%v); unable to interpret result as aspect node: %w; %v", id, err, string(temp))
+		}
 		return aspect, err
 	}, &result)
 	return
