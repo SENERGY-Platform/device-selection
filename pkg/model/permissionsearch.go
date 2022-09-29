@@ -16,6 +16,8 @@
 
 package model
 
+import "net/url"
+
 type QueryMessage struct {
 	Resource string         `json:"resource"`
 	Find     *QueryFind     `json:"find"`
@@ -39,11 +41,12 @@ type QueryCheckIds struct {
 }
 
 type QueryListCommons struct {
-	Limit    int    `json:"limit"`
-	Offset   int    `json:"offset"`
-	Rights   string `json:"rights"`
-	SortBy   string `json:"sort_by"`
-	SortDesc bool   `json:"sort_desc"`
+	Limit         int        `json:"limit"`
+	Offset        int        `json:"offset"`
+	Rights        string     `json:"rights"`
+	SortBy        string     `json:"sort_by"`
+	SortDesc      bool       `json:"sort_desc"`
+	AddIdModifier url.Values `json:"add_id_modifier,omitempty"`
 }
 
 type QueryOperationType string

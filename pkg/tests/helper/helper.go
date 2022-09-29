@@ -141,7 +141,71 @@ func EnvWithDevices(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devic
 	return
 }
 
-func Grouphelpertestenv(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (managerurl string, repourl string, searchurl string, selectionurl string, err error) {
+func EnvWithMetadata(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device, aspects []devicemodel.Aspect, functions []devicemodel.Function) (managerurl string, repourl string, searchurl string, selectionurl string, err error) {
+	var kafkaUrl string
+	kafkaUrl, managerurl, repourl, searchurl, err = docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
+	if err != nil {
+		return managerurl, repourl, searchurl, selectionurl, err
+	}
+
+	for _, f := range functions {
+		err = SetFunction(managerurl, f)
+		if err != nil {
+			return managerurl, repourl, searchurl, selectionurl, err
+		}
+	}
+
+	for _, aspect := range aspects {
+		err = SetAspect(managerurl, aspect)
+		if err != nil {
+			return managerurl, repourl, searchurl, selectionurl, err
+		}
+	}
+
+	for _, dt := range deviceTypes {
+		err = SetDeviceType(managerurl, dt)
+		if err != nil {
+			return managerurl, repourl, searchurl, selectionurl, err
+		}
+	}
+
+	for _, d := range deviceInstances {
+		err = SetDevice(managerurl, d)
+		if err != nil {
+			return managerurl, repourl, searchurl, selectionurl, err
+		}
+	}
+
+	time.Sleep(2 * time.Second)
+
+	c := &configuration.ConfigStruct{
+		PermSearchUrl:                   searchurl,
+		DeviceRepoUrl:                   repourl,
+		Debug:                           true,
+		KafkaUrl:                        kafkaUrl,
+		KafkaConsumerGroup:              "device_selection",
+		KafkaTopicsForCacheInvalidation: []string{"device-types", "aspects", "functions"},
+	}
+
+	ctrl, err := controller.New(ctx, c)
+	if err != nil {
+		return managerurl, repourl, searchurl, selectionurl, err
+	}
+
+	router := api.Router(c, ctrl)
+	selectionApi := httptest.NewServer(router)
+	wg.Add(1)
+	go func() {
+		<-ctx.Done()
+		selectionApi.Close()
+		wg.Done()
+	}()
+	selectionurl = selectionApi.URL
+
+	return
+}
+
+func EnvWithApi(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (managerurl string, repourl string, searchurl string, selectionurl string, err error) {
 	var kafkaUrl string
 	kafkaUrl, managerurl, repourl, searchurl, err = EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
 	if err != nil {
@@ -339,4 +403,70 @@ type TestPermSearchDevice struct {
 	Permissions model.Permissions `json:"permissions"`
 	Shared      bool              `json:"shared"`
 	Creator     string            `json:"creator"`
+}
+
+func TestRequest(serviceUrl string, method string, path string, body interface{}, expectedStatusCode int, expected interface{}) func(t *testing.T) {
+	return TestRequestWithToken(serviceUrl, AdminJwt, method, path, body, expectedStatusCode, expected)
+}
+
+func TestRequestWithToken(serviceUrl string, token string, method string, path string, body interface{}, expectedStatusCode int, expected interface{}) func(t *testing.T) {
+	return func(t *testing.T) {
+		var requestBody io.Reader
+		if body != nil {
+			temp := new(bytes.Buffer)
+			err := json.NewEncoder(temp).Encode(body)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			requestBody = temp
+		}
+
+		req, err := http.NewRequest(method, serviceUrl+path, requestBody)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		req.Header.Set("Authorization", token)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer resp.Body.Close()
+		defer io.ReadAll(resp.Body) // ensure reuse of connection
+		if resp.StatusCode != expectedStatusCode {
+			temp, _ := io.ReadAll(resp.Body)
+			t.Error(resp.StatusCode, string(temp))
+			return
+		}
+
+		if expected != nil {
+			temp, err := json.Marshal(expected)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			var normalizedExpected interface{}
+			err = json.Unmarshal(temp, &normalizedExpected)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			var actual interface{}
+			err = json.NewDecoder(resp.Body).Decode(&actual)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+
+			if !reflect.DeepEqual(actual, normalizedExpected) {
+				a, _ := json.Marshal(actual)
+				e, _ := json.Marshal(normalizedExpected)
+				t.Error("\n", string(a), "\n", string(e))
+				return
+			}
+		}
+	}
 }

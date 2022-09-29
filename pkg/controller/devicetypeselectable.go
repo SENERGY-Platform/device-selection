@@ -26,6 +26,7 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 	"time"
 )
 
@@ -37,10 +38,11 @@ func (this *Controller) GetDeviceTypeSelectablesCached(token string, description
 	return
 }
 
-func (this *Controller) GetDeviceTypeSelectablesCachedV2(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
+func (this *Controller) GetDeviceTypeSelectablesCachedV2(token string, descriptions model.FilterCriteriaAndSet, includeIdModified bool) (result []devicemodel.DeviceTypeSelectable, err error) {
 	hash := hashCriteriaAndSet(descriptions)
+	hash = hash + strconv.FormatBool(includeIdModified)
 	err = this.cache.Use("device-type-selectables.v2."+hash, func() (interface{}, error) {
-		return this.GetDeviceTypeSelectablesV2(token, descriptions)
+		return this.GetDeviceTypeSelectablesV2(token, descriptions, includeIdModified)
 	}, &result)
 	return
 }
@@ -87,7 +89,7 @@ func (this *Controller) GetDeviceTypeSelectables(token string, descriptions mode
 	return result, err
 }
 
-func (this *Controller) GetDeviceTypeSelectablesV2(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
+func (this *Controller) GetDeviceTypeSelectablesV2(token string, descriptions model.FilterCriteriaAndSet, includeIdModified bool) (result []devicemodel.DeviceTypeSelectable, err error) {
 	client := http.Client{
 		Timeout: 5 * time.Second,
 	}
@@ -97,9 +99,13 @@ func (this *Controller) GetDeviceTypeSelectablesV2(token string, descriptions mo
 		debug.PrintStack()
 		return result, err
 	}
+	query := ""
+	if includeIdModified {
+		query = "?include_id_modified=true"
+	}
 	req, err := http.NewRequest(
 		"POST",
-		this.config.DeviceRepoUrl+"/v2/query/device-type-selectables",
+		this.config.DeviceRepoUrl+"/v2/query/device-type-selectables"+query,
 		payload,
 	)
 	if err != nil {

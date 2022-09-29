@@ -18,12 +18,12 @@ package controller
 
 import (
 	"bytes"
+	"device-selection/pkg/controller/idmodifier"
 	"device-selection/pkg/model"
 	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
-	"net/url"
 	"runtime/debug"
 )
 
@@ -31,42 +31,44 @@ func (this *Controller) getDevicesOfType(token string, deviceTypeId string) (res
 	return this.getCachedDevicesOfType(token, deviceTypeId, nil)
 }
 
-//limited to 1000 devices
+// limited to 1000 devices
 func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice) (result []model.PermSearchDevice, err error, code int) {
 	if cache != nil {
 		if cacheResult, ok := (*cache)[deviceTypeId]; ok {
 			return cacheResult, nil, http.StatusOK
 		}
 	}
-	req, err := http.NewRequest("GET", this.config.PermSearchUrl+"/v3/resources/devices?filter="+url.PathEscape("device_type_id:"+deviceTypeId)+"&rights=x&limit=1000", nil)
-	//req, err := http.NewRequest("GET", this.config.PermSearchUrl+"/jwt/select/devices/device_type_id/"+url.PathEscape(deviceTypeId)+"/x", nil)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	req.Header.Set("Authorization", token)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		err = errors.New(buf.String())
-		log.Println("ERROR:", err, resp.StatusCode)
-		debug.PrintStack()
-		return result, err, resp.StatusCode
-	}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
+
+	pureId, modifier := idmodifier.SplitModifier(deviceTypeId)
+	query := model.QueryMessage{
+		Resource: "devices",
+		Find: &model.QueryFind{
+			Filter: &model.Selection{
+				Condition: model.ConditionConfig{
+					Feature:   "features.device_type_id",
+					Operation: model.QueryEqualOperation,
+					Value:     pureId,
+				},
+			},
+		},
 	}
 
+	if pureId != deviceTypeId {
+		query.Find.AddIdModifier = modifier
+	}
+
+	err, code = this.Search(token, query, &result)
+	if err != nil {
+		debug.PrintStack()
+		return result, err, code
+	}
 	if cache != nil {
 		(*cache)[deviceTypeId] = result
+	}
+
+	if this.config.Debug {
+		jsonResult, _ := json.Marshal(result)
+		log.Println("DEBUG: getCachedDevicesOfType(", deviceTypeId, ") = \n\t", string(jsonResult))
 	}
 
 	return result, nil, http.StatusOK
@@ -78,7 +80,7 @@ func (this *Controller) Search(token string, query model.QueryMessage, result in
 	if err != nil {
 		return err, http.StatusInternalServerError
 	}
-	req, err := http.NewRequest("POST", this.config.PermSearchUrl+"/v2/query", requestBody)
+	req, err := http.NewRequest("POST", this.config.PermSearchUrl+"/v3/query", requestBody)
 	if err != nil {
 		debug.PrintStack()
 		return err, http.StatusInternalServerError
@@ -113,7 +115,9 @@ func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(token string
 			return cacheResult, nil, http.StatusOK
 		}
 	}
-	err, code = this.Search(token, model.QueryMessage{
+	pureId, modifier := idmodifier.SplitModifier(deviceTypeId)
+
+	query := model.QueryMessage{
 		Resource: "devices",
 		Find: &model.QueryFind{
 			QueryListCommons: model.QueryListCommons{
@@ -130,7 +134,7 @@ func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(token string
 						Condition: model.ConditionConfig{
 							Feature:   "features.device_type_id",
 							Operation: model.QueryEqualOperation,
-							Value:     deviceTypeId,
+							Value:     pureId,
 						},
 					},
 					{
@@ -143,7 +147,11 @@ func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(token string
 				},
 			},
 		},
-	}, &result)
+	}
+	if pureId != deviceTypeId {
+		query.Find.AddIdModifier = modifier
+	}
+	err, code = this.Search(token, query, &result)
 	if cache != nil {
 		(*cache)[deviceTypeId] = result
 	}

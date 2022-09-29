@@ -26,6 +26,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -53,8 +54,8 @@ func (this *Controller) GetFilteredDevices(token string, descriptions model.Filt
 	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, includeGroups, includeImports, withLocalDeviceIds)
 }
 
-func (this *Controller) GetFilteredDevicesV2(token string, descriptions model.FilterCriteriaAndSet, includeDevices bool, includeGroups bool, includeImports bool, withLocalDeviceIds []string) (result []model.Selectable, err error, code int) {
-	return this.getFilteredDevicesV2(token, descriptions, nil, includeDevices, includeGroups, includeImports, withLocalDeviceIds)
+func (this *Controller) GetFilteredDevicesV2(token string, descriptions model.FilterCriteriaAndSet, includeDevices bool, includeGroups bool, includeImports bool, withLocalDeviceIds []string, includeIdModified bool) (result []model.Selectable, err error, code int) {
+	return this.getFilteredDevicesV2(token, descriptions, nil, includeDevices, includeGroups, includeImports, withLocalDeviceIds, includeIdModified)
 }
 
 func (this *Controller) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
@@ -210,6 +211,7 @@ func (this *Controller) getFilteredDevicesV2(
 	includeGroups bool,
 	includeImports bool,
 	withLocalDeviceIds []string,
+	includeIdModified bool,
 ) (
 	result []model.Selectable,
 	err error,
@@ -223,7 +225,7 @@ func (this *Controller) getFilteredDevicesV2(
 		log.Println("DEBUG: getFilteredDevicesV2() inputs:", includeDevices, includeGroups, includeImports, string(temp), withLocalDeviceIds)
 	}
 	if includeDevices {
-		deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCachedV2(token, descriptions)
+		deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCachedV2(token, descriptions, includeIdModified)
 		if err != nil {
 			return result, err, code
 		}
@@ -282,6 +284,14 @@ func (this *Controller) getFilteredDevicesV2(
 	if this.config.Debug {
 		log.Println("DEBUG: GetFilteredDevices()", result)
 	}
+
+	for i, e := range result {
+		sort.Slice(e.Services, func(i, j int) bool {
+			return e.Services[i].Id < e.Services[j].Id
+		})
+		result[i] = e
+	}
+
 	return result, nil, http.StatusOK
 }
 
