@@ -103,7 +103,7 @@ func (this *Controller) getCachedFilteredDeviceTypes(token string, descriptions 
 
 	req, err := http.NewRequest(
 		"GET",
-		this.config.DeviceRepoUrl+"/device-types?filter="+url.QueryEscape(string(payload))+interactionFilter,
+		this.config.DeviceRepoUrl+"/device-types?include_id_modified=true&filter="+url.QueryEscape(string(payload))+interactionFilter,
 		nil,
 	)
 	if err != nil {

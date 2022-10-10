@@ -17,6 +17,7 @@
 package controller
 
 import (
+	"device-selection/pkg/controller/idmodifier"
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"log"
@@ -117,6 +118,147 @@ func criteriaHash(criteria devicemodel.DeviceGroupFilterCriteria) string {
 	return criteria.FunctionId + "_" + criteria.AspectId + "_" + criteria.DeviceClassId + "_" + string(criteria.Interaction)
 }
 
+func (this *Controller) getDeviceGroupOptionsGetDevice(
+	token string,
+	currentDeviceIds []string,
+	criteria []devicemodel.DeviceGroupFilterCriteria,
+	search model.QueryFind,
+	maintainGroupUsability bool,
+	functionBlockList []string) (devices []model.PermSearchDevice, err error, code int) {
+
+	validDeviceTypes := []string{}
+	if maintainGroupUsability && len(criteria) > 0 {
+		validDeviceTypes, err = this.getValidDeviceTypesForDeviceGroup(token, criteria, functionBlockList)
+		if err != nil {
+			log.Println("ERROR: getValidDeviceTypesForDeviceGroup()", err)
+			err = nil
+		}
+	}
+
+	unmodifiedDevices, err, code := this.getDeviceGroupOptionsGetDevicesUnmodified(token, currentDeviceIds, search, validDeviceTypes)
+	if err != nil {
+		return devices, err, code
+	}
+	devices = append(devices, unmodifiedDevices...)
+
+	modifiedDevices, err, code := this.getDeviceGroupOptionsGetDevicesUnmodified(token, currentDeviceIds, search, validDeviceTypes)
+	if err != nil {
+		return devices, err, code
+	}
+	devices = append(devices, modifiedDevices...)
+	devices = RemoveDuplicatesF(devices, func(d model.PermSearchDevice) string { return d.Id })
+
+	blockedDevices := map[string]bool{}
+	for _, id := range currentDeviceIds {
+		blockedDevices[id] = true
+
+		//if a modified version of a device is used, the unmodified version may not be selected
+		if pureId, modifier := idmodifier.SplitModifier(id); pureId != id && len(modifier) > 0 {
+			blockedDevices[pureId] = true
+		}
+	}
+
+	filteredDevices := []model.PermSearchDevice{}
+	for _, device := range devices {
+		if !blockedDevices[device.Id] {
+			filteredDevices = append(filteredDevices, device)
+		}
+	}
+	return filteredDevices, err, code
+}
+
+func (this *Controller) getDeviceGroupOptionsGetDevicesModified(
+	token string,
+	currentDeviceIds []string,
+	search model.QueryFind,
+	validDeviceTypes []string) (devices []model.PermSearchDevice, err error, code int) {
+
+	for _, deviceTypeId := range validDeviceTypes {
+		if pureId, modifier := idmodifier.SplitModifier(deviceTypeId); pureId != deviceTypeId && len(modifier) > 0 {
+			searchClone := Clone(search)
+			searchClone.AddIdModifier = modifier
+			filter := []model.Selection{
+				{
+					Not: &model.Selection{
+						Condition: model.ConditionConfig{
+							Feature:   "id",
+							Operation: model.QueryAnyValueInFeatureOperation,
+							Value:     currentDeviceIds,
+						},
+					},
+				},
+				{
+					Condition: model.ConditionConfig{
+						Feature:   "features.device_type_id",
+						Operation: model.QueryEqualOperation,
+						Value:     deviceTypeId,
+					},
+				},
+			}
+			searchClone.Filter = &model.Selection{
+				And: filter,
+			}
+			var temp []model.PermSearchDevice
+			err, code = this.Search(token, model.QueryMessage{
+				Resource: "devices",
+				Find:     &searchClone,
+			}, &temp)
+			if err != nil {
+				return devices, err, code
+			}
+			devices = append(devices, temp...)
+		}
+
+	}
+	return
+}
+
+func (this *Controller) getDeviceGroupOptionsGetDevicesUnmodified(
+	token string,
+	currentDeviceIds []string,
+	search model.QueryFind,
+	validDeviceTypes []string) (devices []model.PermSearchDevice, err error, code int) {
+
+	search = Clone(search)
+
+	//trim modified ids
+	for i, id := range currentDeviceIds {
+		currentDeviceIds[i], _ = idmodifier.SplitModifier(id)
+	}
+
+	filter := []model.Selection{
+		{
+			Not: &model.Selection{
+				Condition: model.ConditionConfig{
+					Feature:   "id",
+					Operation: model.QueryAnyValueInFeatureOperation,
+					Value:     currentDeviceIds,
+				},
+			},
+		},
+	}
+
+	if validDeviceTypes != nil && len(validDeviceTypes) > 0 {
+		filter = append(filter, model.Selection{
+			Condition: model.ConditionConfig{
+				Feature:   "features.device_type_id",
+				Operation: model.QueryAnyValueInFeatureOperation,
+				Value:     validDeviceTypes,
+			},
+		})
+	}
+
+	search.Filter = &model.Selection{
+		And: filter,
+	}
+
+	err, code = this.Search(token, model.QueryMessage{
+		Resource: "devices",
+		Find:     &search,
+	}, &devices)
+	return
+}
+
 func (this *Controller) getDeviceGroupOptions(
 	token string,
 	deviceTypeCache *map[string]devicemodel.DeviceType,
@@ -132,44 +274,7 @@ func (this *Controller) getDeviceGroupOptions(
 	code int,
 ) {
 
-	devices := []model.PermSearchDevice{}
-
-	filter := []model.Selection{
-		{
-			Not: &model.Selection{
-				Condition: model.ConditionConfig{
-					Feature:   "id",
-					Operation: model.QueryAnyValueInFeatureOperation,
-					Value:     currentDeviceIds,
-				},
-			},
-		},
-	}
-
-	if maintainGroupUsability && len(criteria) > 0 {
-		validDeviceTypes, err := this.getValidDeviceTypesForDeviceGroup(token, criteria, functionBlockList)
-		if err != nil {
-			log.Println("ERROR: getValidDeviceTypesForDeviceGroup()", err)
-			err = nil
-		} else {
-			filter = append(filter, model.Selection{
-				Condition: model.ConditionConfig{
-					Feature:   "features.device_type_id",
-					Operation: model.QueryAnyValueInFeatureOperation,
-					Value:     validDeviceTypes,
-				},
-			})
-		}
-	}
-
-	search.Filter = &model.Selection{
-		And: filter,
-	}
-
-	err, code = this.Search(token, model.QueryMessage{
-		Resource: "devices",
-		Find:     &search,
-	}, &devices)
+	devices, err, code := this.getDeviceGroupOptionsGetDevice(token, currentDeviceIds, criteria, search, maintainGroupUsability, functionBlockList)
 	if err != nil {
 		return result, err, code
 	}

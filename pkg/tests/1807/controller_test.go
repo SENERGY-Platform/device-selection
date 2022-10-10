@@ -92,8 +92,8 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 	mux.Lock()
 	defer mux.Unlock()
 	if !reflect.DeepEqual(calls, []string{
-		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"fid","aspect_id":"","device_class_id":""}]`),
-		"/device-types?filter=" + url.QueryEscape(`[{"function_id":"fid","aspect_id":"a1","device_class_id":"dc1"}]`),
+		"/device-types?include_id_modified=true&filter=" + url.QueryEscape(`[{"function_id":"fid","aspect_id":"","device_class_id":""}]`),
+		"/device-types?include_id_modified=true&filter=" + url.QueryEscape(`[{"function_id":"fid","aspect_id":"a1","device_class_id":"dc1"}]`),
 	}) {
 		temp, _ := json.Marshal(calls)
 		t.Error(string(temp))
