@@ -135,6 +135,39 @@ func (this *Controller) getCachedFilteredDeviceTypes(token string, descriptions 
 	return result, err, resp.StatusCode
 }
 
+func (this *Controller) getOnlyDeviceTypesIncludingIdModifier(token string) (result []devicemodel.DeviceType, err error, code int) {
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+	req, err := http.NewRequest(
+		"GET",
+		this.config.DeviceRepoUrl+"/device-types?include_id_modified=true&include_id_unmodified=false&limit=9999",
+		nil,
+	)
+	if err != nil {
+		debug.PrintStack()
+		return result, err, http.StatusInternalServerError
+	}
+	req.Header.Set("Authorization", token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		debug.PrintStack()
+		return result, err, http.StatusInternalServerError
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		debug.PrintStack()
+		return result, errors.New("unexpected statuscode"), resp.StatusCode
+	}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		debug.PrintStack()
+		return result, err, http.StatusInternalServerError
+	}
+	return result, err, resp.StatusCode
+}
+
 func hashCriteriaAndSet(criteria model.FilterCriteriaAndSet) string {
 	arr := append(model.FilterCriteriaAndSet{}, criteria...) //make copy to prevent sorting to effect original
 	sort.SliceStable(arr, func(i, j int) bool {

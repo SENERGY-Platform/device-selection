@@ -173,6 +173,16 @@ func (this *Controller) getDeviceGroupOptionsGetDevicesModified(
 	search model.QueryFind,
 	validDeviceTypes []string) (devices []model.PermSearchDevice, err error, code int) {
 
+	if len(validDeviceTypes) == 0 {
+		deviceTypes, err, code := this.getOnlyDeviceTypesIncludingIdModifier(token)
+		if err != nil {
+			return devices, err, code
+		}
+		for _, dt := range deviceTypes {
+			validDeviceTypes = append(validDeviceTypes, dt.Id)
+		}
+	}
+
 	for _, deviceTypeId := range validDeviceTypes {
 		if pureId, modifier := idmodifier.SplitModifier(deviceTypeId); pureId != deviceTypeId && len(modifier) > 0 {
 			searchClone := Clone(search)
@@ -191,7 +201,7 @@ func (this *Controller) getDeviceGroupOptionsGetDevicesModified(
 					Condition: model.ConditionConfig{
 						Feature:   "features.device_type_id",
 						Operation: model.QueryEqualOperation,
-						Value:     deviceTypeId,
+						Value:     pureId,
 					},
 				},
 			}
