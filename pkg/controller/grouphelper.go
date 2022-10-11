@@ -141,7 +141,7 @@ func (this *Controller) getDeviceGroupOptionsGetDevice(
 	}
 	devices = append(devices, unmodifiedDevices...)
 
-	modifiedDevices, err, code := this.getDeviceGroupOptionsGetDevicesUnmodified(token, currentDeviceIds, search, validDeviceTypes)
+	modifiedDevices, err, code := this.getDeviceGroupOptionsGetDevicesModified(token, currentDeviceIds, search, validDeviceTypes)
 	if err != nil {
 		return devices, err, code
 	}
