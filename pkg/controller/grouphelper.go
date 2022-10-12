@@ -232,8 +232,9 @@ func (this *Controller) getDeviceGroupOptionsGetDevicesUnmodified(
 	search = Clone(search)
 
 	//trim modified ids
+	trimmedCurrentDeviceIds := make([]string, len(currentDeviceIds))
 	for i, id := range currentDeviceIds {
-		currentDeviceIds[i], _ = idmodifier.SplitModifier(id)
+		trimmedCurrentDeviceIds[i], _ = idmodifier.SplitModifier(id)
 	}
 
 	filter := []model.Selection{
@@ -242,7 +243,7 @@ func (this *Controller) getDeviceGroupOptionsGetDevicesUnmodified(
 				Condition: model.ConditionConfig{
 					Feature:   "id",
 					Operation: model.QueryAnyValueInFeatureOperation,
-					Value:     currentDeviceIds,
+					Value:     trimmedCurrentDeviceIds,
 				},
 			},
 		},
