@@ -63,6 +63,18 @@ type BulkRequestElement struct {
 
 type BulkRequest []BulkRequestElement
 
+type BulkRequestElementV2 struct {
+	Id                       string               `json:"id"`
+	Criteria                 FilterCriteriaAndSet `json:"criteria"`
+	IncludeGroups            bool                 `json:"include_groups"`
+	IncludeImports           bool                 `json:"include_imports"`
+	IncludeDevices           bool                 `json:"include_devices"`
+	IncludeIdModifiedDevices bool                 `json:"include_id_modified_devices"`
+	LocalDevices             []string             `json:"local_devices"`
+}
+
+type BulkRequestV2 []BulkRequestElementV2
+
 type BulkResult []BulkResultElement
 
 type BulkResultElement struct {

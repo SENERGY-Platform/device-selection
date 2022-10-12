@@ -33,6 +33,47 @@ func init() {
 
 func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl *controller.Controller) {
 
+	router.POST("/v2/bulk/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		token := request.Header.Get("Authorization")
+
+		criteria := model.BulkRequestV2{}
+		err := json.NewDecoder(request.Body).Decode(&criteria)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if config.Debug {
+			temp, _ := json.Marshal(criteria)
+			log.Println("DEBUG:", string(temp))
+		}
+
+		result, err, code := ctrl.BulkGetFilteredDevicesV2(token, criteria)
+		if err != nil {
+			http.Error(writer, err.Error(), code)
+			return
+		}
+		if request.URL.Query().Get("complete_services") == "true" {
+			result, err = ctrl.CompleteBulkServicesV2(token, result, criteria)
+			if err != nil {
+				http.Error(writer, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if config.Debug {
+			temp, _ := json.Marshal(result)
+			log.Println("DEBUG:", string(temp))
+		}
+
+		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+		err = json.NewEncoder(writer).Encode(result)
+		if err != nil {
+			log.Println("ERROR:", err)
+			debug.PrintStack()
+		}
+	})
+
 	router.POST("/bulk/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 		token := request.Header.Get("Authorization")
 

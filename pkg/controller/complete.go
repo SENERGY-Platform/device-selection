@@ -38,6 +38,16 @@ func (this *Controller) CompleteBulkServices(token string, bulk model.BulkResult
 	return bulk, nil
 }
 
+func (this *Controller) CompleteBulkServicesV2(token string, bulk model.BulkResult, request model.BulkRequestV2) (_ model.BulkResult, err error) {
+	for index, element := range bulk {
+		bulk[index].Selectables, err = this.completeServices(token, element.Selectables, request[index].Criteria)
+		if err != nil {
+			return bulk, err
+		}
+	}
+	return bulk, nil
+}
+
 func (this *Controller) completeServices(token string, selectables []model.Selectable, filter []devicemodel.FilterCriteria) (_ []model.Selectable, err error) {
 	aspectCache := &map[string]devicemodel.AspectNode{}
 	for selectableIndex, selectable := range selectables {

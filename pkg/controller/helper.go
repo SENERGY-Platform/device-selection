@@ -30,27 +30,27 @@ func Clone[T any](orig T) (result T) {
 	return
 }
 
-func RemoveDuplicates[T comparable](intSlice []T) []T {
+func RemoveDuplicates[T comparable](slice []T) []T {
 	keys := make(map[T]bool)
-	list := []T{}
-	for _, entry := range intSlice {
+	result := []T{}
+	for _, entry := range slice {
 		if _, value := keys[entry]; !value {
 			keys[entry] = true
-			list = append(list, entry)
+			result = append(result, entry)
 		}
 	}
-	return list
+	return result
 }
 
 func RemoveDuplicatesF[T any, C comparable](slice []T, f func(T) C) []T {
 	keys := make(map[C]bool)
-	list := []T{}
+	result := []T{}
 	for _, entry := range slice {
 		key := f(entry)
 		if _, value := keys[key]; !value {
 			keys[key] = true
-			list = append(list, entry)
+			result = append(result, entry)
 		}
 	}
-	return list
+	return result
 }

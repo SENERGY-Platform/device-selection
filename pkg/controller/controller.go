@@ -70,6 +70,18 @@ func (this *Controller) BulkGetFilteredDevices(token string, requests model.Bulk
 	return result, nil, http.StatusOK
 }
 
+func (this *Controller) BulkGetFilteredDevicesV2(token string, requests model.BulkRequestV2) (result model.BulkResult, err error, code int) {
+	devicesByDeviceTypeCache := map[string][]model.PermSearchDevice{}
+	for _, request := range requests {
+		resultElement, err, code := this.handleBulkRequestElementV2(token, request, &devicesByDeviceTypeCache)
+		if err != nil {
+			return result, err, code
+		}
+		result = append(result, resultElement)
+	}
+	return result, nil, http.StatusOK
+}
+
 func (this *Controller) handleBulkRequestElement(
 	token string,
 	request model.BulkRequestElement,
@@ -87,6 +99,32 @@ func (this *Controller) handleBulkRequestElement(
 
 	protocolBlockList := request.FilterProtocols
 	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, devicesByDeviceTypeCache, request.IncludeGroups, request.IncludeImports, request.LocalDevices)
+	if err != nil {
+		return result, err, code
+	}
+	return model.BulkResultElement{
+		Id:          request.Id,
+		Selectables: selectables,
+	}, nil, http.StatusOK
+}
+
+func (this *Controller) handleBulkRequestElementV2(
+	token string,
+	request model.BulkRequestElementV2,
+	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
+) (
+	result model.BulkResultElement,
+	err error,
+	code int,
+) {
+	selectables, err, code := this.getFilteredDevicesV2(token,
+		request.Criteria,
+		devicesByDeviceTypeCache,
+		request.IncludeDevices,
+		request.IncludeGroups,
+		request.IncludeImports,
+		request.LocalDevices,
+		request.IncludeIdModifiedDevices)
 	if err != nil {
 		return result, err, code
 	}
