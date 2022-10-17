@@ -294,6 +294,17 @@ func (this *Controller) getFilteredDevicesV2(
 				if err != nil {
 					return result, err, code
 				}
+				sort.Slice(devices, func(i, j int) bool {
+					nameI := devices[i].DisplayName
+					if nameI == "" {
+						nameI = devices[i].Name
+					}
+					nameJ := devices[j].DisplayName
+					if nameJ == "" {
+						nameJ = devices[j].Name
+					}
+					return nameI < nameJ
+				})
 				for _, device := range devices {
 					temp := device //make copy to prevent that Selectable.Device is the last element of devices every time
 					result = append(result, model.Selectable{

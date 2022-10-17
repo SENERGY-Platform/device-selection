@@ -22,6 +22,7 @@ import (
 	"device-selection/pkg/model/devicemodel"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 )
 
@@ -147,6 +148,17 @@ func (this *Controller) getDeviceGroupOptionsGetDevice(
 	}
 	devices = append(devices, modifiedDevices...)
 	devices = RemoveDuplicatesF(devices, func(d model.PermSearchDevice) string { return d.Id })
+	sort.Slice(devices, func(i, j int) bool {
+		nameI := devices[i].DisplayName
+		if nameI == "" {
+			nameI = devices[i].Name
+		}
+		nameJ := devices[j].DisplayName
+		if nameJ == "" {
+			nameJ = devices[j].Name
+		}
+		return nameI < nameJ
+	})
 
 	blockedDevices := map[string]bool{}
 	for _, id := range currentDeviceIds {
