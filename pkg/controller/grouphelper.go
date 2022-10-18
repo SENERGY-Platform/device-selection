@@ -185,6 +185,10 @@ func (this *Controller) getDeviceGroupOptionsGetDevicesModified(
 	search model.QueryFind,
 	validDeviceTypes []string) (devices []model.PermSearchDevice, err error, code int) {
 
+	if currentDeviceIds == nil {
+		currentDeviceIds = []string{}
+	}
+
 	if len(validDeviceTypes) == 0 {
 		deviceTypes, err, code := this.getOnlyDeviceTypesIncludingIdModifier(token)
 		if err != nil {
