@@ -123,7 +123,7 @@ func (this *Controller) getFilteredDeviceGroupsV2(token string, descriptions mod
 		}
 		or := []model.Selection{}
 		for _, aspectId := range aspectIds {
-			if devicemodel.Interaction(criteria.Interaction) == devicemodel.EVENT_AND_REQUEST {
+			if devicemodel.Interaction(criteria.Interaction) == devicemodel.EVENT_AND_REQUEST || criteria.Interaction == "" {
 				groupCriteriaEvent := devicemodel.DeviceGroupFilterCriteria{
 					Interaction:   devicemodel.EVENT,
 					FunctionId:    criteria.FunctionId,

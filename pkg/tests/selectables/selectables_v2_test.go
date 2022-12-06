@@ -97,6 +97,19 @@ func TestApiSelectablesV2(t *testing.T) {
 			return
 		}
 	})
+
+	emptyInteractionResult := []model.Selectable{}
+	t.Run("request empty interaction", sendPostRequestV2(selectionurl, &emptyInteractionResult, devicemodel.MEASURING_FUNCTION_PREFIX+"_1", "dc1", "a1", ""))
+	t.Run("check post result", func(t *testing.T) {
+		if len(resultPost) != 1 ||
+			resultPost[0].Device.Name != "1" ||
+			resultPost[0].Device.Id != "1" ||
+			len(resultPost[0].Services) != 1 ||
+			resultPost[0].Services[0].Id != "11" {
+			t.Error(resultPost)
+			return
+		}
+	})
 }
 
 func sendSimpleRequestV2(apiurl string, result interface{}, functionId string, deviceClassId string, aspectId string, interaction devicemodel.Interaction) func(t *testing.T) {
