@@ -265,7 +265,7 @@ func (this *Controller) getFilteredDevicesV2(
 	if includeDevices {
 		deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCachedV2(token, descriptions, includeIdModified)
 		if err != nil {
-			return result, err, code
+			return result, err, 500
 		}
 		if this.config.Debug {
 			log.Println("DEBUG: getFilteredDevicesV2()::GetDeviceTypeSelectablesCachedV2()", len(deviceTypeSelectables))

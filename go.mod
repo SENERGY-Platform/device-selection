@@ -5,7 +5,6 @@ go 1.19
 require (
 	github.com/Shopify/sarama v1.27.2
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
-	github.com/coocood/freecache v1.1.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/ory/dockertest/v3 v3.6.2
 	github.com/samuel/go-zookeeper v0.0.0-20200724154423-2164a8ac840e // indirect
@@ -13,12 +12,13 @@ require (
 	github.com/wvanbergen/kazoo-go v0.0.0-20180202103751-f72d8611297a
 )
 
+require github.com/patrickmn/go-cache v2.1.0+incompatible
+
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
-	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/containerd/continuity v0.0.0-20190827140505-75bee3e2ccb6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect

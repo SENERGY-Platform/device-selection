@@ -2,7 +2,6 @@
   "debug": false,
   "api_port": "8080",
   "device_repo_url": "http://device-repo:8080",
-  "semantic_repo_url": "http://semantic-repo:8080",
   "perm_search_url": "http://permission-search:8080",
   "import_deploy_url": "http://import-deploy:8080",
   "import_repo_url": "http://import-repo:8080",

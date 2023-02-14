@@ -18,7 +18,6 @@ package cache
 
 import "errors"
 
-var LocalCacheSize = 40 * 1024 * 1024      //40MB
 var LocalCacheExpirationInSec = 600        // 10 min
 var GlobalCacheExpirationInSec int32 = 600 // 10 min
 
@@ -33,6 +32,6 @@ func New(memcachedUrls []string) Cache {
 	if len(memcachedUrls) > 0 {
 		return NewGlobal(memcachedUrls, GlobalCacheExpirationInSec)
 	} else {
-		return NewLocal(LocalCacheSize, LocalCacheExpirationInSec)
+		return NewLocal(LocalCacheExpirationInSec)
 	}
 }

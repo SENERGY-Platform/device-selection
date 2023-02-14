@@ -18,36 +18,41 @@ package cache
 
 import (
 	"encoding/json"
-	"github.com/coocood/freecache"
+	"errors"
+	"github.com/patrickmn/go-cache"
 	"log"
+	"time"
 )
 
 type LocalCache struct {
-	l1         *freecache.Cache
+	l1         *cache.Cache
 	expiration int
 }
 
-func NewLocal(cacheSize int, expiration int) *LocalCache {
-	return &LocalCache{l1: freecache.NewCache(cacheSize), expiration: expiration}
+func NewLocal(expiration int) *LocalCache {
+	return &LocalCache{l1: cache.New(time.Duration(expiration)*time.Second, time.Duration(expiration)*time.Second), expiration: expiration}
 }
 
 func (this *LocalCache) Get(key string) (value []byte, err error) {
-	value, err = this.l1.Get([]byte(key))
-	if err == freecache.ErrNotFound {
+	temp, found := this.l1.Get(key)
+	if !found {
 		err = ErrNotFound
+	} else {
+		var ok bool
+		value, ok = temp.([]byte)
+		if !ok {
+			err = errors.New("unable to interprete cache result")
+		}
 	}
 	return
 }
 
 func (this *LocalCache) Invalidate() {
-	this.l1.Clear()
+	this.l1.Flush()
 }
 
 func (this *LocalCache) Set(key string, value []byte) {
-	err := this.l1.Set([]byte(key), value, this.expiration)
-	if err != nil {
-		log.Println("WARNING: err in LocalCache::l1.Set()", err)
-	}
+	this.l1.Set(key, value, 0)
 	return
 }
 
