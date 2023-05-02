@@ -17,11 +17,9 @@
 package controller
 
 import (
-	"bytes"
 	"device-selection/pkg/controller/idmodifier"
 	"device-selection/pkg/model"
 	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -75,38 +73,19 @@ func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string
 }
 
 func (this *Controller) Search(token string, query model.QueryMessage, result interface{}) (err error, code int) {
-	requestBody := new(bytes.Buffer)
-	err = json.NewEncoder(requestBody).Encode(query)
+	temp, code, err := this.permissionsearch.Query(token, query)
 	if err != nil {
-		return err, http.StatusInternalServerError
+		return err, code
 	}
-	req, err := http.NewRequest("POST", this.config.PermSearchUrl+"/v3/query", requestBody)
+	b, err := json.Marshal(temp)
 	if err != nil {
-		debug.PrintStack()
-		return err, http.StatusInternalServerError
+		return err, 500
 	}
-	req.Header.Set("Authorization", token)
-	resp, err := http.DefaultClient.Do(req)
+	err = json.Unmarshal(b, result)
 	if err != nil {
-		debug.PrintStack()
-		return err, http.StatusInternalServerError
+		return err, 500
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		err = errors.New(buf.String())
-		log.Println("ERROR: ", resp.StatusCode, err)
-		debug.PrintStack()
-		return err, resp.StatusCode
-	}
-	err = json.NewDecoder(resp.Body).Decode(result)
-	if err != nil {
-		debug.PrintStack()
-		return err, http.StatusInternalServerError
-	}
-
-	return nil, http.StatusOK
+	return nil, 200
 }
 
 func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice, localDeviceIds []string) (result []model.PermSearchDevice, err error, code int) {

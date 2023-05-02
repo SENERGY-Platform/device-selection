@@ -24,6 +24,7 @@ import (
 	"device-selection/pkg/model"
 	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
+	"github.com/SENERGY-Platform/permission-search/lib/client"
 	"log"
 	"net/http"
 	"sort"
@@ -31,8 +32,9 @@ import (
 )
 
 type Controller struct {
-	config configuration.Config
-	cache  cache.Cache
+	config           configuration.Config
+	cache            cache.Cache
+	permissionsearch client.Client
 }
 
 func New(ctx context.Context, config configuration.Config) (*Controller, error) {
@@ -45,8 +47,9 @@ func New(ctx context.Context, config configuration.Config) (*Controller, error) 
 		}
 	}
 	return &Controller{
-		config: config,
-		cache:  c,
+		config:           config,
+		cache:            c,
+		permissionsearch: client.NewClient(config.PermSearchUrl),
 	}, nil
 }
 

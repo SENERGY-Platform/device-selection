@@ -17,13 +17,10 @@
 package controller
 
 import (
-	"bytes"
 	"device-selection/pkg/model/devicemodel"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"net/http"
-	"runtime/debug"
+	"github.com/SENERGY-Platform/permission-search/lib/client"
+	"github.com/SENERGY-Platform/permission-search/lib/model"
 )
 
 func (this *Controller) GetFunction(id string, token string) (f devicemodel.Function, err error) {
@@ -41,27 +38,13 @@ func (this *Controller) GetFunction(id string, token string) (f devicemodel.Func
 
 func (this *Controller) GetFunctions(token string) (functions []devicemodel.Function, err error) {
 	err = this.cache.Use("functions", func() (interface{}, error) {
-		req, err := http.NewRequest("GET", this.config.PermSearchUrl+"/v3/resources/functions", nil)
-		if err != nil {
-			debug.PrintStack()
-			return nil, err
-		}
-		req.Header.Set("Authorization", token)
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			debug.PrintStack()
-			return nil, err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode >= 300 {
-			buf := new(bytes.Buffer)
-			buf.ReadFrom(resp.Body)
-			debug.PrintStack()
-			return nil, fmt.Errorf("unable to find functions: %v", buf.String())
-		}
-		var fu []devicemodel.Function
-		err = json.NewDecoder(resp.Body).Decode(&fu)
-		return fu, err
+		return client.List[[]devicemodel.Function](this.permissionsearch, token, "functions", client.ListOptions{
+			QueryListCommons: model.QueryListCommons{
+				Limit:  1000,
+				Offset: 0,
+				Rights: "r",
+			},
+		})
 	}, &functions)
 	return
 }

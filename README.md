@@ -1,3 +1,7 @@
+<a href="https://github.com/SENERGY-Platform/device-selection/actions/workflows/tests.yml" rel="nofollow">
+    <img src="https://github.com/SENERGY-Platform/device-selection/actions/workflows/tests.yml/badge.svg?branch=master" alt="Tests" />
+</a>
+
 This service allowes a user to find devices (and services) which match given filter criteria.
 
 the endpoint expects a jwt in the Authorization header.

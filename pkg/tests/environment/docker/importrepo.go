@@ -18,31 +18,29 @@ package docker
 
 import (
 	"context"
-	"github.com/ory/dockertest/v3"
-	"github.com/ory/dockertest/v3/docker"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"log"
-	"net/http"
 	"sync"
 )
 
 func ImportRepo(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, mongoUrl string, permsearch string, deviceRepoUrl string) (hostPort string, ipAddress string, err error) {
 	log.Println("start import-repository")
-	pool, err := dockertest.NewPool("")
-	if err != nil {
-		return "", "", err
-	}
-	container, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "ghcr.io/senergy-platform/import-repository",
-		Tag:        "dev",
-		Env: []string{
-			"DEVICE_REPO_URL=" + deviceRepoUrl,
-			"KAFKA_BOOTSTRAP=" + kafkaUrl,
-			"PERMISSIONS_URL=" + permsearch,
-			"MONGO_URL=" + mongoUrl,
-			"DEBUG=true",
+	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image: "ghcr.io/senergy-platform/import-repository:dev",
+			Env: map[string]string{
+				"DEVICE_REPO_URL": deviceRepoUrl,
+				"KAFKA_BOOTSTRAP": kafkaUrl,
+				"PERMISSIONS_URL": permsearch,
+				"MONGO_URL":       mongoUrl,
+				"DEBUG":           "true",
+			},
+			ExposedPorts:    []string{"8080/tcp"},
+			WaitingFor:      wait.ForListeningPort("8080/tcp"),
+			AlwaysPullImage: true,
 		},
-	}, func(config *docker.HostConfig) {
-		config.RestartPolicy = docker.RestartPolicy{Name: "unless-stopped"}
+		Started: true,
 	})
 	if err != nil {
 		return "", "", err
@@ -51,18 +49,18 @@ func ImportRepo(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, mongoU
 	go func() {
 		defer wg.Done()
 		<-ctx.Done()
-		log.Println("DEBUG: remove container " + container.Container.Name)
-		container.Close()
+		log.Println("DEBUG: remove container import-repository", c.Terminate(context.Background()))
 	}()
-	go Dockerlog(pool, ctx, container, "IMPORT-REPOSITORY")
-	hostPort = container.GetPort("8080/tcp")
-	err = pool.Retry(func() error {
-		log.Println("try import-manager connection...")
-		_, err := http.Get("http://localhost:" + hostPort)
-		if err != nil {
-			log.Println(err)
-		}
-		return err
-	})
-	return hostPort, container.Container.NetworkSettings.IPAddress, err
+
+	ipAddress, err = c.ContainerIP(ctx)
+	if err != nil {
+		return "", "", err
+	}
+	temp, err := c.MappedPort(ctx, "8080/tcp")
+	if err != nil {
+		return "", "", err
+	}
+	hostPort = temp.Port()
+
+	return hostPort, ipAddress, err
 }

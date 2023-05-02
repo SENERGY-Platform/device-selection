@@ -16,57 +16,27 @@
 
 package model
 
-import "net/url"
-
-type QueryMessage struct {
-	Resource string         `json:"resource"`
-	Find     *QueryFind     `json:"find"`
-	ListIds  *QueryListIds  `json:"list_ids"`
-	CheckIds *QueryCheckIds `json:"check_ids"`
-}
-type QueryFind struct {
-	QueryListCommons
-	Search string     `json:"search"`
-	Filter *Selection `json:"filter"`
-}
-
-type QueryListIds struct {
-	QueryListCommons
-	Ids []string `json:"ids"`
-}
-
-type QueryCheckIds struct {
-	Ids    []string `json:"ids"`
-	Rights string   `json:"rights"`
-}
-
-type QueryListCommons struct {
-	Limit         int        `json:"limit"`
-	Offset        int        `json:"offset"`
-	Rights        string     `json:"rights"`
-	SortBy        string     `json:"sort_by"`
-	SortDesc      bool       `json:"sort_desc"`
-	AddIdModifier url.Values `json:"add_id_modifier,omitempty"`
-}
-
-type QueryOperationType string
-
-const (
-	QueryEqualOperation             QueryOperationType = "=="
-	QueryUnequalOperation           QueryOperationType = "!="
-	QueryAnyValueInFeatureOperation QueryOperationType = "any_value_in_feature"
+import (
+	"github.com/SENERGY-Platform/permission-search/lib/client"
 )
 
-type ConditionConfig struct {
-	Feature   string             `json:"feature"`
-	Operation QueryOperationType `json:"operation"`
-	Value     interface{}        `json:"value"`
-	Ref       string             `json:"ref"`
-}
+type QueryMessage = client.QueryMessage
+type QueryFind = client.QueryFind
 
-type Selection struct {
-	And       []Selection     `json:"and"`
-	Or        []Selection     `json:"or"`
-	Not       *Selection      `json:"not"`
-	Condition ConditionConfig `json:"condition"`
-}
+type QueryListIds = client.QueryListIds
+
+type QueryCheckIds = client.QueryCheckIds
+
+type QueryListCommons = client.QueryListCommons
+
+type QueryOperationType = client.QueryOperationType
+
+const (
+	QueryEqualOperation             = client.QueryEqualOperation
+	QueryUnequalOperation           = client.QueryUnequalOperation
+	QueryAnyValueInFeatureOperation = client.QueryAnyValueInFeatureOperation
+)
+
+type ConditionConfig = client.ConditionConfig
+
+type Selection = client.Selection
