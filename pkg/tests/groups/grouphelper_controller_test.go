@@ -89,6 +89,28 @@ func TestGroupHelperCriteria(t *testing.T) {
 				{Id: "s11", Name: "s11", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
 			}),
 		},
+
+		{
+			Id:            "aspect-hierarchy-check-parent",
+			Name:          "aspect-hierarchy-check-parent",
+			DeviceClassId: "plug",
+			Services: legacy.FromLegacyServices([]legacy.Service{
+				{Id: "s12", Name: "s12", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOn"}},
+				{Id: "s13", Name: "s13", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{"setOff"}},
+				{Id: "s14", Name: "s14", Interaction: devicemodel.REQUEST, AspectIds: []string{"device"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
+			}),
+		},
+
+		{
+			Id:            "aspect-hierarchy-check-child",
+			Name:          "aspect-hierarchy-check-child",
+			DeviceClassId: "plug",
+			Services: legacy.FromLegacyServices([]legacy.Service{
+				{Id: "s15", Name: "s15", Interaction: devicemodel.REQUEST, AspectIds: []string{"horn"}, FunctionIds: []string{"setOn"}},
+				{Id: "s16", Name: "s16", Interaction: devicemodel.REQUEST, AspectIds: []string{"horn"}, FunctionIds: []string{"setOff"}},
+				{Id: "s17", Name: "s17", Interaction: devicemodel.REQUEST, AspectIds: []string{"horn"}, FunctionIds: []string{devicemodel.MEASURING_FUNCTION_PREFIX + "getState"}},
+			}),
+		},
 	}
 
 	devicesInstances := []devicemodel.Device{
@@ -131,6 +153,17 @@ func TestGroupHelperCriteria(t *testing.T) {
 			Id:           "plug2",
 			Name:         "plug2",
 			DeviceTypeId: "plug",
+		},
+
+		{
+			Id:           "aspect-hierarchy-check-parent",
+			Name:         "aspect-hierarchy-check-parent",
+			DeviceTypeId: "aspect-hierarchy-check-parent",
+		},
+		{
+			Id:           "aspect-hierarchy-check-child",
+			Name:         "aspect-hierarchy-check-child",
+			DeviceTypeId: "aspect-hierarchy-check-child",
 		},
 	}
 
@@ -202,6 +235,26 @@ func TestGroupHelperCriteria(t *testing.T) {
 	t.Run("lamp1 colorlamp1 plug1", testGroupHelper(repo, []string{"lamp1", "colorlamp1", "plug1"}, []devicemodel.DeviceGroupFilterCriteria{
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 	}))
+
+	t.Run("aspect-hierarchy-check-parent", testGroupHelper(repo, []string{"aspect-hierarchy-check-parent"}, []devicemodel.DeviceGroupFilterCriteria{
+		{FunctionId: "setOn", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
+		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+	}))
+
+	t.Run("aspect-hierarchy-check-child", testGroupHelper(repo, []string{"aspect-hierarchy-check-child"}, []devicemodel.DeviceGroupFilterCriteria{
+		{FunctionId: "setOn", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
+		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "components", Interaction: devicemodel.REQUEST},
+		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "horn", Interaction: devicemodel.REQUEST},
+	}))
+
+	t.Run("aspect-hierarchy-check", testGroupHelper(repo, []string{"aspect-hierarchy-check-parent", "aspect-hierarchy-check-child"}, []devicemodel.DeviceGroupFilterCriteria{
+		{FunctionId: "setOn", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
+		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+	}))
 }
 
 func testGroupHelper(repo *controller.Controller, deviceIds []string, expectedResult []devicemodel.DeviceGroupFilterCriteria) func(t *testing.T) {
@@ -237,7 +290,33 @@ func normalizeCriteria(criteria []devicemodel.DeviceGroupFilterCriteria) []devic
 }
 
 func grouphelpertestenv(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (repo *controller.Controller, err error) {
-	kafkaUrl, _, repoUrl, searchurl, err := helper.EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
+	kafkaUrl, managerurl, repoUrl, searchurl, err := helper.EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
+	if err != nil {
+		return nil, err
+	}
+	err = helper.SetAspect(managerurl, devicemodel.Aspect{
+		Id:   "device",
+		Name: "device",
+		SubAspects: []devicemodel.Aspect{
+			{
+				Id:   "components",
+				Name: "components",
+				SubAspects: []devicemodel.Aspect{
+					{
+						Id:   "horn",
+						Name: "horn",
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	err = helper.SetAspect(managerurl, devicemodel.Aspect{
+		Id:   "light",
+		Name: "light",
+	})
 	if err != nil {
 		return nil, err
 	}

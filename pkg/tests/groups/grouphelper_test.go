@@ -143,7 +143,36 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}
 
-	_, _, _, selectionurl, err := helper.EnvWithApi(ctx, wg, deviceTypes, devicesInstances)
+	managerurl, _, _, selectionurl, err := helper.EnvWithApi(ctx, wg, deviceTypes, devicesInstances)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = helper.SetAspect(managerurl, devicemodel.Aspect{
+		Id:   "device",
+		Name: "device",
+		SubAspects: []devicemodel.Aspect{
+			{
+				Id:   "components",
+				Name: "components",
+				SubAspects: []devicemodel.Aspect{
+					{
+						Id:   "horn",
+						Name: "horn",
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = helper.SetAspect(managerurl, devicemodel.Aspect{
+		Id:   "light",
+		Name: "light",
+	})
 	if err != nil {
 		t.Error(err)
 		return
