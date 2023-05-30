@@ -94,17 +94,19 @@ func (this *Controller) getDeviceCriteria(token string, deviceTypeCache *map[str
 							Interaction: interaction,
 						}
 						resultSet[criteriaHash(criteria)] = criteria
-						aspectNode, err := this.GetAspectNode(current.AspectId, token)
-						if err != nil {
-							return result, err, http.StatusInternalServerError
-						}
-						for _, aspect := range aspectNode.AncestorIds {
-							criteria := devicemodel.DeviceGroupFilterCriteria{
-								FunctionId:  current.FunctionId,
-								AspectId:    aspect,
-								Interaction: interaction,
+						if current.AspectId != "" {
+							aspectNode, err := this.GetAspectNode(current.AspectId, token)
+							if err != nil {
+								return result, err, http.StatusInternalServerError
 							}
-							resultSet[criteriaHash(criteria)] = criteria
+							for _, aspect := range aspectNode.AncestorIds {
+								criteria := devicemodel.DeviceGroupFilterCriteria{
+									FunctionId:  current.FunctionId,
+									AspectId:    aspect,
+									Interaction: interaction,
+								}
+								resultSet[criteriaHash(criteria)] = criteria
+							}
 						}
 					} else {
 						criteria := devicemodel.DeviceGroupFilterCriteria{
