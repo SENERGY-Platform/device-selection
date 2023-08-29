@@ -290,7 +290,13 @@ func SetConcept(devicemanagerUrl string, c devicemodel.Concept) error {
 func SetDeviceType(devicemanagerUrl string, dt devicemodel.DeviceType) error {
 	temp, _ := json.Marshal(dt)
 	log.Println("test create device-type:", string(temp))
-	resp, err := Jwtpost(AdminJwt, devicemanagerUrl+"/device-types", dt)
+	var resp *http.Response
+	var err error
+	if dt.Id != "" {
+		resp, err = Jwtput(AdminJwt, devicemanagerUrl+"/device-types/"+url.PathEscape(dt.Id), dt)
+	} else {
+		resp, err = Jwtpost(AdminJwt, devicemanagerUrl+"/device-types", dt)
+	}
 	if err != nil {
 		return err
 	}

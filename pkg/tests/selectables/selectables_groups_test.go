@@ -27,8 +27,9 @@ import (
 	"device-selection/pkg/tests/environment/legacy"
 	"device-selection/pkg/tests/helper"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
+	"net/url"
 	"reflect"
 	"sort"
 	"sync"
@@ -871,7 +872,12 @@ func testCreateDeviceGroups(managerUrl string, groups []devicemodel.DeviceGroup)
 				t.Error(err)
 				return
 			}
-			req, err := http.NewRequest("POST", managerUrl+"/device-groups", buff)
+			var req *http.Request
+			if group.Id != "" {
+				req, err = http.NewRequest("PUT", managerUrl+"/device-groups/"+url.PathEscape(group.Id), buff)
+			} else {
+				req, err = http.NewRequest("POST", managerUrl+"/device-groups", buff)
+			}
 			if err != nil {
 				t.Error(err)
 				return
@@ -883,7 +889,7 @@ func testCreateDeviceGroups(managerUrl string, groups []devicemodel.DeviceGroup)
 				return
 			}
 			if resp.StatusCode != 200 {
-				temp, _ := ioutil.ReadAll(resp.Body)
+				temp, _ := io.ReadAll(resp.Body)
 				t.Error(resp.StatusCode, string(temp))
 			}
 		}
@@ -899,7 +905,13 @@ func testCreateDevices(managerUrl string, devices []devicemodel.Device) func(t *
 				t.Error(err)
 				return
 			}
-			req, err := http.NewRequest("POST", managerUrl+"/devices", buff)
+
+			var req *http.Request
+			if device.Id != "" {
+				req, err = http.NewRequest("PUT", managerUrl+"/devices/"+url.PathEscape(device.Id), buff)
+			} else {
+				req, err = http.NewRequest("POST", managerUrl+"/devices", buff)
+			}
 			if err != nil {
 				t.Error(err)
 				return
@@ -911,7 +923,7 @@ func testCreateDevices(managerUrl string, devices []devicemodel.Device) func(t *
 				return
 			}
 			if resp.StatusCode != 200 {
-				temp, _ := ioutil.ReadAll(resp.Body)
+				temp, _ := io.ReadAll(resp.Body)
 				t.Error(resp.StatusCode, string(temp))
 				return
 			}
@@ -928,7 +940,12 @@ func testCreateDeviceTypes(managerUrl string, deviceTypes []devicemodel.DeviceTy
 				t.Error(err)
 				return
 			}
-			req, err := http.NewRequest("POST", managerUrl+"/device-types", buff)
+			var req *http.Request
+			if deviceType.Id != "" {
+				req, err = http.NewRequest("PUT", managerUrl+"/device-types/"+url.PathEscape(deviceType.Id), buff)
+			} else {
+				req, err = http.NewRequest("POST", managerUrl+"/device-types", buff)
+			}
 			if err != nil {
 				t.Error(err)
 				return
@@ -940,7 +957,7 @@ func testCreateDeviceTypes(managerUrl string, deviceTypes []devicemodel.DeviceTy
 				return
 			}
 			if resp.StatusCode != 200 {
-				temp, _ := ioutil.ReadAll(resp.Body)
+				temp, _ := io.ReadAll(resp.Body)
 				t.Error(resp.StatusCode, string(temp))
 				return
 			}
