@@ -18,8 +18,8 @@ package kafka
 
 import (
 	"context"
-	"device-selection/pkg/configuration"
 	"errors"
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/segmentio/kafka-go"
 	"io"
 	"io/ioutil"

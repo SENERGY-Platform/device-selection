@@ -18,10 +18,10 @@ package cacheinvalidator
 
 import (
 	"context"
-	"device-selection/pkg/configuration"
-	"device-selection/pkg/controller/cache"
-	"device-selection/pkg/controller/cacheinvalidator/kafka"
 	"fmt"
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller/cache"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller/cacheinvalidator/kafka"
 )
 
 func StartCacheInvalidator(ctx context.Context, config configuration.Config, cache cache.Cache) error {

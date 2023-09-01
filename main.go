@@ -18,9 +18,9 @@ package main
 
 import (
 	"context"
-	"device-selection/pkg"
-	"device-selection/pkg/configuration"
 	"flag"
+	"github.com/SENERGY-Platform/device-selection/pkg"
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"log"
 	"os"
 	"os/signal"

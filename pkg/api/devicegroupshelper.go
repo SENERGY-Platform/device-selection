@@ -17,10 +17,10 @@
 package api
 
 import (
-	"device-selection/pkg/configuration"
-	"device-selection/pkg/controller"
-	"device-selection/pkg/model"
 	"encoding/json"
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller"
+	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"

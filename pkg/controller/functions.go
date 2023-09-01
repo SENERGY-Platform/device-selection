@@ -17,8 +17,8 @@
 package controller
 
 import (
-	"device-selection/pkg/model/devicemodel"
 	"errors"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/permission-search/lib/client"
 	"github.com/SENERGY-Platform/permission-search/lib/model"
 )

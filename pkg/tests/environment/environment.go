@@ -18,8 +18,8 @@ package environment
 
 import (
 	"context"
-	"device-selection/pkg/tests/environment/docker"
-	"device-selection/pkg/tests/environment/mock"
+	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/docker"
+	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/mock"
 	"log"
 	"runtime/debug"
 	"sync"

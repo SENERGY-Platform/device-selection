@@ -17,10 +17,10 @@
 package controller
 
 import (
-	"device-selection/pkg/model"
-	"device-selection/pkg/model/basecontentvariable"
-	"device-selection/pkg/model/devicemodel"
 	"errors"
+	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/basecontentvariable"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"log"
 )
 

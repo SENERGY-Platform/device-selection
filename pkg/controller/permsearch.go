@@ -17,9 +17,9 @@
 package controller
 
 import (
-	"device-selection/pkg/controller/idmodifier"
-	"device-selection/pkg/model"
 	"encoding/json"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller/idmodifier"
+	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"log"
 	"net/http"
 	"runtime/debug"

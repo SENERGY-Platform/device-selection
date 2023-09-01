@@ -18,11 +18,11 @@ package legacy
 
 import (
 	"context"
-	"device-selection/pkg/api"
-	"device-selection/pkg/configuration"
-	"device-selection/pkg/controller"
-	"device-selection/pkg/model/devicemodel"
-	"device-selection/pkg/tests/helper"
+	"github.com/SENERGY-Platform/device-selection/pkg/api"
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/pkg/tests/helper"
 	"net/http/httptest"
 	"sync"
 	"time"

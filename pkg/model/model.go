@@ -16,7 +16,7 @@
 
 package model
 
-import "device-selection/pkg/model/devicemodel"
+import "github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 
 type PermSearchDevice struct {
 	devicemodel.Device

@@ -17,9 +17,9 @@
 package controller
 
 import (
-	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"errors"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"net/http"
 	"runtime/debug"
 	"time"

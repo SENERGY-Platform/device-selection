@@ -18,13 +18,13 @@ package pkg
 
 import (
 	"context"
-	"device-selection/pkg/api"
-	"device-selection/pkg/configuration"
-	"device-selection/pkg/controller"
+	"github.com/SENERGY-Platform/device-selection/pkg/api"
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"sync"
 )
 
-//starts services and goroutines; returns a waiting group which is done as soon as all go routines are stopped
+// starts services and goroutines; returns a waiting group which is done as soon as all go routines are stopped
 func Start(ctx context.Context, config configuration.Config) (wg *sync.WaitGroup, err error) {
 	wg = &sync.WaitGroup{}
 	d, err := controller.New(ctx, config)

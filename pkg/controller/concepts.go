@@ -18,9 +18,9 @@ package controller
 
 import (
 	"bytes"
-	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"fmt"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"log"
 	"net/http"
 	"runtime/debug"

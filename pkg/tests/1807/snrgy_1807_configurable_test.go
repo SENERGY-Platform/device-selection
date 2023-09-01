@@ -18,11 +18,11 @@ package _807
 
 import (
 	"context"
-	"device-selection/pkg/configuration"
-	"device-selection/pkg/model"
-	"device-selection/pkg/model/devicemodel"
-	"device-selection/pkg/tests/helper"
 	"encoding/json"
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/pkg/tests/helper"
 	"reflect"
 	"sync"
 	"testing"

@@ -18,12 +18,12 @@ package controller
 
 import (
 	"context"
-	"device-selection/pkg/configuration"
-	"device-selection/pkg/controller/cache"
-	"device-selection/pkg/controller/cacheinvalidator"
-	"device-selection/pkg/model"
-	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller/cache"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller/cacheinvalidator"
+	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/permission-search/lib/client"
 	"log"
 	"net/http"

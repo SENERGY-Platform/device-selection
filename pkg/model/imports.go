@@ -17,8 +17,8 @@
 package model
 
 import (
-	"device-selection/pkg/model/basecontentvariable"
-	"device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/basecontentvariable"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 )
 
 type ImportType struct {

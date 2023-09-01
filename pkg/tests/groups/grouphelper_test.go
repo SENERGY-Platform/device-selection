@@ -18,10 +18,10 @@ package groups
 
 import (
 	"context"
-	"device-selection/pkg/model"
-	"device-selection/pkg/model/devicemodel"
-	"device-selection/pkg/tests/environment/legacy"
-	"device-selection/pkg/tests/helper"
+	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/legacy"
+	"github.com/SENERGY-Platform/device-selection/pkg/tests/helper"
 	"sync"
 	"testing"
 )

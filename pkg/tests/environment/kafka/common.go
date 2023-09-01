@@ -17,7 +17,7 @@
 package kafka
 
 import (
-	"device-selection/pkg/tests/environment/kafka/topicconfig"
+	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/kafka/topicconfig"
 )
 
 func InitTopic(zkUrl string, topics ...string) (err error) {

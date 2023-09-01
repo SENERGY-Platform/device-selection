@@ -17,11 +17,11 @@
 package controller
 
 import (
-	"device-selection/pkg/model"
-	"device-selection/pkg/model/devicemodel"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"io"
 	"log"
 	"net/http"

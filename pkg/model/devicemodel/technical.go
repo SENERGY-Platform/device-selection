@@ -16,7 +16,7 @@
 
 package devicemodel
 
-import "device-selection/pkg/model/basecontentvariable"
+import "github.com/SENERGY-Platform/device-selection/pkg/model/basecontentvariable"
 
 type Hub struct {
 	Id             string   `json:"id"`

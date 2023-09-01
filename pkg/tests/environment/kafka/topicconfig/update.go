@@ -2,7 +2,7 @@ package topicconfig
 
 import (
 	"errors"
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/wvanbergen/kazoo-go"
 	"io/ioutil"
 	"log"
