@@ -151,10 +151,6 @@ func (this *Controller) getFilteredDevices(
 	err error,
 	code int,
 ) {
-
-	if len(descriptions) == 0 {
-		return []model.Selectable{}, nil, 200
-	}
 	filteredProtocols := map[string]bool{}
 	for _, protocolId := range protocolBlockList {
 		filteredProtocols[protocolId] = true
@@ -258,9 +254,6 @@ func (this *Controller) getFilteredDevicesV2(
 	err error,
 	code int,
 ) {
-	if len(descriptions) == 0 {
-		return []model.Selectable{}, nil, 200
-	}
 	if this.config.Debug {
 		temp, _ := json.Marshal(descriptions)
 		log.Println("DEBUG: getFilteredDevicesV2() inputs:", includeDevices, includeGroups, includeImports, string(temp), withLocalDeviceIds)
