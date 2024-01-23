@@ -64,13 +64,14 @@ type BulkRequestElement struct {
 type BulkRequest []BulkRequestElement
 
 type BulkRequestElementV2 struct {
-	Id                       string               `json:"id"`
-	Criteria                 FilterCriteriaAndSet `json:"criteria"`
-	IncludeGroups            bool                 `json:"include_groups"`
-	IncludeImports           bool                 `json:"include_imports"`
-	IncludeDevices           bool                 `json:"include_devices"`
-	IncludeIdModifiedDevices bool                 `json:"include_id_modified_devices"`
-	LocalDevices             []string             `json:"local_devices"`
+	Id                         string               `json:"id"`
+	Criteria                   FilterCriteriaAndSet `json:"criteria"`
+	IncludeGroups              bool                 `json:"include_groups"`
+	IncludeImports             bool                 `json:"include_imports"`
+	IncludeDevices             bool                 `json:"include_devices"`
+	IncludeIdModifiedDevices   bool                 `json:"include_id_modified_devices"`
+	ImportPathTrimFirstElement bool                 `json:"import_path_trim_first_element"`
+	LocalDevices               []string             `json:"local_devices"`
 }
 
 type BulkRequestV2 []BulkRequestElementV2

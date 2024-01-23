@@ -88,6 +88,7 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 		includeImports, _ := strconv.ParseBool(request.URL.Query().Get("include_imports"))
 		includeDevices, _ := strconv.ParseBool(request.URL.Query().Get("include_devices"))
 		includeIdModified, _ := strconv.ParseBool(request.URL.Query().Get("include_id_modified"))
+		importPathTrimFirstElement, _ := strconv.ParseBool(request.URL.Query().Get("import_path_trim_first_element"))
 
 		var withLocalDeviceIds []string
 		localDevicesQueryParam := request.URL.Query().Get("local_devices")
@@ -97,7 +98,7 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 			}
 		}
 
-		result, err, code := ctrl.GetFilteredDevicesV2(token, criteria, includeDevices, includeGroups, includeImports, withLocalDeviceIds, includeIdModified)
+		result, err, code := ctrl.GetFilteredDevicesV2(token, criteria, includeDevices, includeGroups, includeImports, withLocalDeviceIds, includeIdModified, importPathTrimFirstElement)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return
@@ -124,6 +125,7 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 		includeImports, _ := strconv.ParseBool(request.URL.Query().Get("include_imports"))
 		includeDevices, _ := strconv.ParseBool(request.URL.Query().Get("include_devices"))
 		includeIdModified, _ := strconv.ParseBool(request.URL.Query().Get("include_id_modified"))
+		importPathTrimFirstElement, _ := strconv.ParseBool(request.URL.Query().Get("import_path_trim_first_element"))
 
 		var withLocalDeviceIds []string
 		localDevicesQueryParam := request.URL.Query().Get("local_devices")
@@ -133,7 +135,7 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 			}
 		}
 
-		result, err, code := ctrl.GetFilteredDevicesV2(token, criteria, includeDevices, includeGroups, includeImports, withLocalDeviceIds, includeIdModified)
+		result, err, code := ctrl.GetFilteredDevicesV2(token, criteria, includeDevices, includeGroups, includeImports, withLocalDeviceIds, includeIdModified, importPathTrimFirstElement)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

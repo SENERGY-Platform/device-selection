@@ -103,7 +103,7 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 	return result, err, code
 }
 
-func (this *Controller) getFilteredImportsV2(token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
+func (this *Controller) getFilteredImportsV2(token string, descriptions model.FilterCriteriaAndSet, importPathTrimFirstElement bool) (result []model.Selectable, err error, code int) {
 	importTypes := []model.ImportType{}
 	filter := []model.Selection{}
 	for _, criteria := range descriptions {
@@ -184,10 +184,22 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 			if err != nil {
 				return result, err, code
 			}
-			pathOptions, err := this.getImportPathOptions(token, fullType.Output, descriptions, nil, aspectCache)
-			if err != nil {
-				return result, err, code
+			var pathOptions []model.PathOption
+			if importPathTrimFirstElement {
+				for _, sub := range fullType.Output.SubContentVariables {
+					subOptions, err := this.getImportPathOptions(token, sub, descriptions, nil, aspectCache)
+					if err != nil {
+						return result, err, code
+					}
+					pathOptions = append(pathOptions, subOptions...)
+				}
+			} else {
+				pathOptions, err = this.getImportPathOptions(token, fullType.Output, descriptions, nil, aspectCache)
+				if err != nil {
+					return result, err, code
+				}
 			}
+
 			var pathOptionsMap map[string][]model.PathOption
 			if pathOptions != nil && len(pathOptions) > 0 {
 				pathOptionsMap = map[string][]model.PathOption{fullType.Id: pathOptions}

@@ -381,7 +381,7 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 		result, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.FilterCriteriaAndSet{{
 			FunctionId: getColorFunction,
 			AspectId:   lightAspect,
-		}}, true, true, true, nil, false)
+		}}, true, true, true, nil, false, false)
 		if err != nil {
 			t.Error(err)
 		}
@@ -393,6 +393,50 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 			e, _ := json.Marshal(expectedIds)
 			t.Errorf("%#v", resultIds)
 			t.Errorf("\n%v\n%v", string(r), string(e))
+			return
+		}
+	})
+
+	t.Run("import path options", func(t *testing.T) {
+		untrimmed, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.FilterCriteriaAndSet{{
+			FunctionId: getColorFunction,
+			AspectId:   lightAspect,
+		}}, false, false, true, nil, false, false)
+		if err != nil {
+			t.Error(err)
+		}
+		pathsUntrimmed := []string{}
+		for _, element := range untrimmed {
+			for _, pathOptions := range element.ServicePathOptions {
+				for _, option := range pathOptions {
+					pathsUntrimmed = append(pathsUntrimmed, option.Path)
+				}
+			}
+		}
+		trimmed, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.FilterCriteriaAndSet{{
+			FunctionId: getColorFunction,
+			AspectId:   lightAspect,
+		}}, false, false, true, nil, false, true)
+		if err != nil {
+			t.Error(err)
+		}
+		pathsTrimmed := []string{}
+		for _, element := range trimmed {
+			for _, pathOptions := range element.ServicePathOptions {
+				for _, option := range pathOptions {
+					pathsTrimmed = append(pathsTrimmed, option.Path)
+				}
+			}
+		}
+		sort.Strings(pathsUntrimmed)
+		sort.Strings(pathsTrimmed)
+		t.Logf("\n%#v\n%#v\n", pathsUntrimmed, pathsTrimmed)
+		if !reflect.DeepEqual(pathsUntrimmed, []string{"output.value.value"}) {
+			t.Errorf("%#v", pathsUntrimmed)
+			return
+		}
+		if !reflect.DeepEqual(pathsTrimmed, []string{"value.value"}) {
+			t.Errorf("%#v", pathsTrimmed)
 			return
 		}
 	})

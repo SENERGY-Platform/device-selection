@@ -57,8 +57,8 @@ func (this *Controller) GetFilteredDevices(token string, descriptions model.Filt
 	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, includeGroups, includeImports, withLocalDeviceIds)
 }
 
-func (this *Controller) GetFilteredDevicesV2(token string, descriptions model.FilterCriteriaAndSet, includeDevices bool, includeGroups bool, includeImports bool, withLocalDeviceIds []string, includeIdModified bool) (result []model.Selectable, err error, code int) {
-	return this.getFilteredDevicesV2(token, descriptions, nil, includeDevices, includeGroups, includeImports, withLocalDeviceIds, includeIdModified)
+func (this *Controller) GetFilteredDevicesV2(token string, descriptions model.FilterCriteriaAndSet, includeDevices bool, includeGroups bool, includeImports bool, withLocalDeviceIds []string, includeIdModified bool, importPathTrimFirstElement bool) (result []model.Selectable, err error, code int) {
+	return this.getFilteredDevicesV2(token, descriptions, nil, includeDevices, includeGroups, includeImports, withLocalDeviceIds, includeIdModified, importPathTrimFirstElement)
 }
 
 func (this *Controller) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
@@ -127,7 +127,8 @@ func (this *Controller) handleBulkRequestElementV2(
 		request.IncludeGroups,
 		request.IncludeImports,
 		request.LocalDevices,
-		request.IncludeIdModifiedDevices)
+		request.IncludeIdModifiedDevices,
+		request.ImportPathTrimFirstElement)
 	if err != nil {
 		return result, err, code
 	}
@@ -249,6 +250,7 @@ func (this *Controller) getFilteredDevicesV2(
 	includeImports bool,
 	withLocalDeviceIds []string,
 	includeIdModified bool,
+	importPathTrimFirstElement bool,
 ) (
 	result []model.Selectable,
 	err error,
@@ -320,7 +322,7 @@ func (this *Controller) getFilteredDevicesV2(
 		result = append(result, groupResult...)
 	}
 	if includeImports && !criteriaContainRequestInteraction(descriptions) {
-		importResult, err, code := this.getFilteredImportsV2(token, descriptions)
+		importResult, err, code := this.getFilteredImportsV2(token, descriptions, importPathTrimFirstElement)
 		if err != nil {
 			return result, err, code
 		}
