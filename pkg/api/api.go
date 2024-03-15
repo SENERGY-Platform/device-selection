@@ -21,6 +21,7 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/api/util"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
+	"github.com/SENERGY-Platform/service-commons/pkg/accesslog"
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
@@ -61,5 +62,5 @@ func Router(config configuration.Config, ctrl *controller.Controller) http.Handl
 	}
 	log.Println("add logging and cors")
 	corsHandler := util.NewCors(router)
-	return util.NewLogger(corsHandler)
+	return accesslog.New(corsHandler)
 }
