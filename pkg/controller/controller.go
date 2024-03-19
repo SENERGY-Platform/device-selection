@@ -22,11 +22,14 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/cache"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/cacheinvalidator"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller/idmodifier"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/permission-search/lib/client"
 	"log"
 	"net/http"
+	"runtime/debug"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -268,6 +271,114 @@ func (this *Controller) getFilteredDevicesV2(
 		if this.config.Debug {
 			log.Println("DEBUG: getFilteredDevicesV2()::GetDeviceTypeSelectablesCachedV2()", len(deviceTypeSelectables))
 		}
+
+		if devicesByDeviceTypeCache == nil {
+			devicesByDeviceTypeCache = &map[string][]model.PermSearchDevice{}
+		}
+
+		//list device types
+		devicesByDeviceType := map[string][]model.PermSearchDevice{}
+		dtList := []string{}
+		for _, dtSelectable := range deviceTypeSelectables {
+			if element, ok := (*devicesByDeviceTypeCache)[dtSelectable.DeviceTypeId]; ok {
+				devicesByDeviceType[dtSelectable.DeviceTypeId] = element
+			} else {
+				pureId, _ := idmodifier.SplitModifier(dtSelectable.DeviceTypeId)
+				if !slices.Contains(dtList, pureId) {
+					dtList = append(dtList, pureId)
+				}
+			}
+		}
+
+		//find matching devices
+		matchingDevices := []model.PermSearchDevice{}
+		if len(withLocalDeviceIds) == 0 {
+			err, code = this.Search(token, model.QueryMessage{
+				Resource: "devices",
+				Find: &model.QueryFind{
+					Filter: &model.Selection{
+						Condition: model.ConditionConfig{
+							Feature:   "features.device_type_id",
+							Operation: model.QueryAnyValueInFeatureOperation,
+							Value:     dtList,
+						},
+					},
+				},
+			}, &matchingDevices)
+		} else {
+			err, code = this.Search(token, model.QueryMessage{
+				Resource: "devices",
+				Find: &model.QueryFind{
+					QueryListCommons: model.QueryListCommons{
+						Limit:    1000,
+						Offset:   0,
+						Rights:   "rx",
+						SortBy:   "name",
+						SortDesc: false,
+					},
+					Search: "",
+					Filter: &model.Selection{
+						And: []model.Selection{
+							{
+								Condition: model.ConditionConfig{
+									Feature:   "features.device_type_id",
+									Operation: model.QueryAnyValueInFeatureOperation,
+									Value:     dtList,
+								},
+							},
+							{
+								Condition: model.ConditionConfig{
+									Feature:   "features.local_id",
+									Operation: model.QueryAnyValueInFeatureOperation,
+									Value:     withLocalDeviceIds,
+								},
+							},
+						},
+					},
+				},
+			}, &matchingDevices)
+		}
+		if err != nil {
+			debug.PrintStack()
+			return result, err, code
+		}
+		for _, device := range matchingDevices {
+			devicesByDeviceType[device.DeviceTypeId] = append(devicesByDeviceType[device.DeviceTypeId], device)
+		}
+
+		//find modified devices
+		devicesToModefy := []string{}
+		modefiedDevices := []model.PermSearchDevice{}
+		for _, dtSelectable := range deviceTypeSelectables {
+			pureId, modifier := idmodifier.SplitModifier(dtSelectable.DeviceTypeId)
+			if pureId != dtSelectable.DeviceTypeId {
+				for _, device := range devicesByDeviceType[pureId] {
+					modifiedDeviceId := idmodifier.JoinModifier(device.Id, modifier)
+					if _, ok := devicesByDeviceType[modifiedDeviceId]; !ok {
+						devicesToModefy = append(devicesToModefy, modifiedDeviceId)
+					}
+				}
+
+			}
+		}
+		err, code = this.Search(token, model.QueryMessage{
+			Resource: "devices",
+			ListIds: &model.QueryListIds{
+				QueryListCommons: model.QueryListCommons{
+					Limit:    1000,
+					Offset:   0,
+					Rights:   "rx",
+					SortBy:   "name",
+					SortDesc: false,
+				},
+				Ids: devicesToModefy,
+			},
+		}, &modefiedDevices)
+		for _, device := range modefiedDevices {
+			devicesByDeviceType[device.DeviceTypeId] = append(devicesByDeviceType[device.DeviceTypeId], device)
+		}
+
+		//collect selectables
 		for _, dtSelectable := range deviceTypeSelectables {
 			pathOptions := getServicePathOptionsFromDeviceRepoResultV2(dtSelectable.ServicePathOptions)
 			usedServices := []devicemodel.Service{}
@@ -280,18 +391,7 @@ func (this *Controller) getFilteredDevicesV2(
 				}
 			}
 			if len(usedServices) > 0 {
-				var devices []model.PermSearchDevice
-				if len(withLocalDeviceIds) == 0 {
-					devices, err, code = this.getCachedDevicesOfType(token, dtSelectable.DeviceTypeId, devicesByDeviceTypeCache)
-					if this.config.Debug {
-						log.Println("DEBUG: getFilteredDevicesV2()::getCachedDevicesOfType()", dtSelectable.DeviceTypeId, len(devices))
-					}
-				} else {
-					devices, err, code = this.getCachedDevicesOfTypeFilteredByLocalIdList(token, dtSelectable.DeviceTypeId, devicesByDeviceTypeCache, withLocalDeviceIds)
-				}
-				if err != nil {
-					return result, err, code
-				}
+				devices := devicesByDeviceType[dtSelectable.DeviceTypeId]
 				sort.Slice(devices, func(i, j int) bool {
 					nameI := devices[i].DisplayName
 					if nameI == "" {
