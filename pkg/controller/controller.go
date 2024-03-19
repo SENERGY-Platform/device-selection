@@ -272,110 +272,9 @@ func (this *Controller) getFilteredDevicesV2(
 			log.Println("DEBUG: getFilteredDevicesV2()::GetDeviceTypeSelectablesCachedV2()", len(deviceTypeSelectables))
 		}
 
-		if devicesByDeviceTypeCache == nil {
-			devicesByDeviceTypeCache = &map[string][]model.PermSearchDevice{}
-		}
-
-		//list device types
-		devicesByDeviceType := map[string][]model.PermSearchDevice{}
-		dtList := []string{}
-		for _, dtSelectable := range deviceTypeSelectables {
-			if element, ok := (*devicesByDeviceTypeCache)[dtSelectable.DeviceTypeId]; ok {
-				devicesByDeviceType[dtSelectable.DeviceTypeId] = element
-			} else {
-				pureId, _ := idmodifier.SplitModifier(dtSelectable.DeviceTypeId)
-				if !slices.Contains(dtList, pureId) {
-					dtList = append(dtList, pureId)
-				}
-			}
-		}
-
-		//find matching devices
-		matchingDevices := []model.PermSearchDevice{}
-		if len(withLocalDeviceIds) == 0 {
-			err, code = this.Search(token, model.QueryMessage{
-				Resource: "devices",
-				Find: &model.QueryFind{
-					Filter: &model.Selection{
-						Condition: model.ConditionConfig{
-							Feature:   "features.device_type_id",
-							Operation: model.QueryAnyValueInFeatureOperation,
-							Value:     dtList,
-						},
-					},
-				},
-			}, &matchingDevices)
-		} else {
-			err, code = this.Search(token, model.QueryMessage{
-				Resource: "devices",
-				Find: &model.QueryFind{
-					QueryListCommons: model.QueryListCommons{
-						Limit:    1000,
-						Offset:   0,
-						Rights:   "rx",
-						SortBy:   "name",
-						SortDesc: false,
-					},
-					Search: "",
-					Filter: &model.Selection{
-						And: []model.Selection{
-							{
-								Condition: model.ConditionConfig{
-									Feature:   "features.device_type_id",
-									Operation: model.QueryAnyValueInFeatureOperation,
-									Value:     dtList,
-								},
-							},
-							{
-								Condition: model.ConditionConfig{
-									Feature:   "features.local_id",
-									Operation: model.QueryAnyValueInFeatureOperation,
-									Value:     withLocalDeviceIds,
-								},
-							},
-						},
-					},
-				},
-			}, &matchingDevices)
-		}
+		devicesByDeviceType, err, code := this.getDevicesOfDeviceTypeSelectables(token, devicesByDeviceTypeCache, deviceTypeSelectables, withLocalDeviceIds)
 		if err != nil {
-			debug.PrintStack()
 			return result, err, code
-		}
-		for _, device := range matchingDevices {
-			devicesByDeviceType[device.DeviceTypeId] = append(devicesByDeviceType[device.DeviceTypeId], device)
-		}
-
-		//find modified devices
-		devicesToModefy := []string{}
-		modefiedDevices := []model.PermSearchDevice{}
-		for _, dtSelectable := range deviceTypeSelectables {
-			pureId, modifier := idmodifier.SplitModifier(dtSelectable.DeviceTypeId)
-			if pureId != dtSelectable.DeviceTypeId {
-				for _, device := range devicesByDeviceType[pureId] {
-					modifiedDeviceId := idmodifier.JoinModifier(device.Id, modifier)
-					if _, ok := devicesByDeviceType[modifiedDeviceId]; !ok {
-						devicesToModefy = append(devicesToModefy, modifiedDeviceId)
-					}
-				}
-
-			}
-		}
-		err, code = this.Search(token, model.QueryMessage{
-			Resource: "devices",
-			ListIds: &model.QueryListIds{
-				QueryListCommons: model.QueryListCommons{
-					Limit:    1000,
-					Offset:   0,
-					Rights:   "rx",
-					SortBy:   "name",
-					SortDesc: false,
-				},
-				Ids: devicesToModefy,
-			},
-		}, &modefiedDevices)
-		for _, device := range modefiedDevices {
-			devicesByDeviceType[device.DeviceTypeId] = append(devicesByDeviceType[device.DeviceTypeId], device)
 		}
 
 		//collect selectables
@@ -440,6 +339,117 @@ func (this *Controller) getFilteredDevicesV2(
 	}
 
 	return result, nil, http.StatusOK
+}
+
+func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesByDeviceTypeCache *map[string][]model.PermSearchDevice, deviceTypeSelectables []devicemodel.DeviceTypeSelectable, withLocalDeviceIds []string) (devicesByDeviceType map[string][]model.PermSearchDevice, err error, code int) {
+	if devicesByDeviceTypeCache == nil {
+		devicesByDeviceTypeCache = &map[string][]model.PermSearchDevice{}
+	}
+
+	//list device types
+	devicesByDeviceType = map[string][]model.PermSearchDevice{}
+	dtList := []string{}
+	for _, dtSelectable := range deviceTypeSelectables {
+		if element, ok := (*devicesByDeviceTypeCache)[dtSelectable.DeviceTypeId]; ok {
+			devicesByDeviceType[dtSelectable.DeviceTypeId] = element
+		} else {
+			pureId, _ := idmodifier.SplitModifier(dtSelectable.DeviceTypeId)
+			if !slices.Contains(dtList, pureId) {
+				dtList = append(dtList, pureId)
+			}
+		}
+	}
+
+	//find matching devices
+	matchingDevices := []model.PermSearchDevice{}
+	if len(dtList) > 0 {
+		if len(withLocalDeviceIds) == 0 {
+			err, code = this.Search(token, model.QueryMessage{
+				Resource: "devices",
+				Find: &model.QueryFind{
+					Filter: &model.Selection{
+						Condition: model.ConditionConfig{
+							Feature:   "features.device_type_id",
+							Operation: model.QueryAnyValueInFeatureOperation,
+							Value:     dtList,
+						},
+					},
+				},
+			}, &matchingDevices)
+		} else {
+			err, code = this.Search(token, model.QueryMessage{
+				Resource: "devices",
+				Find: &model.QueryFind{
+					QueryListCommons: model.QueryListCommons{
+						Limit:    1000,
+						Offset:   0,
+						Rights:   "rx",
+						SortBy:   "name",
+						SortDesc: false,
+					},
+					Search: "",
+					Filter: &model.Selection{
+						And: []model.Selection{
+							{
+								Condition: model.ConditionConfig{
+									Feature:   "features.device_type_id",
+									Operation: model.QueryAnyValueInFeatureOperation,
+									Value:     dtList,
+								},
+							},
+							{
+								Condition: model.ConditionConfig{
+									Feature:   "features.local_id",
+									Operation: model.QueryAnyValueInFeatureOperation,
+									Value:     withLocalDeviceIds,
+								},
+							},
+						},
+					},
+				},
+			}, &matchingDevices)
+		}
+		if err != nil {
+			debug.PrintStack()
+			return devicesByDeviceType, err, code
+		}
+	}
+	for _, device := range matchingDevices {
+		devicesByDeviceType[device.DeviceTypeId] = append(devicesByDeviceType[device.DeviceTypeId], device)
+	}
+
+	//find modified devices
+	devicesToModefy := []string{}
+	modefiedDevices := []model.PermSearchDevice{}
+	for _, dtSelectable := range deviceTypeSelectables {
+		pureId, modifier := idmodifier.SplitModifier(dtSelectable.DeviceTypeId)
+		if pureId != dtSelectable.DeviceTypeId {
+			for _, device := range devicesByDeviceType[pureId] {
+				modifiedDeviceId := idmodifier.JoinModifier(device.Id, modifier)
+				if _, ok := devicesByDeviceType[modifiedDeviceId]; !ok {
+					devicesToModefy = append(devicesToModefy, modifiedDeviceId)
+				}
+			}
+
+		}
+	}
+	err, code = this.Search(token, model.QueryMessage{
+		Resource: "devices",
+		ListIds: &model.QueryListIds{
+			QueryListCommons: model.QueryListCommons{
+				Limit:    1000,
+				Offset:   0,
+				Rights:   "rx",
+				SortBy:   "name",
+				SortDesc: false,
+			},
+			Ids: devicesToModefy,
+		},
+	}, &modefiedDevices)
+	for _, device := range modefiedDevices {
+		devicesByDeviceType[device.DeviceTypeId] = append(devicesByDeviceType[device.DeviceTypeId], device)
+	}
+	return devicesByDeviceType, err, code
 }
 
 func criteriaContainRequestInteraction(criteria model.FilterCriteriaAndSet) bool {
