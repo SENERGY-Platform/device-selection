@@ -82,6 +82,14 @@ func (this *Controller) getFilteredDeviceGroups(token string, descriptions model
 		}
 		filter = append(filter, model.Selection{Or: or})
 	}
+
+	var queryFilter *model.Selection
+	if len(filter) > 0 {
+		queryFilter = &model.Selection{
+			And: filter,
+		}
+	}
+
 	err, code = this.Search(token, model.QueryMessage{
 		Resource: "device-groups",
 		Find: &model.QueryFind{
@@ -93,9 +101,7 @@ func (this *Controller) getFilteredDeviceGroups(token string, descriptions model
 				SortDesc: false,
 			},
 			Search: "",
-			Filter: &model.Selection{
-				And: filter,
-			},
+			Filter: queryFilter,
 		},
 	}, &groups)
 	if err != nil {
@@ -168,6 +174,14 @@ func (this *Controller) getFilteredDeviceGroupsV2(token string, descriptions mod
 		}
 		filter = append(filter, model.Selection{Or: or})
 	}
+
+	var queryFilter *model.Selection
+	if len(filter) > 0 {
+		queryFilter = &model.Selection{
+			And: filter,
+		}
+	}
+
 	err, code = this.Search(token, model.QueryMessage{
 		Resource: "device-groups",
 		Find: &model.QueryFind{
@@ -179,9 +193,7 @@ func (this *Controller) getFilteredDeviceGroupsV2(token string, descriptions mod
 				SortDesc: false,
 			},
 			Search: "",
-			Filter: &model.Selection{
-				And: filter,
-			},
+			Filter: queryFilter,
 		},
 	}, &groups)
 	if err != nil {
