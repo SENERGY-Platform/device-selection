@@ -12,8 +12,8 @@ require (
 
 require (
 	github.com/IBM/sarama v1.43.2
-	github.com/SENERGY-Platform/permission-search v0.0.14
-	github.com/SENERGY-Platform/service-commons v0.0.0-20240423132428-8eccbc027e71
+	github.com/SENERGY-Platform/permission-search v0.0.16
+	github.com/SENERGY-Platform/service-commons v0.0.0-20240708085423-94423a495d7f
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/testcontainers/testcontainers-go v0.31.0
 )
