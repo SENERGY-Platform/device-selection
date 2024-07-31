@@ -203,8 +203,8 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 			var pathOptionsMap map[string][]model.PathOption
 			if pathOptions != nil && len(pathOptions) > 0 {
 				pathOptionsMap = map[string][]model.PathOption{fullType.Id: pathOptions}
+				result = append(result, model.Selectable{Import: &temp, ImportType: &fullType, ServicePathOptions: pathOptionsMap})
 			}
-			result = append(result, model.Selectable{Import: &temp, ImportType: &fullType, ServicePathOptions: pathOptionsMap})
 		}
 	}
 	return result, nil, http.StatusOK
