@@ -108,7 +108,7 @@ func TestIdModifiedSelectables(t *testing.T) {
 		DeviceTypeId: dtId,
 	}}
 
-	_, _, _, selectionurl, err := helper.EnvWithMetadata(ctx, wg, deviceTypes, devices, aspects, functions)
+	_, _, _, _, selectionurl, err := helper.EnvWithMetadata(ctx, wg, deviceTypes, devices, aspects, functions)
 	if err != nil {
 		t.Error(err)
 		return

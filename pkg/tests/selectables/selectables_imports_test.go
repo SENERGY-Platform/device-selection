@@ -28,7 +28,7 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/kafka"
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/helper"
 	kafka2 "github.com/segmentio/kafka-go"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"sync"
@@ -42,7 +42,7 @@ func TestSelectableImports(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	kafkabroker, deviceManagerUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.NewWithImport(ctx, wg)
+	kafkabroker, deviceManagerUrl, deviceRepoUrl, permSearchUrl, _, importRepoUrl, importDeployUrl, err := environment.NewWithImport(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -93,56 +93,6 @@ func TestSelectableImports(t *testing.T) {
 
 	testCharacteristic := "urn:infai:ses:characteristic:test"
 
-	importTypes := []model.ImportType{
-		{
-			Id:   "lamp",
-			Name: "lamp",
-			Output: model.ImportContentVariable{
-				Name: "output",
-				SubContentVariables: []model.ImportContentVariable{
-					{
-						Name: "value",
-						SubContentVariables: []model.ImportContentVariable{
-							{
-								Name:             "value",
-								CharacteristicId: testCharacteristic,
-								AspectId:         deviceAspect,
-								FunctionId:       getColorFunction,
-							},
-							{
-								Name:       "foo",
-								AspectId:   airAspect,
-								FunctionId: getHumidityFunction,
-							},
-						},
-					},
-				},
-			},
-			Owner: helper.JwtSubject,
-		},
-		{
-			Id:   "never",
-			Name: "never",
-			Output: model.ImportContentVariable{
-				Name: "output",
-			},
-			Owner: helper.JwtSubject,
-		},
-	}
-
-	importInstances := []model.Import{
-		{
-			Id:           "lamp-instance",
-			Name:         "lamp-instance",
-			ImportTypeId: "lamp",
-		},
-		{
-			Id:           "never-instance",
-			Name:         "never-instance",
-			ImportTypeId: "never",
-		},
-	}
-
 	functionProducer, err := kafka.GetProducer([]string{kafkabroker}, environment.FunctionTopic)
 	if err != nil {
 		t.Error(err)
@@ -183,7 +133,53 @@ func TestSelectableImports(t *testing.T) {
 		return
 	}
 
-	t.Run("create import-types", testCreateImportTypes(kafkabroker, importRepoUrl, importTypes))
+	lamp := model.ImportType{}
+	t.Run("create import-type lamp", testCreateImportTypes(helper.AdminJwt, kafkabroker, importRepoUrl, model.ImportType{
+		Name: "lamp",
+		Output: model.ImportContentVariable{
+			Name: "output",
+			SubContentVariables: []model.ImportContentVariable{
+				{
+					Name: "value",
+					SubContentVariables: []model.ImportContentVariable{
+						{
+							Name:             "value",
+							CharacteristicId: testCharacteristic,
+							AspectId:         deviceAspect,
+							FunctionId:       getColorFunction,
+						},
+						{
+							Name:       "foo",
+							AspectId:   airAspect,
+							FunctionId: getHumidityFunction,
+						},
+					},
+				},
+			},
+		},
+	}, &lamp))
+
+	never := model.ImportType{}
+	t.Run("create import-type never", testCreateImportTypes(helper.AdminJwt, kafkabroker, importRepoUrl, model.ImportType{
+		Name: "never",
+		Output: model.ImportContentVariable{
+			Name: "output",
+		},
+	}, &never))
+
+	importInstances := []model.Import{
+		{
+			Id:           "lamp-instance",
+			Name:         "lamp-instance",
+			ImportTypeId: lamp.Id,
+		},
+		{
+			Id:           "never-instance",
+			Name:         "never-instance",
+			ImportTypeId: never.Id,
+		},
+	}
+
 	t.Run("create imports", testCreateImports(importDeployUrl, importInstances))
 
 	time.Sleep(10 * time.Second)
@@ -197,16 +193,13 @@ func TestSelectableImports(t *testing.T) {
 			Import: &model.Import{
 				Id:           "lamp-instance",
 				Name:         "lamp-instance",
-				ImportTypeId: "lamp",
+				ImportTypeId: lamp.Id,
 				Image:        "",
 				KafkaTopic:   "",
 				Configs:      nil,
 				Restart:      nil,
 			},
-			ImportType: &model.ImportType{
-				Id:   "lamp",
-				Name: "lamp",
-			},
+			ImportType: &lamp,
 		},
 	}))
 
@@ -216,16 +209,13 @@ func TestSelectableImports(t *testing.T) {
 				Import: &model.Import{
 					Id:           "lamp-instance",
 					Name:         "lamp-instance",
-					ImportTypeId: "lamp",
+					ImportTypeId: lamp.Id,
 					Image:        "",
 					KafkaTopic:   "",
 					Configs:      nil,
 					Restart:      nil,
 				},
-				ImportType: &model.ImportType{
-					Id:   "lamp",
-					Name: "lamp",
-				},
+				ImportType: &lamp,
 			},
 		}
 		selectables, err := ctrl.CompleteServices(token, selectables, criteria)
@@ -243,19 +233,15 @@ func TestSelectableImports(t *testing.T) {
 				Import: &model.Import{
 					Id:           "lamp-instance",
 					Name:         "lamp-instance",
-					ImportTypeId: "lamp",
+					ImportTypeId: lamp.Id,
 					Image:        "",
 					KafkaTopic:   "",
 					Configs:      nil,
 					Restart:      nil,
 				},
-				ImportType: &model.ImportType{
-					Id:    "lamp",
-					Name:  "lamp",
-					Owner: helper.JwtSubject,
-				},
+				ImportType: &lamp,
 				ServicePathOptions: map[string][]model.PathOption{
-					"lamp": {{
+					lamp.Id: {{
 						Path:             "value.value",
 						CharacteristicId: testCharacteristic,
 						AspectNode:       deviceAspectNode,
@@ -321,7 +307,7 @@ func testCreateImports(deployUrl string, imports []model.Import) func(t *testing
 			return
 		}
 		if resp.StatusCode != 200 {
-			temp, _ := ioutil.ReadAll(resp.Body)
+			temp, _ := io.ReadAll(resp.Body)
 			t.Error(resp.StatusCode, string(temp))
 			return
 		}
@@ -329,49 +315,35 @@ func testCreateImports(deployUrl string, imports []model.Import) func(t *testing
 
 }
 
-func testCreateImportTypes(kafkabroker string, repoUrl string, importTypes []model.ImportType) func(t *testing.T) {
+func testCreateImportTypes(token string, kafkabroker string, repoUrl string, importType model.ImportType, result *model.ImportType) func(t *testing.T) {
 	return func(t *testing.T) {
-		//ensure existing ids
-		producer, err := kafka.GetProducer([]string{kafkabroker}, environment.ImportTypeTopic)
+		buff := new(bytes.Buffer)
+		err := json.NewEncoder(buff).Encode(importType)
 		if err != nil {
 			t.Error(err)
 			return
 		}
-		for _, importType := range importTypes {
-			ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-			err = producer.WriteMessages(ctx, kafka2.Message{Key: []byte(importType.Id), Value: []byte(
-				`{"command": "PUT", "id": "` + importType.Id + `", "owner": "` + helper.JwtSubject + `", "import_type":{"id": "` + importType.Id + `", "owner": "` + helper.JwtSubject + `"}}`)})
-			if err != nil {
-				t.Error(err)
-				return
-			}
+		req, err := http.NewRequest("POST", repoUrl+"/import-types", buff)
+		if err != nil {
+			t.Error(err)
+			return
 		}
-		time.Sleep(2 * time.Second)
-		//set values
-		for _, importType := range importTypes {
-			buff := new(bytes.Buffer)
-			err := json.NewEncoder(buff).Encode(importType)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			req, err := http.NewRequest("PUT", repoUrl+"/import-types/"+importType.Id, buff)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			req.Header.Set("Authorization", token)
-			req.Header.Set("Content-Type", "application/json")
-			resp, err := http.DefaultClient.Do(req)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			if resp.StatusCode != 200 {
-				temp, _ := ioutil.ReadAll(resp.Body)
-				t.Error(resp.StatusCode, string(temp), importType.Id, importType)
-				return
-			}
+		req.Header.Set("Authorization", token)
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if resp.StatusCode >= 300 {
+			temp, _ := io.ReadAll(resp.Body)
+			t.Error(resp.StatusCode, string(temp), importType.Id, importType)
+			return
+		}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			t.Error(err)
+			return
 		}
 	}
 }

@@ -38,7 +38,7 @@ func TestSelectableLocalId(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	kafkaUrl, deviceManagerUrl, deviceRepoUrl, permSearchUrl, err := docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
+	kafkaUrl, deviceManagerUrl, deviceRepoUrl, permSearchUrl, _, err := docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return

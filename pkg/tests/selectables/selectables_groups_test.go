@@ -43,7 +43,7 @@ func TestSelectableGroups(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	kafkaUrl, deviceManagerUrl, deviceRepoUrl, permSearchUrl, err := docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
+	kafkaUrl, deviceManagerUrl, deviceRepoUrl, permSearchUrl, _, err := docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -781,7 +781,7 @@ func testCheckSelectionWithoutOptions(ctrl *controller.Controller, criteria mode
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)
 			expectedJson, _ := json.Marshal(expectedResult)
-			t.Error(string(resultJson), "\n", string(expectedJson))
+			t.Errorf("\n%v\n%v\n", string(resultJson), string(expectedJson))
 		}
 	}
 }

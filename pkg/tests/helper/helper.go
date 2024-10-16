@@ -116,23 +116,23 @@ func normalizeGroupHelperResult(result model.DeviceGroupHelperResult) model.Devi
 	return result
 }
 
-func EnvWithDevices(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (kafkaUrl string, managerurl string, repourl string, searchurl string, err error) {
-	kafkaUrl, managerurl, repourl, searchurl, err = docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
+func EnvWithDevices(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (kafkaUrl string, managerurl string, repourl string, searchurl string, permv2Url string, err error) {
+	kafkaUrl, managerurl, repourl, searchurl, permv2Url, err = docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
 	if err != nil {
-		return kafkaUrl, managerurl, repourl, searchurl, err
+		return kafkaUrl, managerurl, repourl, searchurl, permv2Url, err
 	}
 
 	for _, dt := range deviceTypes {
 		err = SetDeviceType(managerurl, dt)
 		if err != nil {
-			return kafkaUrl, managerurl, repourl, searchurl, err
+			return kafkaUrl, managerurl, repourl, searchurl, permv2Url, err
 		}
 	}
 
 	for _, d := range deviceInstances {
 		err = SetDevice(managerurl, d)
 		if err != nil {
-			return kafkaUrl, managerurl, repourl, searchurl, err
+			return kafkaUrl, managerurl, repourl, searchurl, permv2Url, err
 		}
 	}
 
@@ -141,38 +141,38 @@ func EnvWithDevices(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devic
 	return
 }
 
-func EnvWithMetadata(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device, aspects []devicemodel.Aspect, functions []devicemodel.Function) (managerurl string, repourl string, searchurl string, selectionurl string, err error) {
+func EnvWithMetadata(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device, aspects []devicemodel.Aspect, functions []devicemodel.Function) (managerurl string, repourl string, searchurl string, permv2Url, selectionurl string, err error) {
 	var kafkaUrl string
-	kafkaUrl, managerurl, repourl, searchurl, err = docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
+	kafkaUrl, managerurl, repourl, searchurl, permv2Url, err = docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
 	if err != nil {
-		return managerurl, repourl, searchurl, selectionurl, err
+		return managerurl, repourl, searchurl, permv2Url, selectionurl, err
 	}
 
 	for _, f := range functions {
 		err = SetFunction(managerurl, f)
 		if err != nil {
-			return managerurl, repourl, searchurl, selectionurl, err
+			return managerurl, repourl, searchurl, permv2Url, selectionurl, err
 		}
 	}
 
 	for _, aspect := range aspects {
 		err = SetAspect(managerurl, aspect)
 		if err != nil {
-			return managerurl, repourl, searchurl, selectionurl, err
+			return managerurl, repourl, searchurl, permv2Url, selectionurl, err
 		}
 	}
 
 	for _, dt := range deviceTypes {
 		err = SetDeviceType(managerurl, dt)
 		if err != nil {
-			return managerurl, repourl, searchurl, selectionurl, err
+			return managerurl, repourl, searchurl, permv2Url, selectionurl, err
 		}
 	}
 
 	for _, d := range deviceInstances {
 		err = SetDevice(managerurl, d)
 		if err != nil {
-			return managerurl, repourl, searchurl, selectionurl, err
+			return managerurl, repourl, searchurl, permv2Url, selectionurl, err
 		}
 	}
 
@@ -189,7 +189,7 @@ func EnvWithMetadata(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devi
 
 	ctrl, err := controller.New(ctx, c)
 	if err != nil {
-		return managerurl, repourl, searchurl, selectionurl, err
+		return managerurl, repourl, searchurl, permv2Url, selectionurl, err
 	}
 
 	router := api.Router(c, ctrl)
@@ -205,11 +205,11 @@ func EnvWithMetadata(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devi
 	return
 }
 
-func EnvWithApi(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (managerurl string, repourl string, searchurl string, selectionurl string, err error) {
+func EnvWithApi(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (managerurl string, repourl string, searchurl string, permv2Url string, selectionurl string, err error) {
 	var kafkaUrl string
-	kafkaUrl, managerurl, repourl, searchurl, err = EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
+	kafkaUrl, managerurl, repourl, searchurl, permv2Url, err = EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
 	if err != nil {
-		return managerurl, repourl, searchurl, selectionurl, err
+		return managerurl, repourl, searchurl, permv2Url, selectionurl, err
 	}
 
 	c := &configuration.ConfigStruct{
@@ -223,7 +223,7 @@ func EnvWithApi(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemod
 
 	ctrl, err := controller.New(ctx, c)
 	if err != nil {
-		return managerurl, repourl, searchurl, selectionurl, err
+		return managerurl, repourl, searchurl, permv2Url, selectionurl, err
 	}
 
 	router := api.Router(c, ctrl)

@@ -18,23 +18,30 @@ package docker
 
 import (
 	"context"
+	"fmt"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"io"
 	"log"
+	"strings"
 	"sync"
 )
 
-func ImportRepo(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, mongoUrl string, permsearch string, deviceRepoUrl string) (hostPort string, ipAddress string, err error) {
+func ImportRepo(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, mongoUrl string, permsearch string, deviceRepoUrl string, permv2Url string) (hostPort string, ipAddress string, err error) {
+	if permv2Url == "" {
+		panic("missing permv2Url")
+	}
 	log.Println("start import-repository")
 	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image: "ghcr.io/senergy-platform/import-repository:dev",
 			Env: map[string]string{
-				"DEVICE_REPO_URL": deviceRepoUrl,
-				"KAFKA_BOOTSTRAP": kafkaUrl,
-				"PERMISSIONS_URL": permsearch,
-				"MONGO_URL":       mongoUrl,
-				"DEBUG":           "true",
+				"DEVICE_REPO_URL":   deviceRepoUrl,
+				"KAFKA_BOOTSTRAP":   kafkaUrl,
+				"PERMISSIONS_URL":   permsearch,
+				"PERMISSION_V2_URL": permv2Url,
+				"MONGO_URL":         mongoUrl,
+				"DEBUG":             "true",
 			},
 			ExposedPorts:    []string{"8080/tcp"},
 			WaitingFor:      wait.ForListeningPort("8080/tcp"),
@@ -48,8 +55,20 @@ func ImportRepo(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, mongoU
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		defer func() {
+			log.Println("DEBUG: remove container import-repository", c.Terminate(context.Background()))
+		}()
 		<-ctx.Done()
-		log.Println("DEBUG: remove container import-repository", c.Terminate(context.Background()))
+		reader, err := c.Logs(context.Background())
+		if err != nil {
+			log.Println("ERROR: unable to get container log")
+			return
+		}
+		buf := new(strings.Builder)
+		io.Copy(buf, reader)
+		fmt.Println("ImportRepo LOGS: ------------------------------------------")
+		fmt.Println(buf.String())
+		fmt.Println("\n---------------------------------------------------------------")
 	}()
 
 	ipAddress, err = c.ContainerIP(ctx)

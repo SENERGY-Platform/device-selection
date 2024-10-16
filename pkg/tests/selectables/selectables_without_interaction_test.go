@@ -41,7 +41,7 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	kafkaUrl, deviceManagerUrl, deviceRepoUrl, permSearchUrl, importRepoUrl, importDeployUrl, err := environment.NewWithImport(ctx, wg)
+	kafkaUrl, deviceManagerUrl, deviceRepoUrl, permSearchUrl, _, importRepoUrl, importDeployUrl, err := environment.NewWithImport(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -282,56 +282,6 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 
 	testCharacteristic := "urn:infai:ses:characteristic:test"
 
-	importTypes := []model.ImportType{
-		{
-			Id:   "lamp",
-			Name: "lamp",
-			Output: model.ImportContentVariable{
-				Name: "output",
-				SubContentVariables: []model.ImportContentVariable{
-					{
-						Name: "value",
-						SubContentVariables: []model.ImportContentVariable{
-							{
-								Name:             "value",
-								CharacteristicId: testCharacteristic,
-								AspectId:         lightAspect,
-								FunctionId:       getColorFunction,
-							},
-							{
-								Name:       "foo",
-								AspectId:   airAspect,
-								FunctionId: getHumidityFunction,
-							},
-						},
-					},
-				},
-			},
-			Owner: helper.JwtSubject,
-		},
-		{
-			Id:   "never",
-			Name: "never",
-			Output: model.ImportContentVariable{
-				Name: "output",
-			},
-			Owner: helper.JwtSubject,
-		},
-	}
-
-	importInstances := []model.Import{
-		{
-			Id:           "lamp-instance",
-			Name:         "lamp-instance",
-			ImportTypeId: "lamp",
-		},
-		{
-			Id:           "never-instance",
-			Name:         "never-instance",
-			ImportTypeId: "never",
-		},
-	}
-
 	functionProducer, err := kafka.GetProducer([]string{kafkaUrl}, environment.FunctionTopic)
 	if err != nil {
 		t.Error(err)
@@ -372,7 +322,53 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 		return
 	}
 
-	t.Run("create import-types", testCreateImportTypes(kafkaUrl, importRepoUrl, importTypes))
+	lamp := model.ImportType{}
+	t.Run("create import-types lamp", testCreateImportTypes(helper.AdminJwt, kafkaUrl, importRepoUrl, model.ImportType{
+		Name: "lamp",
+		Output: model.ImportContentVariable{
+			Name: "output",
+			SubContentVariables: []model.ImportContentVariable{
+				{
+					Name: "value",
+					SubContentVariables: []model.ImportContentVariable{
+						{
+							Name:             "value",
+							CharacteristicId: testCharacteristic,
+							AspectId:         lightAspect,
+							FunctionId:       getColorFunction,
+						},
+						{
+							Name:       "foo",
+							AspectId:   airAspect,
+							FunctionId: getHumidityFunction,
+						},
+					},
+				},
+			},
+		},
+	}, &lamp))
+
+	never := model.ImportType{}
+	t.Run("create import-types lamp", testCreateImportTypes(helper.AdminJwt, kafkaUrl, importRepoUrl, model.ImportType{
+		Name: "never",
+		Output: model.ImportContentVariable{
+			Name: "output",
+		},
+	}, &never))
+
+	importInstances := []model.Import{
+		{
+			Id:           "lamp-instance",
+			Name:         "lamp-instance",
+			ImportTypeId: lamp.Id,
+		},
+		{
+			Id:           "never-instance",
+			Name:         "never-instance",
+			ImportTypeId: never.Id,
+		},
+	}
+
 	t.Run("create imports", testCreateImports(importDeployUrl, importInstances))
 
 	time.Sleep(5 * time.Second)

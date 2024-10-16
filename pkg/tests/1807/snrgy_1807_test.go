@@ -43,7 +43,10 @@ func createTestEnv(ctx context.Context, wg *sync.WaitGroup, t *testing.T) (devic
 	if err != nil {
 		return
 	}
-	_, devicemanager, config.DeviceRepoUrl, config.PermSearchUrl, config.ImportRepoUrl, config.ImportDeployUrl, err = environment.NewWithImport(ctx, wg)
+	_, devicemanager, config.DeviceRepoUrl, config.PermSearchUrl, _, config.ImportRepoUrl, config.ImportDeployUrl, err = environment.NewWithImport(ctx, wg)
+	if err != nil {
+		return
+	}
 
 	ctrl, err := controller.New(ctx, config)
 	if err != nil {

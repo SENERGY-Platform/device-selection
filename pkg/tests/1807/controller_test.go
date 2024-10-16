@@ -130,7 +130,7 @@ func TestGetFilteredDevices(t *testing.T) {
 		},
 	}
 
-	managerurl, repourl, searchurl, err := legacy.TestenvWithoutApi(ctx, wg)
+	managerurl, repourl, searchurl, _, err := legacy.TestenvWithoutApi(ctx, wg)
 
 	for _, concept := range concepts {
 		err = helper.SetConcept(managerurl, concept)

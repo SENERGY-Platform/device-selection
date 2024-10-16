@@ -30,6 +30,7 @@ import (
 )
 
 func (this *Controller) getFilteredImports(token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
+	//TODO: replace with SNRGY-3572
 	importTypes := []model.ImportType{}
 	filter := []model.Selection{}
 	for _, criteria := range descriptions {
