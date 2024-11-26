@@ -16,20 +16,6 @@
 
 package controller
 
-import "encoding/json"
-
-func Clone[T any](orig T) (result T) {
-	origJSON, err := json.Marshal(orig)
-	if err != nil {
-		panic(err)
-	}
-	err = json.Unmarshal(origJSON, &result)
-	if err != nil {
-		panic(err)
-	}
-	return
-}
-
 func RemoveDuplicates[T comparable](slice []T) []T {
 	keys := make(map[T]bool)
 	result := []T{}

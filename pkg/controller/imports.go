@@ -56,6 +56,7 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 		filter = append(filter, model.Selection{Or: or})
 	}
 
+	//TODO: replace
 	err, code = this.Search(token, model.QueryMessage{
 		Resource: "import-types",
 		Find: &model.QueryFind{
@@ -139,7 +140,7 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 			filter = append(filter, model.Selection{Or: or})
 		}
 	}
-
+	//TODO: replace
 	err, code = this.Search(token, model.QueryMessage{
 		Resource: "import-types",
 		Find: &model.QueryFind{

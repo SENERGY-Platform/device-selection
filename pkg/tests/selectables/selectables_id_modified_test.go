@@ -106,6 +106,7 @@ func TestIdModifiedSelectables(t *testing.T) {
 		LocalId:      dId,
 		Name:         "sg_device",
 		DeviceTypeId: dtId,
+		OwnerId:      helper.JwtSubject,
 	}}
 
 	_, _, _, _, selectionurl, err := helper.EnvWithMetadata(ctx, wg, deviceTypes, devices, aspects, functions)

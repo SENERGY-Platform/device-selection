@@ -17,40 +17,13 @@
 package controller
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"log"
-	"net/http"
-	"runtime/debug"
 )
 
 func (this *Controller) GetConcept(id string, token string) (c devicemodel.Concept, err error) {
 	err = this.cache.Use(id, func() (interface{}, error) {
-		req, err := http.NewRequest("GET", this.config.DeviceRepoUrl+"/concepts/"+id, nil)
-		if err != nil {
-			debug.PrintStack()
-			return nil, err
-		}
-		req.Header.Set("Authorization", token)
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			debug.PrintStack()
-			return nil, err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode >= 300 {
-			buf := new(bytes.Buffer)
-			buf.ReadFrom(resp.Body)
-			err := fmt.Errorf("unable to find concept: %v %v", id, buf.String())
-			log.Println("ERROR:", err)
-			debug.PrintStack()
-			return nil, err
-		}
-		var cInner devicemodel.Concept
-		err = json.NewDecoder(resp.Body).Decode(&cInner)
-		return cInner, err
+		result, err, _ := this.devicerepo.GetConceptWithoutCharacteristics(id)
+		return result, err
 	}, &c)
 	return
 }

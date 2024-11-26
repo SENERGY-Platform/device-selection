@@ -18,11 +18,11 @@ package controller
 
 import (
 	"encoding/json"
+	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/idmodifier"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"log"
 	"net/http"
-	"runtime/debug"
 )
 
 func (this *Controller) getDevicesOfType(token string, deviceTypeId string) (result []model.PermSearchDevice, err error, code int) {
@@ -38,28 +38,48 @@ func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string
 	}
 
 	pureId, modifier := idmodifier.SplitModifier(deviceTypeId)
-	query := model.QueryMessage{
-		Resource: "devices",
-		Find: &model.QueryFind{
-			Filter: &model.Selection{
-				Condition: model.ConditionConfig{
-					Feature:   "features.device_type_id",
-					Operation: model.QueryEqualOperation,
-					Value:     pureId,
-				},
-			},
-		},
+
+	devices, _, err, code := this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+		DeviceTypeIds: []string{pureId},
+		Limit:         9999,
+		Offset:        0,
+		SortBy:        "name.asc",
+		Permission:    client.READ,
+	})
+	if err != nil {
+		return result, err, code
 	}
 
 	if pureId != deviceTypeId {
-		query.Find.AddIdModifier = modifier
+		ids := []string{}
+		for _, device := range devices {
+			ids = append(ids, idmodifier.JoinModifier(device.Id, modifier))
+		}
+		devices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+			Ids:        ids,
+			SortBy:     "name.asc",
+			Permission: client.READ,
+		})
+		if err != nil {
+			return result, err, code
+		}
 	}
 
-	err, code = this.Search(token, query, &result)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, code
+	for _, device := range devices {
+		result = append(result, model.PermSearchDevice{
+			Device:      device.Device,
+			DisplayName: device.DisplayName,
+			Permissions: model.Permissions{
+				R: device.Permissions.Read,
+				W: device.Permissions.Write,
+				X: device.Permissions.Execute,
+				A: device.Permissions.Administrate,
+			},
+			Shared:  device.Shared,
+			Creator: device.OwnerId,
+		})
 	}
+
 	if cache != nil {
 		(*cache)[deviceTypeId] = result
 	}
@@ -96,43 +116,49 @@ func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(token string
 	}
 	pureId, modifier := idmodifier.SplitModifier(deviceTypeId)
 
-	query := model.QueryMessage{
-		Resource: "devices",
-		Find: &model.QueryFind{
-			QueryListCommons: model.QueryListCommons{
-				Limit:    1000,
-				Offset:   0,
-				Rights:   "rx",
-				SortBy:   "name",
-				SortDesc: false,
-			},
-			Search: "",
-			Filter: &model.Selection{
-				And: []model.Selection{
-					{
-						Condition: model.ConditionConfig{
-							Feature:   "features.device_type_id",
-							Operation: model.QueryEqualOperation,
-							Value:     pureId,
-						},
-					},
-					{
-						Condition: model.ConditionConfig{
-							Feature:   "features.local_id",
-							Operation: model.QueryAnyValueInFeatureOperation,
-							Value:     localDeviceIds,
-						},
-					},
-				},
-			},
-		},
+	devices, _, err, code := this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+		DeviceTypeIds: []string{pureId},
+		LocalIds:      localDeviceIds,
+		Limit:         9999,
+		Offset:        0,
+		SortBy:        "name.asc",
+		Permission:    client.READ,
+	})
+	if err != nil {
+		return result, err, code
 	}
+
 	if pureId != deviceTypeId {
-		query.Find.AddIdModifier = modifier
+		ids := []string{}
+		for _, device := range devices {
+			ids = append(ids, idmodifier.JoinModifier(device.Id, modifier))
+		}
+		devices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+			Ids:        ids,
+			SortBy:     "name.asc",
+			Permission: client.READ,
+		})
+		if err != nil {
+			return result, err, code
+		}
 	}
-	err, code = this.Search(token, query, &result)
+
+	for _, device := range devices {
+		result = append(result, model.PermSearchDevice{
+			Device:      device.Device,
+			DisplayName: device.DisplayName,
+			Permissions: model.Permissions{
+				R: device.Permissions.Read,
+				W: device.Permissions.Write,
+				X: device.Permissions.Execute,
+				A: device.Permissions.Administrate,
+			},
+			Shared:  device.Shared,
+			Creator: device.OwnerId,
+		})
+	}
 	if cache != nil {
 		(*cache)[deviceTypeId] = result
 	}
-	return
+	return result, nil, http.StatusOK
 }

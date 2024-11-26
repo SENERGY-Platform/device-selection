@@ -16,20 +16,15 @@
 
 package devicemodel
 
+import "github.com/SENERGY-Platform/models/go/models"
+
 type DeviceClass struct {
 	Id    string `json:"id"`
 	Image string `json:"image"`
 	Name  string `json:"name"`
 }
 
-type Function struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	Description string `json:"description"`
-	ConceptId   string `json:"concept_id"`
-	RdfType     string `json:"rdf_type"`
-}
+type Function = models.Function
 
 type FunctionList struct {
 	Functions  []Function `json:"functions"`

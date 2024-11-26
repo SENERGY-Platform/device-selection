@@ -285,6 +285,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -298,6 +299,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -311,6 +313,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -324,6 +327,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -337,6 +341,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -350,6 +355,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -368,6 +374,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -380,6 +387,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -392,6 +400,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -404,6 +413,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -416,6 +426,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -433,6 +444,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -445,6 +457,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -463,6 +476,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -476,6 +490,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -489,6 +504,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -502,6 +518,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -515,6 +532,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -528,6 +546,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -570,6 +589,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -582,6 +602,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -606,6 +627,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -619,6 +641,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -643,6 +666,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -655,6 +679,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -667,6 +692,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -679,6 +705,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -691,6 +718,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -726,6 +754,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -738,6 +767,7 @@ func TestSelectableGroups(t *testing.T) {
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{

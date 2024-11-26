@@ -18,7 +18,6 @@ package selectables
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
@@ -385,10 +384,8 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 		expectedIds := []string{"colorlamp1_s8", "colorlamp2_s8", "dg_colorlamp", "lamp-instance"}
 		resultIds := selectableToStringList(result)
 		if !reflect.DeepEqual(resultIds, expectedIds) {
-			r, _ := json.Marshal(resultIds)
-			e, _ := json.Marshal(expectedIds)
 			t.Errorf("%#v", resultIds)
-			t.Errorf("\n%v\n%v", string(r), string(e))
+			t.Errorf("\na=%#v\ne=%#v", resultIds, expectedIds)
 			return
 		}
 	})

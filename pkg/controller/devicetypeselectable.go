@@ -17,17 +17,11 @@
 package controller
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
+	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"io"
-	"log"
-	"net/http"
-	"runtime/debug"
+	"github.com/SENERGY-Platform/models/go/models"
 	"strconv"
-	"time"
 )
 
 func (this *Controller) GetDeviceTypeSelectablesCached(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
@@ -48,89 +42,29 @@ func (this *Controller) GetDeviceTypeSelectablesCachedV2(token string, descripti
 }
 
 func (this *Controller) GetDeviceTypeSelectables(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
-	client := http.Client{
-		Timeout: 5 * time.Second,
+	criteria := []client.FilterCriteria{}
+	for _, c := range descriptions {
+		criteria = append(criteria, client.FilterCriteria{
+			Interaction:   models.Interaction(c.Interaction),
+			FunctionId:    c.FunctionId,
+			DeviceClassId: c.DeviceClassId,
+			AspectId:      c.AspectId,
+		})
 	}
-	payload := new(bytes.Buffer)
-	err = json.NewEncoder(payload).Encode(descriptions)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	req, err := http.NewRequest(
-		"POST",
-		this.config.DeviceRepoUrl+"/query/device-type-selectables",
-		payload,
-	)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	req.Header.Set("Authorization", token)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		debug.PrintStack()
-		temp, _ := io.ReadAll(resp.Body)
-		log.Println("ERROR: GetDeviceTypeSelectables():", resp.StatusCode, string(temp))
-		return result, errors.New("unexpected statuscode")
-	}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-
+	result, err, _ = this.devicerepo.GetDeviceTypeSelectables(criteria, "", nil, false)
 	return result, err
 }
 
 func (this *Controller) GetDeviceTypeSelectablesV2(token string, descriptions model.FilterCriteriaAndSet, includeIdModified bool) (result []devicemodel.DeviceTypeSelectable, err error) {
-	client := http.Client{
-		Timeout: 5 * time.Second,
+	criteria := []client.FilterCriteria{}
+	for _, c := range descriptions {
+		criteria = append(criteria, client.FilterCriteria{
+			Interaction:   models.Interaction(c.Interaction),
+			FunctionId:    c.FunctionId,
+			DeviceClassId: c.DeviceClassId,
+			AspectId:      c.AspectId,
+		})
 	}
-	payload := new(bytes.Buffer)
-	err = json.NewEncoder(payload).Encode(descriptions)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	query := ""
-	if includeIdModified {
-		query = "?include_id_modified=true"
-	}
-	req, err := http.NewRequest(
-		"POST",
-		this.config.DeviceRepoUrl+"/v2/query/device-type-selectables"+query,
-		payload,
-	)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	req.Header.Set("Authorization", token)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		debug.PrintStack()
-		temp, _ := io.ReadAll(resp.Body)
-		log.Println("ERROR: GetDeviceTypeSelectables():", resp.StatusCode, string(temp))
-		return result, errors.New("unexpected statuscode")
-	}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-
+	result, err, _ = this.devicerepo.GetDeviceTypeSelectablesV2(criteria, "", includeIdModified, false)
 	return result, err
 }

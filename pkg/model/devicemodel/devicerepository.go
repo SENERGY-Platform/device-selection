@@ -16,41 +16,15 @@
 
 package devicemodel
 
-type AspectNode struct {
-	Id            string   `json:"id"`
-	Name          string   `json:"name"`
-	RootId        string   `json:"root_id"`
-	ParentId      string   `json:"parent_id"`
-	ChildIds      []string `json:"child_ids"`
-	AncestorIds   []string `json:"ancestor_ids"`
-	DescendentIds []string `json:"descendent_ids"`
-}
+import (
+	"github.com/SENERGY-Platform/device-repository/lib/model"
+	"github.com/SENERGY-Platform/models/go/models"
+)
 
-type DeviceTypeSelectable struct {
-	DeviceTypeId       string                         `json:"device_type_id,omitempty"`
-	Services           []Service                      `json:"services,omitempty"`
-	ServicePathOptions map[string][]ServicePathOption `json:"service_path_options,omitempty"`
-}
+type AspectNode = models.AspectNode
 
-type ServicePathOption struct {
-	ServiceId             string         `json:"service_id"`
-	Path                  string         `json:"path"`
-	CharacteristicId      string         `json:"characteristic_id"`
-	AspectNode            AspectNode     `json:"aspect_node"`
-	FunctionId            string         `json:"function_id"`
-	IsVoid                bool           `json:"is_void"`
-	Value                 interface{}    `json:"value,omitempty"`
-	IsControllingFunction bool           `json:"is_controlling_function"`
-	Configurables         []Configurable `json:"configurables,omitempty"`
-	Type                  Type           `json:"type,omitempty"`
-	Interaction           Interaction    `json:"interaction"`
-}
+type DeviceTypeSelectable = model.DeviceTypeSelectable
 
-type Configurable struct {
-	Path             string      `json:"path"`
-	CharacteristicId string      `json:"characteristic_id"`
-	AspectNode       AspectNode  `json:"aspect_node"`
-	FunctionId       string      `json:"function_id"`
-	Value            interface{} `json:"value,omitempty"`
-	Type             Type        `json:"type,omitempty"`
-}
+type ServicePathOption = model.ServicePathOption
+
+type Configurable = model.Configurable

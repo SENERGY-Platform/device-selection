@@ -17,19 +17,14 @@
 package controller
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"io"
-	"log"
+	"github.com/SENERGY-Platform/models/go/models"
 	"net/http"
-	"net/url"
 	"runtime/debug"
 	"sort"
-	"strings"
-	"time"
 )
 
 func (this *Controller) getCachedDeviceType(token string, id string, cache *map[string]devicemodel.DeviceType) (result devicemodel.DeviceType, err error) {
@@ -38,35 +33,7 @@ func (this *Controller) getCachedDeviceType(token string, id string, cache *map[
 			return cacheResult, nil
 		}
 	}
-
-	client := http.Client{
-		Timeout: 5 * time.Second,
-	}
-
-	req, err := http.NewRequest(
-		"GET",
-		this.config.DeviceRepoUrl+"/device-types/"+url.QueryEscape(id),
-		nil,
-	)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	req.Header.Set("Authorization", string(token))
-
-	resp, err := client.Do(req)
-	if err != nil {
-		debug.PrintStack()
-		return result, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		debug.PrintStack()
-		temp, _ := io.ReadAll(resp.Body)
-		log.Println("ERROR: unable to load device-type:", id, string(temp))
-		return result, errors.New("unexpected statuscode")
-	}
-	err = json.NewDecoder(resp.Body).Decode(&result)
+	result, err, _ = this.devicerepo.ReadDeviceType(id, token)
 	if err != nil {
 		debug.PrintStack()
 		return result, err
@@ -79,97 +46,62 @@ func (this *Controller) getCachedDeviceType(token string, id string, cache *map[
 	return result, err
 }
 
-func (this *Controller) GetFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, interactions []string) (result []devicemodel.DeviceType, err error, code int) {
-	return this.getCachedFilteredDeviceTypes(token, descriptions, interactions, nil)
+func (this *Controller) GetFilteredDeviceTypes(token string, criteria []client.FilterCriteria) (result []models.DeviceType, err error, code int) {
+	return this.getCachedFilteredDeviceTypes(token, criteria, nil)
 }
 
-func (this *Controller) getCachedFilteredDeviceTypes(token string, descriptions model.FilterCriteriaAndSet, interactions []string, cache *map[string][]devicemodel.DeviceType) (result []devicemodel.DeviceType, err error, code int) {
-	hash := hashCriteriaAndSet(descriptions)
+func (this *Controller) getCachedFilteredDeviceTypes(token string, criteria []client.FilterCriteria, cache *map[string][]models.DeviceType) (result []models.DeviceType, err error, code int) {
+	hash := hashClientCriteriaList(criteria)
 	if cache != nil {
 		if cacheResult, ok := (*cache)[hash]; ok {
 			return cacheResult, nil, http.StatusOK
 		}
 	}
 
-	client := http.Client{
-		Timeout: 5 * time.Second,
+	query := client.DeviceTypeListOptions{
+		Ids:             nil,
+		Search:          "",
+		Limit:           10000,
+		Offset:          0,
+		SortBy:          "name.asc",
+		Criteria:        criteria,
+		IncludeModified: true,
 	}
-	payload, err := json.Marshal(descriptions)
 
-	interactionFilter := ""
-	if len(interactions) > 0 {
-		interactionFilter = "&interactions-filter=" + url.QueryEscape(strings.Join(interactions, ","))
-	}
-
-	req, err := http.NewRequest(
-		"GET",
-		this.config.DeviceRepoUrl+"/device-types?include_id_modified=true&filter="+url.QueryEscape(string(payload))+interactionFilter,
-		nil,
-	)
+	result, err, code = this.devicerepo.ListDeviceTypesV3(token, query)
 	if err != nil {
 		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	req.Header.Set("Authorization", string(token))
-
-	resp, err := client.Do(req)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		debug.PrintStack()
-		return result, errors.New("unexpected statuscode"), resp.StatusCode
-	}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
+		return result, err, code
 	}
 
 	if cache != nil {
 		(*cache)[hash] = result
 	}
 
-	return result, err, resp.StatusCode
+	return result, err, code
 }
 
 func (this *Controller) getOnlyDeviceTypesIncludingIdModifier(token string) (result []devicemodel.DeviceType, err error, code int) {
-	client := http.Client{
-		Timeout: 5 * time.Second,
-	}
-	req, err := http.NewRequest(
-		"GET",
-		this.config.DeviceRepoUrl+"/device-types?include_id_modified=true&include_id_unmodified=false&limit=9999",
-		nil,
-	)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	req.Header.Set("Authorization", token)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		debug.PrintStack()
-		return result, errors.New("unexpected statuscode"), resp.StatusCode
-	}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	return result, err, resp.StatusCode
+	return this.devicerepo.ListDeviceTypesV3(token, client.DeviceTypeListOptions{
+		Limit:            9999,
+		Offset:           0,
+		SortBy:           "name.asc",
+		IncludeModified:  true,
+		IgnoreUnmodified: true,
+	})
 }
 
 func hashCriteriaAndSet(criteria model.FilterCriteriaAndSet) string {
 	arr := append(model.FilterCriteriaAndSet{}, criteria...) //make copy to prevent sorting to effect original
+	sort.SliceStable(arr, func(i, j int) bool {
+		return fmt.Sprint(arr[i]) < fmt.Sprint(arr[j])
+	})
+	return fmt.Sprint(arr)
+}
+
+func hashClientCriteriaList(criteria []client.FilterCriteria) string {
+	arr := []client.FilterCriteria{}
+	arr = append(arr, criteria...) //make copy to prevent sorting to effect original
 	sort.SliceStable(arr, func(i, j int) bool {
 		return fmt.Sprint(arr[i]) < fmt.Sprint(arr[j])
 	})
@@ -183,37 +115,10 @@ func (this *Controller) getCachedDevice(token string, id string, cache *map[stri
 		}
 	}
 
-	client := http.Client{
-		Timeout: 5 * time.Second,
-	}
-
-	req, err := http.NewRequest(
-		"GET",
-		this.config.DeviceRepoUrl+"/devices/"+url.QueryEscape(id),
-		nil,
-	)
+	result, err, code = this.devicerepo.ReadDevice(id, token, client.READ)
 	if err != nil {
 		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	req.Header.Set("Authorization", token)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		debug.PrintStack()
-		temp, _ := io.ReadAll(resp.Body)
-		log.Println("ERROR: unable to load device:", id, string(temp))
-		return result, errors.New("unable to load device: " + resp.Status), resp.StatusCode
-	}
-	err = json.NewDecoder(resp.Body).Decode(&result)
-	if err != nil {
-		debug.PrintStack()
-		return result, err, http.StatusInternalServerError
+		return result, err, code
 	}
 
 	if cache != nil {

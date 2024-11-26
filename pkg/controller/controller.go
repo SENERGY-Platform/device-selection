@@ -19,13 +19,15 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/cache"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/cacheinvalidator"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/idmodifier"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"github.com/SENERGY-Platform/permission-search/lib/client"
+	"github.com/SENERGY-Platform/models/go/models"
+	permsearch "github.com/SENERGY-Platform/permission-search/lib/client"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -37,7 +39,8 @@ import (
 type Controller struct {
 	config           configuration.Config
 	cache            cache.Cache
-	permissionsearch client.Client
+	devicerepo       client.Interface
+	permissionsearch permsearch.Client //TODO: remove
 }
 
 func New(ctx context.Context, config configuration.Config) (*Controller, error) {
@@ -52,7 +55,8 @@ func New(ctx context.Context, config configuration.Config) (*Controller, error) 
 	return &Controller{
 		config:           config,
 		cache:            c,
-		permissionsearch: client.NewClient(config.PermSearchUrl),
+		devicerepo:       client.NewClient(config.DeviceRepoUrl),
+		permissionsearch: permsearch.NewClient(config.PermSearchUrl), //TODO: remove
 	}, nil
 }
 
@@ -77,7 +81,7 @@ func (this *Controller) BulkGetFilteredDevices(token string, requests model.Bulk
 }
 
 func (this *Controller) BulkGetFilteredDevicesV2(token string, requests model.BulkRequestV2) (result model.BulkResult, err error, code int) {
-	devicesByDeviceTypeCache := map[string][]model.PermSearchDevice{}
+	devicesByDeviceTypeCache := map[string][]models.ExtendedDevice{}
 	for _, request := range requests {
 		resultElement, err, code := this.handleBulkRequestElementV2(token, request, &devicesByDeviceTypeCache)
 		if err != nil {
@@ -117,7 +121,7 @@ func (this *Controller) handleBulkRequestElement(
 func (this *Controller) handleBulkRequestElementV2(
 	token string,
 	request model.BulkRequestElementV2,
-	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
+	devicesByDeviceTypeCache *map[string][]models.ExtendedDevice,
 ) (
 	result model.BulkResultElement,
 	err error,
@@ -247,7 +251,7 @@ func (this *Controller) getFilteredDevices(
 func (this *Controller) getFilteredDevicesV2(
 	token string,
 	descriptions model.FilterCriteriaAndSet,
-	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
+	devicesByDeviceTypeCache *map[string][]models.ExtendedDevice,
 	includeDevices bool,
 	includeGroups bool,
 	includeImports bool,
@@ -305,7 +309,18 @@ func (this *Controller) getFilteredDevicesV2(
 				for _, device := range devices {
 					temp := device //make copy to prevent that Selectable.Device is the last element of devices every time
 					result = append(result, model.Selectable{
-						Device:             &temp,
+						Device: &model.PermSearchDevice{
+							Device:      temp.Device,
+							DisplayName: temp.DisplayName,
+							Permissions: model.Permissions{
+								R: temp.Permissions.Read,
+								W: temp.Permissions.Write,
+								X: temp.Permissions.Execute,
+								A: temp.Permissions.Administrate,
+							},
+							Shared:  false,
+							Creator: temp.OwnerId,
+						},
 						Services:           usedServices,
 						ServicePathOptions: pathOptions,
 					})
@@ -341,13 +356,13 @@ func (this *Controller) getFilteredDevicesV2(
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesByDeviceTypeCache *map[string][]model.PermSearchDevice, deviceTypeSelectables []devicemodel.DeviceTypeSelectable, withLocalDeviceIds []string) (devicesByDeviceType map[string][]model.PermSearchDevice, err error, code int) {
+func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesByDeviceTypeCache *map[string][]models.ExtendedDevice, deviceTypeSelectables []devicemodel.DeviceTypeSelectable, withLocalDeviceIds []string) (devicesByDeviceType map[string][]models.ExtendedDevice, err error, code int) {
 	if devicesByDeviceTypeCache == nil {
-		devicesByDeviceTypeCache = &map[string][]model.PermSearchDevice{}
+		devicesByDeviceTypeCache = &map[string][]models.ExtendedDevice{}
 	}
 
 	//list device types
-	devicesByDeviceType = map[string][]model.PermSearchDevice{}
+	devicesByDeviceType = map[string][]models.ExtendedDevice{}
 	dtList := []string{}
 	for _, dtSelectable := range deviceTypeSelectables {
 		if element, ok := (*devicesByDeviceTypeCache)[dtSelectable.DeviceTypeId]; ok {
@@ -361,53 +376,25 @@ func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesB
 	}
 
 	//find matching devices
-	matchingDevices := []model.PermSearchDevice{}
+	matchingDevices := []models.ExtendedDevice{}
 	if len(dtList) > 0 {
 		if len(withLocalDeviceIds) == 0 {
-			err, code = this.Search(token, model.QueryMessage{
-				Resource: "devices",
-				Find: &model.QueryFind{
-					Filter: &model.Selection{
-						Condition: model.ConditionConfig{
-							Feature:   "features.device_type_id",
-							Operation: model.QueryAnyValueInFeatureOperation,
-							Value:     dtList,
-						},
-					},
-				},
-			}, &matchingDevices)
+			matchingDevices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+				DeviceTypeIds: dtList,
+				Limit:         1000,
+				Offset:        0,
+				Permission:    client.EXECUTE,
+				SortBy:        "name.asc",
+			})
 		} else {
-			err, code = this.Search(token, model.QueryMessage{
-				Resource: "devices",
-				Find: &model.QueryFind{
-					QueryListCommons: model.QueryListCommons{
-						Limit:    1000,
-						Offset:   0,
-						Rights:   "rx",
-						SortBy:   "name",
-						SortDesc: false,
-					},
-					Search: "",
-					Filter: &model.Selection{
-						And: []model.Selection{
-							{
-								Condition: model.ConditionConfig{
-									Feature:   "features.device_type_id",
-									Operation: model.QueryAnyValueInFeatureOperation,
-									Value:     dtList,
-								},
-							},
-							{
-								Condition: model.ConditionConfig{
-									Feature:   "features.local_id",
-									Operation: model.QueryAnyValueInFeatureOperation,
-									Value:     withLocalDeviceIds,
-								},
-							},
-						},
-					},
-				},
-			}, &matchingDevices)
+			matchingDevices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+				DeviceTypeIds: dtList,
+				LocalIds:      withLocalDeviceIds,
+				Limit:         1000,
+				Offset:        0,
+				Permission:    client.EXECUTE,
+				SortBy:        "name.asc",
+			})
 		}
 		if err != nil {
 			debug.PrintStack()
@@ -420,7 +407,7 @@ func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesB
 
 	//find modified devices
 	devicesToModefy := []string{}
-	modefiedDevices := []model.PermSearchDevice{}
+	modefiedDevices := []models.ExtendedDevice{}
 	for _, dtSelectable := range deviceTypeSelectables {
 		pureId, modifier := idmodifier.SplitModifier(dtSelectable.DeviceTypeId)
 		if pureId != dtSelectable.DeviceTypeId {
@@ -433,19 +420,13 @@ func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesB
 
 		}
 	}
-	err, code = this.Search(token, model.QueryMessage{
-		Resource: "devices",
-		ListIds: &model.QueryListIds{
-			QueryListCommons: model.QueryListCommons{
-				Limit:    1000,
-				Offset:   0,
-				Rights:   "rx",
-				SortBy:   "name",
-				SortDesc: false,
-			},
-			Ids: devicesToModefy,
-		},
-	}, &modefiedDevices)
+	modefiedDevices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+		Ids:        devicesToModefy,
+		Limit:      1000,
+		Offset:     0,
+		Permission: client.EXECUTE,
+		SortBy:     "name.asc",
+	})
 	for _, device := range modefiedDevices {
 		devicesByDeviceType[device.DeviceTypeId] = append(devicesByDeviceType[device.DeviceTypeId], device)
 	}

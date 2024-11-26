@@ -281,9 +281,9 @@ func testCheckImportSelection(ctrl *controller.Controller, criteria model.Filter
 			return
 		}
 		if !reflect.DeepEqual(result, expectedResult) {
-			resultJson, _ := json.MarshalIndent(result, "", "    ")
-			expectedJson, _ := json.MarshalIndent(expectedResult, "", "    ")
-			t.Error("\n", string(resultJson), "\n", string(expectedJson))
+			resultJson, _ := json.Marshal(result)
+			expectedJson, _ := json.Marshal(expectedResult)
+			t.Error("\na=", string(resultJson), "\ne=", string(expectedJson))
 		}
 	}
 }

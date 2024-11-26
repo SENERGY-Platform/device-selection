@@ -19,8 +19,7 @@ package controller
 import (
 	"errors"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"github.com/SENERGY-Platform/permission-search/lib/client"
-	"github.com/SENERGY-Platform/permission-search/lib/model"
+	"sync"
 )
 
 func (this *Controller) GetFunction(id string, token string) (f devicemodel.Function, err error) {
@@ -38,13 +37,33 @@ func (this *Controller) GetFunction(id string, token string) (f devicemodel.Func
 
 func (this *Controller) GetFunctions(token string) (functions []devicemodel.Function, err error) {
 	err = this.cache.Use("functions", func() (interface{}, error) {
-		return client.List[[]devicemodel.Function](this.permissionsearch, token, "functions", client.ListOptions{
-			QueryListCommons: model.QueryListCommons{
-				Limit:  1000,
-				Offset: 0,
-				Rights: "r",
-			},
-		})
+		mux := sync.Mutex{}
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			controllfunctions, localErr, _ := this.devicerepo.GetFunctionsByType(devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION)
+			mux.Lock()
+			defer mux.Unlock()
+			if err != nil {
+				err = errors.Join(err, localErr)
+			} else {
+				functions = append(functions, controllfunctions...)
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			measuringfunctions, localErr, _ := this.devicerepo.GetFunctionsByType(devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION)
+			mux.Lock()
+			defer mux.Unlock()
+			if err != nil {
+				err = errors.Join(err, localErr)
+			} else {
+				functions = append(functions, measuringfunctions...)
+			}
+		}()
+		wg.Wait()
+		return functions, err
 	}, &functions)
 	return
 }

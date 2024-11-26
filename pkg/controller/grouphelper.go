@@ -17,16 +17,19 @@
 package controller
 
 import (
+	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/idmodifier"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/models/go/models"
 	"log"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 )
 
-func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, search model.QueryFind, maintainGroupUsability bool, functionBlockList []string) (result model.DeviceGroupHelperResult, err error, code int) {
+func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, search model.DeviceGroupHelperPagination, maintainGroupUsability bool, functionBlockList []string) (result model.DeviceGroupHelperResult, err error, code int) {
 	deviceCache := &map[string]devicemodel.Device{}
 	deviceTypeCache := &map[string]devicemodel.DeviceType{}
 	result.Criteria, err, code = this.GetDeviceGroupCriteria(token, deviceTypeCache, deviceCache, deviceIds)
@@ -137,7 +140,7 @@ func (this *Controller) getDeviceGroupOptionsGetDevice(
 	token string,
 	currentDeviceIds []string,
 	criteria []devicemodel.DeviceGroupFilterCriteria,
-	search model.QueryFind,
+	search model.DeviceGroupHelperPagination,
 	maintainGroupUsability bool,
 	functionBlockList []string) (devices []model.PermSearchDevice, err error, code int) {
 
@@ -193,12 +196,7 @@ func (this *Controller) getDeviceGroupOptionsGetDevice(
 	return filteredDevices, err, code
 }
 
-func (this *Controller) getDeviceGroupOptionsGetDevicesModified(
-	token string,
-	currentDeviceIds []string,
-	search model.QueryFind,
-	validDeviceTypes []string) (devices []model.PermSearchDevice, err error, code int) {
-
+func (this *Controller) getDeviceGroupOptionsGetDevicesModified(token string, currentDeviceIds []string, search model.DeviceGroupHelperPagination, validDeviceTypes []string) (devices []model.PermSearchDevice, err error, code int) {
 	if currentDeviceIds == nil {
 		currentDeviceIds = []string{}
 	}
@@ -213,91 +211,101 @@ func (this *Controller) getDeviceGroupOptionsGetDevicesModified(
 		}
 	}
 
+	pureIdToModifier := map[string]map[string][]string{}
+	searchedDeviceTypeIds := []string{}
 	for _, deviceTypeId := range validDeviceTypes {
-		if pureId, modifier := idmodifier.SplitModifier(deviceTypeId); pureId != deviceTypeId && len(modifier) > 0 {
-			searchClone := Clone(search)
-			searchClone.AddIdModifier = modifier
-			filter := []model.Selection{
-				{
-					Not: &model.Selection{
-						Condition: model.ConditionConfig{
-							Feature:   "id",
-							Operation: model.QueryAnyValueInFeatureOperation,
-							Value:     currentDeviceIds,
-						},
-					},
-				},
-				{
-					Condition: model.ConditionConfig{
-						Feature:   "features.device_type_id",
-						Operation: model.QueryEqualOperation,
-						Value:     pureId,
-					},
-				},
-			}
-			searchClone.Filter = &model.Selection{
-				And: filter,
-			}
-			var temp []model.PermSearchDevice
-			err, code = this.Search(token, model.QueryMessage{
-				Resource: "devices",
-				Find:     &searchClone,
-			}, &temp)
-			if err != nil {
-				return devices, err, code
-			}
-			devices = append(devices, temp...)
+		pureId, modifier := idmodifier.SplitModifier(deviceTypeId)
+		if pureId != deviceTypeId {
+			pureIdToModifier[pureId] = modifier
+			searchedDeviceTypeIds = append(searchedDeviceTypeIds, pureId)
 		}
-
 	}
-	return
+
+	unModDevices, err, code := this.devicerepo.ListDevices(token, client.DeviceListOptions{
+		DeviceTypeIds: searchedDeviceTypeIds,
+		Search:        search.Search,
+		Limit:         search.Limit + int64(len(currentDeviceIds)),
+		Offset:        search.Offset,
+		SortBy:        "name.asc",
+	})
+	if err != nil {
+		return devices, err, code
+	}
+	modefiedDeviceIds := []string{}
+	for _, device := range unModDevices {
+		mod, ok := pureIdToModifier[device.DeviceTypeId]
+		if ok {
+			modefiedDeviceIds = append(modefiedDeviceIds, idmodifier.JoinModifier(device.Id, mod))
+		}
+	}
+	modDevices, _, err, _ := this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+		Ids:    modefiedDeviceIds,
+		SortBy: "name.asc",
+	})
+	if err != nil {
+		return devices, err, code
+	}
+	for _, device := range modDevices {
+		if !slices.Contains(currentDeviceIds, device.Id) {
+			devices = append(devices, model.PermSearchDevice{
+				Device:      device.Device,
+				DisplayName: device.DisplayName,
+				Permissions: model.Permissions{
+					R: device.Permissions.Read,
+					W: device.Permissions.Write,
+					X: device.Permissions.Execute,
+					A: device.Permissions.Administrate,
+				},
+				Shared:  device.Shared,
+				Creator: device.OwnerId,
+			})
+		}
+	}
+	return devices, nil, 200
 }
 
 func (this *Controller) getDeviceGroupOptionsGetDevicesUnmodified(
 	token string,
 	currentDeviceIds []string,
-	search model.QueryFind,
+	search model.DeviceGroupHelperPagination,
 	validDeviceTypes []string) (devices []model.PermSearchDevice, err error, code int) {
 
-	search = Clone(search)
-
+	if len(validDeviceTypes) == 0 && validDeviceTypes != nil {
+		validDeviceTypes = nil
+	}
 	//trim modified ids
 	trimmedCurrentDeviceIds := make([]string, len(currentDeviceIds))
 	for i, id := range currentDeviceIds {
 		trimmedCurrentDeviceIds[i], _ = idmodifier.SplitModifier(id)
 	}
 
-	filter := []model.Selection{
-		{
-			Not: &model.Selection{
-				Condition: model.ConditionConfig{
-					Feature:   "id",
-					Operation: model.QueryAnyValueInFeatureOperation,
-					Value:     trimmedCurrentDeviceIds,
+	temp, _, err, _ := this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+		DeviceTypeIds: validDeviceTypes,
+		Search:        search.Search,
+		Limit:         search.Limit + int64(len(currentDeviceIds)),
+		Offset:        search.Offset,
+		SortBy:        "name.asc",
+	})
+	if err != nil {
+		return devices, err, code
+	}
+	for _, device := range temp {
+		if !slices.Contains(trimmedCurrentDeviceIds, device.Id) {
+			devices = append(devices, model.PermSearchDevice{
+				Device:      device.Device,
+				DisplayName: device.DisplayName,
+				Permissions: model.Permissions{
+					R: device.Permissions.Read,
+					W: device.Permissions.Write,
+					X: device.Permissions.Execute,
+					A: device.Permissions.Administrate,
 				},
-			},
-		},
+				Shared:  device.Shared,
+				Creator: device.OwnerId,
+			})
+		}
 	}
-
-	if validDeviceTypes != nil && len(validDeviceTypes) > 0 {
-		filter = append(filter, model.Selection{
-			Condition: model.ConditionConfig{
-				Feature:   "features.device_type_id",
-				Operation: model.QueryAnyValueInFeatureOperation,
-				Value:     validDeviceTypes,
-			},
-		})
-	}
-
-	search.Filter = &model.Selection{
-		And: filter,
-	}
-
-	err, code = this.Search(token, model.QueryMessage{
-		Resource: "devices",
-		Find:     &search,
-	}, &devices)
-	return
+	return devices, nil, 200
 }
 
 func (this *Controller) getDeviceGroupOptions(
@@ -306,7 +314,7 @@ func (this *Controller) getDeviceGroupOptions(
 	deviceCache *map[string]devicemodel.Device,
 	currentDeviceIds []string,
 	criteria []devicemodel.DeviceGroupFilterCriteria,
-	search model.QueryFind,
+	search model.DeviceGroupHelperPagination,
 	maintainGroupUsability bool,
 	functionBlockList []string,
 ) (
@@ -406,19 +414,15 @@ func (this *Controller) cachedGetValidDeviceTypesForDeviceGroupCriteria(token st
 }
 
 func (this *Controller) getValidDeviceTypesForDeviceGroupCriteria(token string, criteria devicemodel.DeviceGroupFilterCriteria) (deviceTypeIds []string, err error) {
-	descriptions := model.FilterCriteriaAndSet{{
-		FunctionId:    criteria.FunctionId,
-		AspectId:      criteria.AspectId,
-		DeviceClassId: criteria.DeviceClassId,
-	}}
-	interactions := []string{}
-	if criteria.Interaction != "" {
-		interactions = append(interactions, string(devicemodel.EVENT_AND_REQUEST))
-		if criteria.Interaction != devicemodel.EVENT_AND_REQUEST {
-			interactions = append(interactions, string(criteria.Interaction))
-		}
+	descriptions := []client.FilterCriteria{
+		{
+			Interaction:   models.Interaction(criteria.Interaction),
+			FunctionId:    criteria.FunctionId,
+			AspectId:      criteria.AspectId,
+			DeviceClassId: criteria.DeviceClassId,
+		},
 	}
-	deviceTypes, err, _ := this.getCachedFilteredDeviceTypes(token, descriptions, interactions, nil)
+	deviceTypes, err, _ := this.getCachedFilteredDeviceTypes(token, descriptions, nil)
 	if err != nil {
 		return deviceTypeIds, err
 	}

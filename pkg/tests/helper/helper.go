@@ -79,7 +79,7 @@ func GroupHelper(selectionurl string, maintainUsability bool, deviceIds []string
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)
 			expectedJson, _ := json.Marshal(expectedResult)
-			t.Error(string(resultJson), "\n", string(expectedJson))
+			t.Error("\na=", string(resultJson), "\ne=", string(expectedJson))
 		}
 	}
 }

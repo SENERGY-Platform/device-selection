@@ -18,6 +18,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
@@ -44,11 +45,25 @@ func DeviceGroupsHelper(router *httprouter.Router, config configuration.Config, 
 			return
 		}
 
-		search := model.QueryFind{}
-		search.Search = request.URL.Query().Get("search")
-		search.Limit, _ = strconv.Atoi(request.URL.Query().Get("limit"))
-		search.Offset, _ = strconv.Atoi(request.URL.Query().Get("offset"))
-		search.Rights = "rx"
+		search := model.DeviceGroupHelperPagination{
+			Search: request.URL.Query().Get("search"),
+			Limit:  100,
+			Offset: 0,
+		}
+		if request.URL.Query().Has("limit") {
+			search.Limit, err = strconv.ParseInt(request.URL.Query().Get("limit"), 10, 64)
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("unable to parse limit: %v", err.Error()), http.StatusBadRequest)
+				return
+			}
+		}
+		if request.URL.Query().Has("offset") {
+			search.Offset, err = strconv.ParseInt(request.URL.Query().Get("offset"), 10, 64)
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("unable to parse offset: %v", err.Error()), http.StatusBadRequest)
+				return
+			}
+		}
 
 		filterMaintainsGroupUsability := false
 		maintainsGroupUsability := request.URL.Query().Get("maintains_group_usability")

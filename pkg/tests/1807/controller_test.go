@@ -19,6 +19,7 @@ package _807
 import (
 	"context"
 	"encoding/json"
+	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
@@ -29,6 +30,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -60,24 +62,20 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 		return
 	}
 
-	_, err, _ = repo.GetFilteredDeviceTypes(helper.AdminJwt, DeviceDescriptions{{
-		CharacteristicId: "chid1",
-		Function:         devicemodel.Function{Id: "fid"},
-		DeviceClass:      nil,
-		Aspect:           nil,
-	}}.ToFilter(), nil)
+	_, err, _ = repo.GetFilteredDeviceTypes(helper.AdminJwt, []client.FilterCriteria{{
+		FunctionId: "fid",
+	}})
 
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	dt, err, _ := repo.GetFilteredDeviceTypes(helper.AdminJwt, DeviceDescriptions{{
-		CharacteristicId: "chid1",
-		Function:         devicemodel.Function{Id: "fid"},
-		DeviceClass:      &devicemodel.DeviceClass{Id: "dc1"},
-		Aspect:           &devicemodel.Aspect{Id: "a1"},
-	}}.ToFilter(), nil)
+	dt, err, _ := repo.GetFilteredDeviceTypes(helper.AdminJwt, []client.FilterCriteria{{
+		FunctionId:    "fid",
+		DeviceClassId: "dc1",
+		AspectId:      "a1",
+	}})
 
 	if err != nil {
 		t.Error(err)
@@ -91,12 +89,25 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 
 	mux.Lock()
 	defer mux.Unlock()
-	if !reflect.DeepEqual(calls, []string{
-		"/device-types?include_id_modified=true&filter=" + url.QueryEscape(`[{"function_id":"fid","aspect_id":"","device_class_id":""}]`),
-		"/device-types?include_id_modified=true&filter=" + url.QueryEscape(`[{"function_id":"fid","aspect_id":"a1","device_class_id":"dc1"}]`),
-	}) {
-		temp, _ := json.Marshal(calls)
-		t.Error(string(temp))
+	expected := []string{
+		"/v3/device-types?criteria=" + url.QueryEscape(`[{"interaction":"","function_id":"fid","device_class_id":"","aspect_id":""}]`) + "&include-modified=true&limit=10000&sort=name.asc",
+		"/v3/device-types?criteria=" + url.QueryEscape(`[{"interaction":"","function_id":"fid","device_class_id":"dc1","aspect_id":"a1"}]`) + "&include-modified=true&limit=10000&sort=name.asc",
+	}
+	if !reflect.DeepEqual(calls, expected) {
+		t.Errorf("\na=%#v\ne=%#v\n", calls, expected)
+		for _, path := range calls {
+			parts := strings.SplitN(path, "?", 2)
+			if len(parts) != 2 {
+				t.Error("unexpected path", parts)
+				return
+			}
+			query, err := url.ParseQuery(parts[1])
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			t.Logf("%#v\n", query)
+		}
 	}
 }
 
@@ -131,6 +142,10 @@ func TestGetFilteredDevices(t *testing.T) {
 	}
 
 	managerurl, repourl, searchurl, _, err := legacy.TestenvWithoutApi(ctx, wg)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	for _, concept := range concepts {
 		err = helper.SetConcept(managerurl, concept)

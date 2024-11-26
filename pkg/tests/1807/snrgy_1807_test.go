@@ -839,6 +839,7 @@ func snrgy1807Device(s string) *model.PermSearchDevice {
 			LocalId:      s,
 			Name:         s,
 			DeviceTypeId: s,
+			OwnerId:      helper.JwtSubject,
 		},
 		Permissions: model.Permissions{
 			R: true,

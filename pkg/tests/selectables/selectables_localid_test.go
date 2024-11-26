@@ -218,6 +218,7 @@ func TestSelectableLocalId(t *testing.T) {
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -231,6 +232,7 @@ func TestSelectableLocalId(t *testing.T) {
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
 				},
 			},
 			Services: legacy.FromLegacyServices([]legacy.Service{
@@ -261,7 +263,7 @@ func testCheckSelectionWithLocalIdsWithoutOptions(ctrl *controller.Controller, c
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)
 			expectedJson, _ := json.Marshal(expectedResult)
-			t.Error(string(resultJson), "\n", string(expectedJson))
+			t.Error("\n", string(resultJson), "\n", string(expectedJson))
 		}
 	}
 }

@@ -18,7 +18,7 @@ package model
 
 import (
 	"github.com/SENERGY-Platform/device-selection/pkg/model/basecontentvariable"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/models/go/models"
 )
 
 type ImportType struct {
@@ -32,7 +32,7 @@ type ImportType struct {
 	Owner          string                `json:"owner"`
 }
 
-type Type = devicemodel.Type
+type Type = models.Type
 
 type ImportContentVariable struct {
 	Name                string                  `json:"name"`
