@@ -22,6 +22,9 @@ import (
 	"errors"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	importrepo "github.com/SENERGY-Platform/import-repository/lib/client"
+	importrepomodel "github.com/SENERGY-Platform/import-repository/lib/model"
+	"github.com/SENERGY-Platform/service-commons/pkg/jwt"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -30,49 +33,34 @@ import (
 )
 
 func (this *Controller) getFilteredImports(token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
-	//TODO: replace with SNRGY-3572
-	importTypes := []model.ImportType{}
-	filter := []model.Selection{}
-	for _, criteria := range descriptions {
-		aspect, err := this.GetAspectNode(criteria.AspectId, token)
+	jwtToken, err := jwt.Parse(token)
+	if err != nil {
+		return result, err, http.StatusInternalServerError
+	}
+
+	criteria := []importrepo.ImportTypeFilterCriteria{}
+
+	for _, c := range descriptions {
+		importTypeCriteria := importrepo.ImportTypeFilterCriteria{
+			FunctionId: c.FunctionId,
+			AspectIds:  []string{c.AspectId},
+		}
+		aspect, err := this.GetAspectNode(c.AspectId, token)
 		if err != nil {
 			return result, err, http.StatusInternalServerError
 		}
-		or := []model.Selection{}
-		validAspects := append(aspect.DescendentIds, aspect.Id)
-		for _, aid := range validAspects {
-			importTypeCriteria := model.ImportTypeFilterCriteria{
-				FunctionId: criteria.FunctionId,
-				AspectId:   aid,
-			}
-			or = append(or, model.Selection{
-				Condition: model.ConditionConfig{
-					Feature:   "features.aspect_functions",
-					Operation: model.QueryEqualOperation,
-					Value:     importTypeCriteria.Short(),
-				},
-			})
+		for _, aid := range aspect.DescendentIds {
+			importTypeCriteria.AspectIds = append(importTypeCriteria.AspectIds, aid)
 		}
-		filter = append(filter, model.Selection{Or: or})
+		criteria = append(criteria, importTypeCriteria)
 	}
 
-	//TODO: replace
-	err, code = this.Search(token, model.QueryMessage{
-		Resource: "import-types",
-		Find: &model.QueryFind{
-			QueryListCommons: model.QueryListCommons{
-				Limit:    1000,
-				Offset:   0,
-				Rights:   "r",
-				SortBy:   "name",
-				SortDesc: false,
-			},
-			Search: "",
-			Filter: &model.Selection{
-				And: filter,
-			},
-		},
-	}, &importTypes)
+	importTypes, _, err, code := this.importrepo.ListImportTypes(jwtToken, importrepo.ImportTypeListOptions{
+		Limit:    1000,
+		Offset:   0,
+		SortBy:   "name.asc",
+		Criteria: criteria,
+	})
 	if err != nil {
 		return result, err, code
 	}
@@ -97,7 +85,7 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 		temp := instance //prevent that every result element becomes the last element of groups
 		for _, importType := range importTypes {
 			if importType.Id == temp.ImportTypeId {
-				tempType := importType
+				tempType := castImportType(importType)
 				result = append(result, model.Selectable{Import: &temp, ImportType: &tempType})
 			}
 		}
@@ -106,57 +94,33 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 }
 
 func (this *Controller) getFilteredImportsV2(token string, descriptions model.FilterCriteriaAndSet, importPathTrimFirstElement bool) (result []model.Selectable, err error, code int) {
-	importTypes := []model.ImportType{}
-	filter := []model.Selection{}
-	for _, criteria := range descriptions {
-		if criteria.AspectId == "" {
-			filter = append(filter, model.Selection{
-				Condition: model.ConditionConfig{
-					Feature:   "features.content_function_ids",
-					Operation: model.QueryEqualOperation,
-					Value:     criteria.FunctionId,
-				},
-			})
-		} else {
-			or := []model.Selection{}
-			aspect, err := this.GetAspectNode(criteria.AspectId, token)
+	jwtToken, err := jwt.Parse(token)
+	if err != nil {
+		return result, err, http.StatusInternalServerError
+	}
+	criteria := []importrepo.ImportTypeFilterCriteria{}
+	for _, c := range descriptions {
+		criteriaFilter := importrepo.ImportTypeFilterCriteria{
+			FunctionId: c.FunctionId,
+		}
+		if c.AspectId != "" {
+			criteriaFilter.AspectIds = []string{c.AspectId}
+			aspect, err := this.GetAspectNode(c.AspectId, token)
 			if err != nil {
 				return result, err, http.StatusInternalServerError
 			}
-			validAspects := append(aspect.DescendentIds, aspect.Id)
-			for _, aid := range validAspects {
-				importTypeCriteria := model.ImportTypeFilterCriteria{
-					FunctionId: criteria.FunctionId,
-					AspectId:   aid,
-				}
-				or = append(or, model.Selection{
-					Condition: model.ConditionConfig{
-						Feature:   "features.aspect_functions",
-						Operation: model.QueryEqualOperation,
-						Value:     importTypeCriteria.Short(),
-					},
-				})
+			for _, aid := range aspect.DescendentIds {
+				criteriaFilter.AspectIds = append(criteriaFilter.AspectIds, aid)
 			}
-			filter = append(filter, model.Selection{Or: or})
 		}
+		criteria = append(criteria, criteriaFilter)
 	}
-	//TODO: replace
-	err, code = this.Search(token, model.QueryMessage{
-		Resource: "import-types",
-		Find: &model.QueryFind{
-			QueryListCommons: model.QueryListCommons{
-				Limit:    1000,
-				Offset:   0,
-				Rights:   "r",
-				SortBy:   "name",
-				SortDesc: false,
-			},
-			Search: "",
-			Filter: &model.Selection{
-				And: filter,
-			},
-		},
-	}, &importTypes)
+	importTypes, _, err, code := this.importrepo.ListImportTypes(jwtToken, importrepo.ImportTypeListOptions{
+		Limit:    1000,
+		Offset:   0,
+		SortBy:   "name.asc",
+		Criteria: criteria,
+	})
 	if err != nil {
 		return result, err, code
 	}
@@ -325,4 +289,48 @@ func (this *Controller) getFullImportType(token string, id string) (fullType mod
 	}, &fullType)
 
 	return
+}
+
+func castImportType(importType importrepomodel.ImportType) model.ImportType {
+	return model.ImportType{
+		Id:             importType.Id,
+		Name:           importType.Name,
+		Description:    importType.Description,
+		Image:          importType.Image,
+		DefaultRestart: importType.DefaultRestart,
+		Configs:        castImportTypeConfigs(importType.Configs),
+		Output:         castImportTypeContentVariable(importType.Output),
+		Owner:          importType.Owner,
+	}
+}
+
+func castImportTypeContentVariable(cv importrepomodel.ContentVariable) model.ImportContentVariable {
+	sub := []model.ImportContentVariable{}
+	for _, s := range cv.SubContentVariables {
+		sub = append(sub, castImportTypeContentVariable(s))
+	}
+	return model.ImportContentVariable{
+		Name:                cv.Name,
+		Type:                model.Type(cv.Type),
+		CharacteristicId:    cv.CharacteristicId,
+		SubContentVariables: sub,
+		UseAsTag:            cv.UseAsTag,
+		FunctionId:          cv.FunctionId,
+		AspectId:            cv.AspectId,
+	}
+}
+
+func castImportTypeConfigs(configs []importrepomodel.ImportConfig) (result []model.ImportTypeConfig) {
+	if configs != nil {
+		result = []model.ImportTypeConfig{}
+	}
+	for _, config := range configs {
+		result = append(result, model.ImportTypeConfig{
+			Name:         config.Name,
+			Description:  config.Description,
+			Type:         model.Type(config.Type),
+			DefaultValue: config.DefaultValue,
+		})
+	}
+	return result
 }

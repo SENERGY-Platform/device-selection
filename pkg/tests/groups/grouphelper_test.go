@@ -143,7 +143,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 	}
 
-	managerurl, _, _, _, selectionurl, err := helper.EnvWithApi(ctx, wg, deviceTypes, devicesInstances)
+	managerurl, _, _, selectionurl, err := helper.EnvWithApi(ctx, wg, deviceTypes, devicesInstances)
 	if err != nil {
 		t.Error(err)
 		return

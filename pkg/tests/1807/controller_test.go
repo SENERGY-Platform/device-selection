@@ -141,7 +141,7 @@ func TestGetFilteredDevices(t *testing.T) {
 		},
 	}
 
-	managerurl, repourl, searchurl, _, err := legacy.TestenvWithoutApi(ctx, wg)
+	managerurl, repourl, _, err := legacy.TestenvWithoutApi(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -172,7 +172,6 @@ func TestGetFilteredDevices(t *testing.T) {
 	}
 
 	c := &configuration.ConfigStruct{
-		PermSearchUrl: searchurl,
 		DeviceRepoUrl: repourl,
 	}
 

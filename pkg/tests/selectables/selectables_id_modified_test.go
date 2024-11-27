@@ -109,7 +109,7 @@ func TestIdModifiedSelectables(t *testing.T) {
 		OwnerId:      helper.JwtSubject,
 	}}
 
-	_, _, _, _, selectionurl, err := helper.EnvWithMetadata(ctx, wg, deviceTypes, devices, aspects, functions)
+	_, _, _, selectionurl, err := helper.EnvWithMetadata(ctx, wg, deviceTypes, devices, aspects, functions)
 	if err != nil {
 		t.Error(err)
 		return

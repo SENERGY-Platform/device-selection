@@ -92,22 +92,6 @@ func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) Search(token string, query model.QueryMessage, result interface{}) (err error, code int) {
-	temp, code, err := this.permissionsearch.Query(token, query)
-	if err != nil {
-		return err, code
-	}
-	b, err := json.Marshal(temp)
-	if err != nil {
-		return err, 500
-	}
-	err = json.Unmarshal(b, result)
-	if err != nil {
-		return err, 500
-	}
-	return nil, 200
-}
-
 func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice, localDeviceIds []string) (result []model.PermSearchDevice, err error, code int) {
 	if cache != nil {
 		if cacheResult, ok := (*cache)[deviceTypeId]; ok {

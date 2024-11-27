@@ -26,8 +26,8 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/idmodifier"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	importrepo "github.com/SENERGY-Platform/import-repository/lib/client"
 	"github.com/SENERGY-Platform/models/go/models"
-	permsearch "github.com/SENERGY-Platform/permission-search/lib/client"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -37,10 +37,10 @@ import (
 )
 
 type Controller struct {
-	config           configuration.Config
-	cache            cache.Cache
-	devicerepo       client.Interface
-	permissionsearch permsearch.Client //TODO: remove
+	config     configuration.Config
+	cache      cache.Cache
+	devicerepo client.Interface
+	importrepo importrepo.Interface
 }
 
 func New(ctx context.Context, config configuration.Config) (*Controller, error) {
@@ -53,10 +53,10 @@ func New(ctx context.Context, config configuration.Config) (*Controller, error) 
 		}
 	}
 	return &Controller{
-		config:           config,
-		cache:            c,
-		devicerepo:       client.NewClient(config.DeviceRepoUrl),
-		permissionsearch: permsearch.NewClient(config.PermSearchUrl), //TODO: remove
+		config:     config,
+		cache:      c,
+		devicerepo: client.NewClient(config.DeviceRepoUrl),
+		importrepo: importrepo.NewClient(config.ImportRepoUrl),
 	}, nil
 }
 

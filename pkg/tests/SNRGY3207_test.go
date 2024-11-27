@@ -23,7 +23,6 @@ func TestSNRGY3207(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	config.PermSearchUrl = "http://localhost:8081"
 	config.DeviceRepoUrl = "http://localhost:8082"
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -25,26 +25,26 @@ import (
 	"sync"
 )
 
-func NewWithImport(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceManagerUrl string, deviceRepoUrl string, permSearchUrl string, permv2Url string, importRepoUrl string, importDeployUrl string, err error) {
-	kafkaBroker, deviceManagerUrl, deviceRepoUrl, permSearchUrl, permv2Url, err = docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
+func NewWithImport(ctx context.Context, wg *sync.WaitGroup) (kafkaBroker string, deviceManagerUrl string, deviceRepoUrl string, permv2Url string, importRepoUrl string, importDeployUrl string, err error) {
+	kafkaBroker, deviceManagerUrl, deviceRepoUrl, permv2Url, err = docker.DeviceManagerWithDependenciesAndKafka(ctx, wg)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 	_, mongoIp, err := docker.MongoDB(ctx, wg)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 
 	importMongo := "mongodb://" + mongoIp + ":27017"
-	_, importRepoIp, err := docker.ImportRepo(ctx, wg, kafkaBroker, importMongo, permSearchUrl, deviceRepoUrl, permv2Url)
+	_, importRepoIp, err := docker.ImportRepo(ctx, wg, kafkaBroker, importMongo, deviceRepoUrl, permv2Url)
 	if err != nil {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
-		return "", "", "", "", "", "", "", err
+		return "", "", "", "", "", "", err
 	}
 
 	importRepoUrl = "http://" + importRepoIp + ":8080"

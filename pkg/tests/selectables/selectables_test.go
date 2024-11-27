@@ -35,7 +35,7 @@ func TestApiSimpleGet(t *testing.T) {
 	defer wg.Wait()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, _, _, selectionurl, err := legacy.Testenv(ctx, wg)
+	_, _, _, selectionurl, err := legacy.Testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -66,7 +66,7 @@ func TestApiCompleteSimpledGet(t *testing.T) {
 	defer wg.Wait()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, _, _, selectionurl, err := legacy.Testenv(ctx, wg)
+	_, _, _, selectionurl, err := legacy.Testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -95,7 +95,7 @@ func TestApiJsonGet(t *testing.T) {
 	defer wg.Wait()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, _, _, selectionurl, err := legacy.Testenv(ctx, wg)
+	_, _, _, selectionurl, err := legacy.Testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -123,7 +123,7 @@ func TestApiBase64Get(t *testing.T) {
 	defer wg.Wait()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	_, _, _, _, selectionurl, err := legacy.Testenv(ctx, wg)
+	_, _, _, selectionurl, err := legacy.Testenv(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return

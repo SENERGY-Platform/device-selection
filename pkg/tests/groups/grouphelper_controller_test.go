@@ -290,7 +290,7 @@ func normalizeCriteria(criteria []devicemodel.DeviceGroupFilterCriteria) []devic
 }
 
 func grouphelpertestenv(ctx context.Context, wg *sync.WaitGroup, deviceTypes []devicemodel.DeviceType, deviceInstances []devicemodel.Device) (repo *controller.Controller, err error) {
-	kafkaUrl, managerurl, repoUrl, searchurl, _, err := helper.EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
+	kafkaUrl, managerurl, repoUrl, _, err := helper.EnvWithDevices(ctx, wg, deviceTypes, deviceInstances)
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +321,6 @@ func grouphelpertestenv(ctx context.Context, wg *sync.WaitGroup, deviceTypes []d
 		return nil, err
 	}
 	c := &configuration.ConfigStruct{
-		PermSearchUrl:                   searchurl,
 		DeviceRepoUrl:                   repoUrl,
 		KafkaUrl:                        kafkaUrl,
 		KafkaConsumerGroup:              "device_selection",

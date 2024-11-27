@@ -27,7 +27,7 @@ import (
 	"sync"
 )
 
-func ImportRepo(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, mongoUrl string, permsearch string, deviceRepoUrl string, permv2Url string) (hostPort string, ipAddress string, err error) {
+func ImportRepo(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, mongoUrl string, deviceRepoUrl string, permv2Url string) (hostPort string, ipAddress string, err error) {
 	if permv2Url == "" {
 		panic("missing permv2Url")
 	}
@@ -36,12 +36,11 @@ func ImportRepo(ctx context.Context, wg *sync.WaitGroup, kafkaUrl string, mongoU
 		ContainerRequest: testcontainers.ContainerRequest{
 			Image: "ghcr.io/senergy-platform/import-repository:dev",
 			Env: map[string]string{
-				"DEVICE_REPO_URL":   deviceRepoUrl,
-				"KAFKA_BOOTSTRAP":   kafkaUrl,
-				"PERMISSIONS_URL":   permsearch,
-				"PERMISSION_V2_URL": permv2Url,
-				"MONGO_URL":         mongoUrl,
-				"DEBUG":             "true",
+				"DEVICE_REPO_URL":    deviceRepoUrl,
+				"KAFKA_BOOTSTRAP":    kafkaUrl,
+				"PERMISSIONS_V2_URL": permv2Url,
+				"MONGO_URL":          mongoUrl,
+				"DEBUG":              "true",
 			},
 			ExposedPorts:    []string{"8080/tcp"},
 			WaitingFor:      wait.ForListeningPort("8080/tcp"),
