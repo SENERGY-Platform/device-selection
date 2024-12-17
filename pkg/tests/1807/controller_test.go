@@ -37,7 +37,6 @@ import (
 )
 
 func TestGetFilteredDeviceTypes(t *testing.T) {
-
 	mux := sync.Mutex{}
 	calls := []string{}
 
@@ -45,6 +44,7 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 		mux.Lock()
 		defer mux.Unlock()
 		calls = append(calls, r.URL.Path+"?"+r.URL.RawQuery)
+		w.Header().Set("X-Total-Count", "1")
 		json.NewEncoder(w).Encode([]devicemodel.DeviceType{{Id: "dt1", Name: "dt1name"}})
 	}))
 

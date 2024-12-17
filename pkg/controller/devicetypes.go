@@ -68,7 +68,7 @@ func (this *Controller) getCachedFilteredDeviceTypes(token string, criteria []cl
 		IncludeModified: true,
 	}
 
-	result, err, code = this.devicerepo.ListDeviceTypesV3(token, query)
+	result, _, err, code = this.devicerepo.ListDeviceTypesV3(token, query)
 	if err != nil {
 		debug.PrintStack()
 		return result, err, code
@@ -82,13 +82,14 @@ func (this *Controller) getCachedFilteredDeviceTypes(token string, criteria []cl
 }
 
 func (this *Controller) getOnlyDeviceTypesIncludingIdModifier(token string) (result []devicemodel.DeviceType, err error, code int) {
-	return this.devicerepo.ListDeviceTypesV3(token, client.DeviceTypeListOptions{
+	result, _, err, code = this.devicerepo.ListDeviceTypesV3(token, client.DeviceTypeListOptions{
 		Limit:            9999,
 		Offset:           0,
 		SortBy:           "name.asc",
 		IncludeModified:  true,
 		IgnoreUnmodified: true,
 	})
+	return
 }
 
 func hashCriteriaAndSet(criteria model.FilterCriteriaAndSet) string {
