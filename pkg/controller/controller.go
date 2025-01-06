@@ -55,7 +55,7 @@ func New(ctx context.Context, config configuration.Config) (*Controller, error) 
 	return &Controller{
 		config:     config,
 		cache:      c,
-		devicerepo: client.NewClient(config.DeviceRepoUrl),
+		devicerepo: client.NewClient(config.DeviceRepoUrl, nil),
 		importrepo: importrepo.NewClient(config.ImportRepoUrl),
 	}, nil
 }
