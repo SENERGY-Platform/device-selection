@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/cache"
@@ -219,9 +220,9 @@ func (this *Controller) getFilteredDevices(
 	case devicemodel.EVENT:
 		expectedInteraction = devicemodel.REQUEST
 	case devicemodel.EVENT_AND_REQUEST:
-		expectedInteraction = ""
+		return []model.Selectable{}, errors.New("invalid request: filter_interaction=event+request -> null return"), http.StatusBadRequest
 	case "":
-		expectedInteraction = devicemodel.EVENT_AND_REQUEST
+		expectedInteraction = ""
 	}
 	if includeGroups {
 		groupResult, err, code := this.getFilteredDeviceGroups(token, descriptions, expectedInteraction)
@@ -230,7 +231,7 @@ func (this *Controller) getFilteredDevices(
 		}
 		result = append(result, groupResult...)
 	}
-	if includeImports && (expectedInteraction == devicemodel.EVENT || expectedInteraction == devicemodel.EVENT_AND_REQUEST) {
+	if includeImports && (expectedInteraction == devicemodel.EVENT || expectedInteraction == "") {
 		if this.config.Debug {
 			log.Println("DEBUG: GetFilteredDevices() Loading matching imports")
 		}
