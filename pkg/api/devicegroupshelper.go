@@ -22,7 +22,6 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -31,11 +30,28 @@ import (
 )
 
 func init() {
-	endpoints = append(endpoints, DeviceGroupsHelper)
+	endpoints = append(endpoints, &DeviceGroupsHelper{})
 }
 
-func DeviceGroupsHelper(router *httprouter.Router, config configuration.Config, ctrl *controller.Controller) {
-	router.POST("/device-group-helper", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+type DeviceGroupsHelper struct{}
+
+// DeviceGroupsHelper godoc
+// @Summary      device group helper
+// @Description  helper to create valid device-groups by providing the criteria list resulting of the supplied device-ids and a list of compatible devices, that can be added
+// @Tags         device-group, helper
+// @Accept       json
+// @Produce      json
+// @Security Bearer
+// @Param        message body []string true "device id list"
+// @Success      200 {array}  model.DeviceGroupHelperResult
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /device-group-helper [POST]
+func (this *DeviceGroupsHelper) DeviceGroupsHelper(router *http.ServeMux, config configuration.Config, ctrl *controller.Controller) {
+	router.HandleFunc("POST /device-group-helper", func(writer http.ResponseWriter, request *http.Request) {
 		token := request.Header.Get("Authorization")
 
 		deviceIds := []string{}

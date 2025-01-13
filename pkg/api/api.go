@@ -22,16 +22,19 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/service-commons/pkg/accesslog"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"reflect"
-	"runtime"
 	"sync"
 	"time"
 )
 
-var endpoints = []func(router *httprouter.Router, config configuration.Config, control *controller.Controller){}
+//go:generate go install github.com/swaggo/swag/cmd/swag@latest
+//go:generate swag init --instanceName devicemanager -o ../../docs --parseDependency -d . -g api.go
+
+type EndpointMethod = func(router *http.ServeMux, config configuration.Config, control *controller.Controller)
+
+var endpoints = []interface{}{} //list of objects with EndpointMethod
 
 // starts http server; if wg is not nil it will be set as done when the server is stopped
 func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, ctrl *controller.Controller) (err error) {
@@ -54,13 +57,58 @@ func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config,
 	return nil
 }
 
+// Router doc
+// @title         Device-Selection API
+// @version       0.1
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+// @BasePath  /
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func Router(config configuration.Config, ctrl *controller.Controller) http.Handler {
-	router := httprouter.New()
+	handler := GetRouterWithoutMiddleware(config, ctrl)
+	log.Println("add cors")
+	corsHandler := util.NewCors(handler)
+	log.Println("add logging")
+	logger := accesslog.New(corsHandler)
+	return logger
+}
+
+func GetRouterWithoutMiddleware(config configuration.Config, command *controller.Controller) http.Handler {
+	router := http.NewServeMux()
+	log.Println("add heart beat endpoint")
+	router.HandleFunc("GET /", func(writer http.ResponseWriter, request *http.Request) {
+		writer.WriteHeader(http.StatusOK)
+	})
 	for _, e := range endpoints {
-		log.Println("add endpoints: " + runtime.FuncForPC(reflect.ValueOf(e).Pointer()).Name())
-		e(router, config, ctrl)
+		for name, call := range getEndpointMethods(e) {
+			log.Println("add endpoint " + name)
+			call(router, config, command)
+		}
 	}
-	log.Println("add logging and cors")
-	corsHandler := util.NewCors(router)
-	return accesslog.New(corsHandler)
+	return router
+}
+
+func getEndpointMethods(e interface{}) map[string]EndpointMethod {
+	result := map[string]EndpointMethod{}
+	objRef := reflect.ValueOf(e)
+	methodCount := objRef.NumMethod()
+	for i := 0; i < methodCount; i++ {
+		m := objRef.Method(i)
+		f, ok := m.Interface().(EndpointMethod)
+		if ok {
+			name := getTypeName(objRef.Type()) + "::" + objRef.Type().Method(i).Name
+			result[name] = f
+		}
+	}
+	return result
+}
+
+func getTypeName(t reflect.Type) (res string) {
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.Name()
 }

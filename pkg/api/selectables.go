@@ -23,7 +23,6 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -32,12 +31,37 @@ import (
 )
 
 func init() {
-	endpoints = append(endpoints, SelectablesEndpoints)
+	endpoints = append(endpoints, &SelectablesEndpoints{})
 }
 
-func SelectablesEndpoints(router *httprouter.Router, config configuration.Config, ctrl *controller.Controller) {
+type SelectablesEndpoints struct{}
 
-	router.GET("/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// Selectables godoc
+// @Summary      deprecated selectables
+// @Description  deprecated; finds devices, device-groups and/or imports that match all provided filter-criteria
+// @Tags         selectables, deprecated
+// @Produce      json
+// @Security Bearer
+// @Param        include_groups query bool false "result should include matching device-groups"
+// @Param        include_imports query bool false "result should include matching imports"
+// @Param        local_devices query string false "comma seperated list of local device ids; result devices must be in this list (if one is given)"
+// @Param        complete_services query bool false "adds full import-type and import path options to the result. device services are already complete, the name is a legacy artefact"
+// @Param        filter_protocols query string false "comma seperated list of protocol ids, that should be ignored"
+// @Param        filter_interaction query string false "interaction that is not allowed in the result"
+// @Param        json query string false "json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;function_id&quot;:&quot;&quot;,&quot;aspect_id&quot;:&quot;&quot;,&quot;device_class_id&quot;:&quot;&quot;}])"
+// @Param        base64 query string false "alternative to json; base64 encoded json of criteria list"
+// @Param        function_id query string false "alternative to json and base64 if only one filter criteria is needed"
+// @Param        device_class_id query string false "alternative to json and base64 if only one filter criteria is needed"
+// @Param        aspect_id query string false "alternative to json and base64 if only one filter criteria is needed"
+// @Success      200 {array}  []model.Selectable
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /selectables [GET]
+func (this *DeviceGroupsHelper) Selectables(router *http.ServeMux, config configuration.Config, ctrl *controller.Controller) {
+	router.HandleFunc("GET /selectables", func(writer http.ResponseWriter, request *http.Request) {
 		token := request.Header.Get("Authorization")
 		criteria, blockedProtocols, blockedInteraction, err := getCriteriaFromRequest(request)
 		if err != nil {
@@ -75,8 +99,35 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 			debug.PrintStack()
 		}
 	})
+}
 
-	router.GET("/v2/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// SelectablesV2 godoc
+// @Summary      selectables
+// @Description  finds devices, device-groups and/or imports that match all provided filter-criteria
+// @Tags         selectables
+// @Produce      json
+// @Security Bearer
+// @Param        include_devices query bool false "result should include matching devices"
+// @Param        include_groups query bool false "result should include matching device-groups"
+// @Param        include_imports query bool false "result should include matching imports"
+// @Param        include_id_modified query bool false "result should include all valid device id modifications"
+// @Param        import_path_trim_first_element query bool false "trim first element of import paths"
+// @Param        local_devices query string false "comma seperated list of local device ids; result devices must be in this list (if one is given)"
+// @Param        json query string false "json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;interaction&quot;:&quot;&quot;,&quot;function_id&quot;:&quot;&quot;,&quot;aspect_id&quot;:&quot;&quot;,&quot;device_class_id&quot;:&quot;&quot;}])"
+// @Param        base64 query string false "alternative to json; base64 encoded json of criteria list"
+// @Param        interaction query string false "alternative to json and base64 if only one filter criteria is needed"
+// @Param        function_id query string false "alternative to json and base64 if only one filter criteria is needed"
+// @Param        device_class_id query string false "alternative to json and base64 if only one filter criteria is needed"
+// @Param        aspect_id query string false "alternative to json and base64 if only one filter criteria is needed"
+// @Success      200 {array}  []model.Selectable
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /v2/selectables [GET]
+func (this *DeviceGroupsHelper) SelectablesV2(router *http.ServeMux, config configuration.Config, ctrl *controller.Controller) {
+	router.HandleFunc("GET /v2/selectables", func(writer http.ResponseWriter, request *http.Request) {
 		token := request.Header.Get("Authorization")
 		criteria, err := getCriteriaFromRequestV2(request)
 		if err != nil {
@@ -110,8 +161,30 @@ func SelectablesEndpoints(router *httprouter.Router, config configuration.Config
 			debug.PrintStack()
 		}
 	})
+}
 
-	router.POST("/v2/query/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// QuerySelectables godoc
+// @Summary      selectables
+// @Description  finds devices, device-groups and/or imports that match all provided filter-criteria
+// @Tags         selectables
+// @Produce      json
+// @Security Bearer
+// @Param        include_devices query bool false "result should include matching devices"
+// @Param        include_groups query bool false "result should include matching device-groups"
+// @Param        include_imports query bool false "result should include matching imports"
+// @Param        include_id_modified query bool false "result should include all valid device id modifications"
+// @Param        import_path_trim_first_element query bool false "trim first element of import paths"
+// @Param        local_devices query string false "comma seperated list of local device ids; result devices must be in this list (if one is given)"
+// @Param        message body model.FilterCriteriaAndSet true "criteria list"
+// @Success      200 {array}  []model.Selectable
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /v2/query/selectables [POST]
+func (this *DeviceGroupsHelper) QuerySelectables(router *http.ServeMux, config configuration.Config, ctrl *controller.Controller) {
+	router.HandleFunc("POST /v2/query/selectables", func(writer http.ResponseWriter, request *http.Request) {
 		token := request.Header.Get("Authorization")
 
 		var criteria model.FilterCriteriaAndSet

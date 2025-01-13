@@ -21,19 +21,35 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"runtime/debug"
 )
 
 func init() {
-	endpoints = append(endpoints, BulkEndpoints)
+	endpoints = append(endpoints, &BulkEndpoints{})
 }
 
-func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl *controller.Controller) {
+type BulkEndpoints struct{}
 
-	router.POST("/v2/bulk/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// SelectablesV2 godoc
+// @Summary      bulk selectables v2
+// @Description  bulk selectables v2
+// @Tags         bulk, selectables
+// @Accept       json
+// @Produce      json
+// @Security Bearer
+// @Param        message body model.BulkRequestV2 true "BulkRequestV2"
+// @Param        complete_services query bool false "adds full import-type and import path options to the result. device services are already complete, the name is a legacy artefact"
+// @Success      200 {array}  model.BulkResult
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /v2/bulk/selectables [POST]
+func (this *BulkEndpoints) SelectablesV2(router *http.ServeMux, config configuration.Config, ctrl *controller.Controller) {
+	router.HandleFunc("POST /v2/bulk/selectables", func(writer http.ResponseWriter, request *http.Request) {
 		token := request.Header.Get("Authorization")
 
 		criteria := model.BulkRequestV2{}
@@ -73,8 +89,26 @@ func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl 
 			debug.PrintStack()
 		}
 	})
+}
 
-	router.POST("/bulk/selectables", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// Selectables godoc
+// @Summary      deprecated bulk selectables
+// @Description  deprecated bulk selectables
+// @Tags         bulk, selectables, deprecated
+// @Accept       json
+// @Produce      json
+// @Security Bearer
+// @Param        message body model.BulkRequest true "BulkRequest"
+// @Param        complete_services query bool false "adds full import-type and import path options to the result. device services are already complete, the name is a legacy artefact"
+// @Success      200 {array}  model.BulkResult
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /bulk/selectables [POST]
+func (this *BulkEndpoints) Selectables(router *http.ServeMux, config configuration.Config, ctrl *controller.Controller) {
+	router.HandleFunc("POST /bulk/selectables", func(writer http.ResponseWriter, request *http.Request) {
 		token := request.Header.Get("Authorization")
 
 		criteria := model.BulkRequest{}
@@ -114,8 +148,25 @@ func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl 
 			debug.PrintStack()
 		}
 	})
+}
 
-	router.POST("/bulk/selectables/combined/devices", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+// SelectablesCombinedDevices godoc
+// @Summary      bulk selectables combined devices
+// @Description  returns a list of devices, that fulfill any element of the bulk-request list; include_groups and include_imports must be false
+// @Tags         bulk, selectables, devices
+// @Accept       json
+// @Produce      json
+// @Security Bearer
+// @Param        message body model.BulkRequest true "BulkRequest"
+// @Success      200 {array}  []model.PermSearchDevice
+// @Failure      400
+// @Failure      401
+// @Failure      403
+// @Failure      404
+// @Failure      500
+// @Router       /bulk/selectables/combined/devices [POST]
+func (this *BulkEndpoints) SelectablesCombinedDevices(router *http.ServeMux, config configuration.Config, ctrl *controller.Controller) {
+	router.HandleFunc("POST /bulk/selectables/combined/devices", func(writer http.ResponseWriter, request *http.Request) {
 		token := request.Header.Get("Authorization")
 		criteria := model.BulkRequest{}
 		err := json.NewDecoder(request.Body).Decode(&criteria)
@@ -146,5 +197,4 @@ func BulkEndpoints(router *httprouter.Router, config configuration.Config, ctrl 
 			debug.PrintStack()
 		}
 	})
-
 }
