@@ -18,6 +18,7 @@ package selectables
 
 import (
 	"context"
+	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
@@ -385,6 +386,10 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 		if !reflect.DeepEqual(resultIds, expectedIds) {
 			t.Errorf("%#v", resultIds)
 			t.Errorf("\na=%#v\ne=%#v", resultIds, expectedIds)
+
+			dg, err, _ := client.NewClient(deviceRepoUrl, nil).ReadDeviceGroup("dg_colorlamp", client.InternalAdminToken, false)
+			t.Errorf("%v %#v\n", err, dg)
+
 			return
 		}
 	})
