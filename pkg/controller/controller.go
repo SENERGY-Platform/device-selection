@@ -65,8 +65,10 @@ func (this *Controller) GetFilteredDevices(token string, descriptions model.Filt
 	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, includeGroups, includeImports, withLocalDeviceIds)
 }
 
-func (this *Controller) GetFilteredDevicesV2(token string, descriptions model.FilterCriteriaAndSet, includeDevices bool, includeGroups bool, includeImports bool, withLocalDeviceIds []string, includeIdModified bool, importPathTrimFirstElement bool) (result []model.Selectable, err error, code int) {
-	return this.getFilteredDevicesV2(token, descriptions, nil, includeDevices, includeGroups, includeImports, withLocalDeviceIds, includeIdModified, importPathTrimFirstElement)
+type GetFilteredDevicesV2Options = model.GetFilteredDevicesV2Options
+
+func (this *Controller) GetFilteredDevicesV2(token string, options GetFilteredDevicesV2Options) (result []model.Selectable, err error, code int) {
+	return this.getFilteredDevicesV2(token, options, nil)
 }
 
 func (this *Controller) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
@@ -128,15 +130,20 @@ func (this *Controller) handleBulkRequestElementV2(
 	err error,
 	code int,
 ) {
-	selectables, err, code := this.getFilteredDevicesV2(token,
-		request.Criteria,
+	selectables, err, code := this.getFilteredDevicesV2(
+		token,
+		GetFilteredDevicesV2Options{
+			FilterCriteria:              request.Criteria,
+			IncludeDevices:              request.IncludeDevices,
+			IncludeGroups:               request.IncludeGroups,
+			IncludeImports:              request.IncludeImports,
+			IncludeIdModified:           request.IncludeIdModifiedDevices,
+			WithLocalDeviceIds:          request.LocalDevices,
+			FilterByDeviceAttributeKeys: request.FilterByDeviceAttributeKeys,
+			ImportPathTrimFirstElement:  request.ImportPathTrimFirstElement,
+		},
 		devicesByDeviceTypeCache,
-		request.IncludeDevices,
-		request.IncludeGroups,
-		request.IncludeImports,
-		request.LocalDevices,
-		request.IncludeIdModifiedDevices,
-		request.ImportPathTrimFirstElement)
+	)
 	if err != nil {
 		return result, err, code
 	}
@@ -251,25 +258,19 @@ func (this *Controller) getFilteredDevices(
 
 func (this *Controller) getFilteredDevicesV2(
 	token string,
-	descriptions model.FilterCriteriaAndSet,
+	options GetFilteredDevicesV2Options,
 	devicesByDeviceTypeCache *map[string][]models.ExtendedDevice,
-	includeDevices bool,
-	includeGroups bool,
-	includeImports bool,
-	withLocalDeviceIds []string,
-	includeIdModified bool,
-	importPathTrimFirstElement bool,
 ) (
 	result []model.Selectable,
 	err error,
 	code int,
 ) {
 	if this.config.Debug {
-		temp, _ := json.Marshal(descriptions)
-		log.Println("DEBUG: getFilteredDevicesV2() inputs:", includeDevices, includeGroups, includeImports, string(temp), withLocalDeviceIds)
+		temp, _ := json.Marshal(options.FilterCriteria)
+		log.Println("DEBUG: getFilteredDevicesV2() inputs:", options.IncludeDevices, options.IncludeGroups, options.IncludeImports, string(temp), options.WithLocalDeviceIds)
 	}
-	if includeDevices {
-		deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCachedV2(token, descriptions, includeIdModified)
+	if options.IncludeDevices {
+		deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCachedV2(token, options.FilterCriteria, options.IncludeIdModified)
 		if err != nil {
 			return result, err, 500
 		}
@@ -277,7 +278,7 @@ func (this *Controller) getFilteredDevicesV2(
 			log.Println("DEBUG: getFilteredDevicesV2()::GetDeviceTypeSelectablesCachedV2()", len(deviceTypeSelectables))
 		}
 
-		devicesByDeviceType, err, code := this.getDevicesOfDeviceTypeSelectables(token, devicesByDeviceTypeCache, deviceTypeSelectables, withLocalDeviceIds)
+		devicesByDeviceType, err, code := this.getDevicesOfDeviceTypeSelectables(token, devicesByDeviceTypeCache, deviceTypeSelectables, options.WithLocalDeviceIds, options.FilterByDeviceAttributeKeys)
 		if err != nil {
 			return result, err, code
 		}
@@ -329,15 +330,15 @@ func (this *Controller) getFilteredDevicesV2(
 			}
 		}
 	}
-	if includeGroups {
-		groupResult, err, code := this.getFilteredDeviceGroupsV2(token, descriptions)
+	if options.IncludeGroups {
+		groupResult, err, code := this.getFilteredDeviceGroupsV2(token, options.FilterCriteria)
 		if err != nil {
 			return result, err, code
 		}
 		result = append(result, groupResult...)
 	}
-	if includeImports && !criteriaContainRequestInteraction(descriptions) {
-		importResult, err, code := this.getFilteredImportsV2(token, descriptions, importPathTrimFirstElement)
+	if options.IncludeImports && !criteriaContainRequestInteraction(options.FilterCriteria) {
+		importResult, err, code := this.getFilteredImportsV2(token, options.FilterCriteria, options.ImportPathTrimFirstElement)
 		if err != nil {
 			return result, err, code
 		}
@@ -357,7 +358,7 @@ func (this *Controller) getFilteredDevicesV2(
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesByDeviceTypeCache *map[string][]models.ExtendedDevice, deviceTypeSelectables []devicemodel.DeviceTypeSelectable, withLocalDeviceIds []string) (devicesByDeviceType map[string][]models.ExtendedDevice, err error, code int) {
+func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesByDeviceTypeCache *map[string][]models.ExtendedDevice, deviceTypeSelectables []devicemodel.DeviceTypeSelectable, withLocalDeviceIds []string, filterByDeviceAttributeKeys []string) (devicesByDeviceType map[string][]models.ExtendedDevice, err error, code int) {
 	if devicesByDeviceTypeCache == nil {
 		devicesByDeviceTypeCache = &map[string][]models.ExtendedDevice{}
 	}
@@ -386,6 +387,7 @@ func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesB
 				Offset:        0,
 				Permission:    client.EXECUTE,
 				SortBy:        "name.asc",
+				AttributeKeys: filterByDeviceAttributeKeys,
 			})
 		} else {
 			matchingDevices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
@@ -395,6 +397,7 @@ func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesB
 				Offset:        0,
 				Permission:    client.EXECUTE,
 				SortBy:        "name.asc",
+				AttributeKeys: filterByDeviceAttributeKeys,
 			})
 		}
 		if err != nil {

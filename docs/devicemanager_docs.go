@@ -454,6 +454,12 @@ const docTemplatedevicemanager = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "description": "comma seperated list of attribute keys; result devices have these attributes (if one is given)",
+                        "name": "filter_devices_by_attr_keys",
+                        "in": "query"
+                    },
+                    {
                         "description": "criteria list",
                         "name": "message",
                         "in": "body",
@@ -583,6 +589,12 @@ const docTemplatedevicemanager = `{
                         "type": "string",
                         "description": "alternative to json and base64 if only one filter criteria is needed",
                         "name": "aspect_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "comma seperated list of attribute keys; result devices have these attributes (if one is given)",
+                        "name": "filter_devices_by_attr_keys",
                         "in": "query"
                     }
                 ],
@@ -871,6 +883,12 @@ const docTemplatedevicemanager = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/devicemodel.FilterCriteria"
+                    }
+                },
+                "filter_by_device_attribute_keys": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 },
                 "id": {

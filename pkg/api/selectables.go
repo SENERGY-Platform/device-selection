@@ -119,6 +119,7 @@ func (this *DeviceGroupsHelper) Selectables(router *http.ServeMux, config config
 // @Param        function_id query string false "alternative to json and base64 if only one filter criteria is needed"
 // @Param        device_class_id query string false "alternative to json and base64 if only one filter criteria is needed"
 // @Param        aspect_id query string false "alternative to json and base64 if only one filter criteria is needed"
+// @Param        filter_devices_by_attr_keys query string false "comma seperated list of attribute keys; result devices have these attributes (if one is given)"
 // @Success      200 {array}  []model.Selectable
 // @Failure      400
 // @Failure      401
@@ -149,7 +150,24 @@ func (this *DeviceGroupsHelper) SelectablesV2(router *http.ServeMux, config conf
 			}
 		}
 
-		result, err, code := ctrl.GetFilteredDevicesV2(token, criteria, includeDevices, includeGroups, includeImports, withLocalDeviceIds, includeIdModified, importPathTrimFirstElement)
+		var filterDevicesByAttributeKeys []string
+		filterDevicesByAttributeKeysParam := request.URL.Query().Get("filter_devices_by_attr_keys")
+		if filterDevicesByAttributeKeysParam != "" {
+			for _, key := range strings.Split(filterDevicesByAttributeKeysParam, ",") {
+				filterDevicesByAttributeKeys = append(filterDevicesByAttributeKeys, strings.TrimSpace(key))
+			}
+		}
+
+		result, err, code := ctrl.GetFilteredDevicesV2(token, model.GetFilteredDevicesV2Options{
+			FilterCriteria:              criteria,
+			IncludeDevices:              includeDevices,
+			IncludeGroups:               includeGroups,
+			IncludeImports:              includeImports,
+			IncludeIdModified:           includeIdModified,
+			WithLocalDeviceIds:          withLocalDeviceIds,
+			FilterByDeviceAttributeKeys: filterDevicesByAttributeKeys,
+			ImportPathTrimFirstElement:  importPathTrimFirstElement,
+		})
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return
@@ -175,6 +193,7 @@ func (this *DeviceGroupsHelper) SelectablesV2(router *http.ServeMux, config conf
 // @Param        include_id_modified query bool false "result should include all valid device id modifications"
 // @Param        import_path_trim_first_element query bool false "trim first element of import paths"
 // @Param        local_devices query string false "comma seperated list of local device ids; result devices must be in this list (if one is given)"
+// @Param        filter_devices_by_attr_keys query string false "comma seperated list of attribute keys; result devices have these attributes (if one is given)"
 // @Param        message body model.FilterCriteriaAndSet true "criteria list"
 // @Success      200 {array}  []model.Selectable
 // @Failure      400
@@ -208,7 +227,24 @@ func (this *DeviceGroupsHelper) QuerySelectables(router *http.ServeMux, config c
 			}
 		}
 
-		result, err, code := ctrl.GetFilteredDevicesV2(token, criteria, includeDevices, includeGroups, includeImports, withLocalDeviceIds, includeIdModified, importPathTrimFirstElement)
+		var filterDevicesByAttributeKeys []string
+		filterDevicesByAttributeKeysParam := request.URL.Query().Get("filter_devices_by_attr_keys")
+		if filterDevicesByAttributeKeysParam != "" {
+			for _, key := range strings.Split(filterDevicesByAttributeKeysParam, ",") {
+				filterDevicesByAttributeKeys = append(filterDevicesByAttributeKeys, strings.TrimSpace(key))
+			}
+		}
+
+		result, err, code := ctrl.GetFilteredDevicesV2(token, model.GetFilteredDevicesV2Options{
+			FilterCriteria:              criteria,
+			IncludeDevices:              includeDevices,
+			IncludeGroups:               includeGroups,
+			IncludeImports:              includeImports,
+			IncludeIdModified:           includeIdModified,
+			WithLocalDeviceIds:          withLocalDeviceIds,
+			FilterByDeviceAttributeKeys: filterDevicesByAttributeKeys,
+			ImportPathTrimFirstElement:  importPathTrimFirstElement,
+		})
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

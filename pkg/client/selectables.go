@@ -28,11 +28,12 @@ import (
 )
 
 type GetSelectablesOptions struct {
-	IncludeGroups      bool
-	IncludeImports     bool
-	IncludeDevices     bool
-	IncludeIdModified  bool
-	WithLocalDeviceIds []string
+	IncludeGroups               bool
+	IncludeImports              bool
+	IncludeDevices              bool
+	IncludeIdModified           bool
+	WithLocalDeviceIds          []string
+	FilterByDeviceAttributeKeys []string
 }
 
 func (c *ClientImpl) GetSelectables(token string, criteria []models.DeviceGroupFilterCriteria, options *GetSelectablesOptions) ([]model.Selectable, int, error) {
@@ -44,6 +45,9 @@ func (c *ClientImpl) GetSelectables(token string, criteria []models.DeviceGroupF
 		url += "&include_id_modified=" + strconv.FormatBool(options.IncludeIdModified)
 		if len(options.WithLocalDeviceIds) > 0 {
 			url += "&local_devices=" + strings.Join(options.WithLocalDeviceIds, ",")
+		}
+		if len(options.FilterByDeviceAttributeKeys) > 0 {
+			url += "&filter_devices_by_attr_keys=" + strings.Join(options.FilterByDeviceAttributeKeys, ",")
 		}
 	}
 	b, err := json.Marshal(criteria)

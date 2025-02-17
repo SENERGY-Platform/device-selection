@@ -373,10 +373,19 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 	time.Sleep(5 * time.Second)
 
 	t.Run("selection 1", func(t *testing.T) {
-		result, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.FilterCriteriaAndSet{{
-			FunctionId: getColorFunction,
-			AspectId:   lightAspect,
-		}}, true, true, true, nil, false, false)
+		result, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.GetFilteredDevicesV2Options{
+			FilterCriteria: model.FilterCriteriaAndSet{{
+				FunctionId: getColorFunction,
+				AspectId:   lightAspect,
+			}},
+			IncludeDevices:              true,
+			IncludeGroups:               true,
+			IncludeImports:              true,
+			IncludeIdModified:           false,
+			WithLocalDeviceIds:          nil,
+			FilterByDeviceAttributeKeys: nil,
+			ImportPathTrimFirstElement:  false,
+		})
 		if err != nil {
 			t.Error(err)
 		}
@@ -395,10 +404,19 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 	})
 
 	t.Run("import path options", func(t *testing.T) {
-		untrimmed, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.FilterCriteriaAndSet{{
-			FunctionId: getColorFunction,
-			AspectId:   lightAspect,
-		}}, false, false, true, nil, false, false)
+		untrimmed, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.GetFilteredDevicesV2Options{
+			FilterCriteria: model.FilterCriteriaAndSet{{
+				FunctionId: getColorFunction,
+				AspectId:   lightAspect,
+			}},
+			IncludeDevices:              false,
+			IncludeGroups:               false,
+			IncludeImports:              true,
+			IncludeIdModified:           false,
+			WithLocalDeviceIds:          nil,
+			FilterByDeviceAttributeKeys: nil,
+			ImportPathTrimFirstElement:  false,
+		})
 		if err != nil {
 			t.Error(err)
 		}
@@ -410,10 +428,19 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 				}
 			}
 		}
-		trimmed, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.FilterCriteriaAndSet{{
-			FunctionId: getColorFunction,
-			AspectId:   lightAspect,
-		}}, false, false, true, nil, false, true)
+		trimmed, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.GetFilteredDevicesV2Options{
+			FilterCriteria: model.FilterCriteriaAndSet{{
+				FunctionId: getColorFunction,
+				AspectId:   lightAspect,
+			}},
+			IncludeDevices:              false,
+			IncludeGroups:               false,
+			IncludeImports:              true,
+			IncludeIdModified:           false,
+			WithLocalDeviceIds:          nil,
+			FilterByDeviceAttributeKeys: nil,
+			ImportPathTrimFirstElement:  true,
+		})
 		if err != nil {
 			t.Error(err)
 		}

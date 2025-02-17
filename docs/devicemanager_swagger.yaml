@@ -173,6 +173,10 @@ definitions:
         items:
           $ref: '#/definitions/devicemodel.FilterCriteria'
         type: array
+      filter_by_device_attribute_keys:
+        items:
+          type: string
+        type: array
       id:
         type: string
       import_path_trim_first_element:
@@ -760,6 +764,11 @@ paths:
         in: query
         name: local_devices
         type: string
+      - description: comma seperated list of attribute keys; result devices have these
+          attributes (if one is given)
+        in: query
+        name: filter_devices_by_attr_keys
+        type: string
       - description: criteria list
         in: body
         name: message
@@ -851,6 +860,11 @@ paths:
           needed
         in: query
         name: aspect_id
+        type: string
+      - description: comma seperated list of attribute keys; result devices have these
+          attributes (if one is given)
+        in: query
+        name: filter_devices_by_attr_keys
         type: string
       produces:
       - application/json

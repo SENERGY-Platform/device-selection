@@ -64,14 +64,15 @@ type BulkRequestElement struct {
 type BulkRequest []BulkRequestElement
 
 type BulkRequestElementV2 struct {
-	Id                         string               `json:"id"`
-	Criteria                   FilterCriteriaAndSet `json:"criteria"`
-	IncludeGroups              bool                 `json:"include_groups"`
-	IncludeImports             bool                 `json:"include_imports"`
-	IncludeDevices             bool                 `json:"include_devices"`
-	IncludeIdModifiedDevices   bool                 `json:"include_id_modified_devices"`
-	ImportPathTrimFirstElement bool                 `json:"import_path_trim_first_element"`
-	LocalDevices               []string             `json:"local_devices"`
+	Id                          string               `json:"id"`
+	Criteria                    FilterCriteriaAndSet `json:"criteria"`
+	IncludeGroups               bool                 `json:"include_groups"`
+	IncludeImports              bool                 `json:"include_imports"`
+	IncludeDevices              bool                 `json:"include_devices"`
+	IncludeIdModifiedDevices    bool                 `json:"include_id_modified_devices"`
+	ImportPathTrimFirstElement  bool                 `json:"import_path_trim_first_element"`
+	LocalDevices                []string             `json:"local_devices"`
+	FilterByDeviceAttributeKeys []string             `json:"filter_by_device_attribute_keys"`
 }
 
 type BulkRequestV2 []BulkRequestElementV2
@@ -104,4 +105,15 @@ type PathOption struct {
 	Type             Type                       `json:"type,omitempty"`
 	Configurables    []devicemodel.Configurable `json:"configurables,omitempty"`
 	Interaction      devicemodel.Interaction    `json:"interaction,omitempty"`
+}
+
+type GetFilteredDevicesV2Options struct {
+	FilterCriteria              FilterCriteriaAndSet
+	IncludeDevices              bool
+	IncludeGroups               bool
+	IncludeImports              bool
+	IncludeIdModified           bool
+	WithLocalDeviceIds          []string
+	FilterByDeviceAttributeKeys []string
+	ImportPathTrimFirstElement  bool
 }
