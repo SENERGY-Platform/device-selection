@@ -19,6 +19,8 @@ package selectables
 import (
 	"context"
 	"encoding/json"
+	"github.com/SENERGY-Platform/device-selection/pkg/api"
+	"github.com/SENERGY-Platform/device-selection/pkg/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
@@ -26,7 +28,9 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/docker"
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/legacy"
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/helper"
+	"github.com/SENERGY-Platform/models/go/models"
 	"reflect"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -44,7 +48,14 @@ func TestSelectableLocalId(t *testing.T) {
 		return
 	}
 
+	port, err := docker.GetFreePort()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 	c := &configuration.ConfigStruct{
+		ApiPort:                         strconv.Itoa(port),
 		DeviceRepoUrl:                   deviceRepoUrl,
 		Debug:                           true,
 		KafkaUrl:                        kafkaUrl,
@@ -53,6 +64,12 @@ func TestSelectableLocalId(t *testing.T) {
 	}
 
 	ctrl, err := controller.New(ctx, c)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = api.Start(ctx, wg, c, ctrl)
 	if err != nil {
 		t.Error(err)
 		return
@@ -240,11 +257,142 @@ func TestSelectableLocalId(t *testing.T) {
 			}),
 		},
 	}))
+
+	t.Run("lamp on/off with id", testCheckSelectionV2WithDeviceIds(c, []models.DeviceGroupFilterCriteria{
+		{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+		{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+	}, false, []string{"colorlamp1", "lamp2"}, []model.Selectable{
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "colorlamp1",
+					Name:         "colorlamp1",
+					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
+				},
+			},
+			Services: legacy.FromLegacyServices([]legacy.Service{
+				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+			}),
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "lamp2",
+					Name:         "lamp2",
+					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
+				},
+			},
+			Services: legacy.FromLegacyServices([]legacy.Service{
+				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+			}),
+		},
+	}))
+
+	t.Run("lamp on/off with local id and owner", testCheckSelectionV2WithLocalDeviceIds(c, []models.DeviceGroupFilterCriteria{
+		{FunctionId: setOnFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+		{FunctionId: setOffFunction, DeviceClassId: lampDeviceClass, AspectId: "", Interaction: devicemodel.REQUEST},
+	}, false, []string{"colorlamp1", "lamp2"}, helper.JwtSubject, []model.Selectable{
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "colorlamp1",
+					Name:         "colorlamp1",
+					DeviceTypeId: "colorlamp",
+					OwnerId:      helper.JwtSubject,
+				},
+			},
+			Services: legacy.FromLegacyServices([]legacy.Service{
+				{Id: "s4", Name: "s4", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s5", Name: "s5", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+			}),
+		},
+		{
+			Device: &model.PermSearchDevice{
+				Device: devicemodel.Device{
+					Id:           "lamp2",
+					Name:         "lamp2",
+					DeviceTypeId: "lamp",
+					OwnerId:      helper.JwtSubject,
+				},
+			},
+			Services: legacy.FromLegacyServices([]legacy.Service{
+				{Id: "s1", Name: "s1", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOnFunction}},
+				{Id: "s2", Name: "s2", Interaction: devicemodel.REQUEST, AspectIds: []string{deviceAspect, lightAspect}, FunctionIds: []string{setOffFunction}},
+			}),
+		},
+	}))
 }
 
 func testCheckSelectionWithLocalIdsWithoutOptions(ctrl *controller.Controller, criteria model.FilterCriteriaAndSet, interaction devicemodel.Interaction, includeGroups bool, localIds []string, expectedResult []model.Selectable) func(t *testing.T) {
 	return func(t *testing.T) {
 		result, err, _ := ctrl.GetFilteredDevices(token, criteria, nil, interaction, includeGroups, false, localIds)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		for i, e := range result {
+			e.ServicePathOptions = nil
+			result[i] = e
+		}
+		for i, e := range expectedResult {
+			e.ServicePathOptions = nil
+			expectedResult[i] = e
+		}
+		normalizeTestSelectables(&result, true)
+		normalizeTestSelectables(&expectedResult, true)
+		if !reflect.DeepEqual(result, expectedResult) {
+			resultJson, _ := json.Marshal(result)
+			expectedJson, _ := json.Marshal(expectedResult)
+			t.Error("\n", string(resultJson), "\n", string(expectedJson))
+		}
+	}
+}
+
+func testCheckSelectionV2WithDeviceIds(config configuration.Config, criteria []models.DeviceGroupFilterCriteria, includeGroups bool, ids []string, expectedResult []model.Selectable) func(t *testing.T) {
+	return func(t *testing.T) {
+		c := client.NewClient("http://localhost:" + config.ApiPort)
+		result, _, err := c.GetSelectables(token, criteria, &client.GetSelectablesOptions{
+			IncludeGroups:  includeGroups,
+			IncludeDevices: true,
+			WithDeviceIds:  ids,
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		for i, e := range result {
+			e.ServicePathOptions = nil
+			result[i] = e
+		}
+		for i, e := range expectedResult {
+			e.ServicePathOptions = nil
+			expectedResult[i] = e
+		}
+		normalizeTestSelectables(&result, true)
+		normalizeTestSelectables(&expectedResult, true)
+		if !reflect.DeepEqual(result, expectedResult) {
+			resultJson, _ := json.Marshal(result)
+			expectedJson, _ := json.Marshal(expectedResult)
+			t.Error("\n", string(resultJson), "\n", string(expectedJson))
+		}
+	}
+}
+
+func testCheckSelectionV2WithLocalDeviceIds(config configuration.Config, criteria []models.DeviceGroupFilterCriteria, includeGroups bool, localIds []string, owner string, expectedResult []model.Selectable) func(t *testing.T) {
+	return func(t *testing.T) {
+		//use different admin token to test LocalDeviceOwner field
+		testAdminToken := `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwMDAwMDAwMDAsImlhdCI6MTAwMDAwMDAwMCwiYXV0aF90aW1lIjoxMDAwMDAwMDAwLCJpc3MiOiJpbnRlcm5hbCIsImF1ZCI6W10sInN1YiI6InRlc3QiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZCIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJhZG1pbiIsImRldmVsb3BlciIsInVzZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJtYXN0ZXItcmVhbG0iOnsicm9sZXMiOltdfSwiQmFja2VuZC1yZWFsbSI6eyJyb2xlcyI6W119LCJhY2NvdW50Ijp7InJvbGVzIjpbXX19LCJyb2xlcyI6WyJhZG1pbiIsImRldmVsb3BlciIsInVzZXIiXSwibmFtZSI6IlNlcGwgQWRtaW4iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJzZXBsIiwiZ2l2ZW5fbmFtZSI6IlNlcGwiLCJsb2NhbGUiOiJlbiIsImZhbWlseV9uYW1lIjoiQWRtaW4iLCJlbWFpbCI6InNlcGxAc2VwbC5kZSJ9.-A5JKZptW3UrvaK5vD06eVuzoa1snijdneUOjDCKt6w`
+		c := client.NewClient("http://localhost:" + config.ApiPort)
+		result, _, err := c.GetSelectables(testAdminToken, criteria, &client.GetSelectablesOptions{
+			IncludeGroups:      includeGroups,
+			IncludeDevices:     true,
+			WithLocalDeviceIds: localIds,
+			LocalDeviceOwner:   owner,
+		})
 		if err != nil {
 			t.Error(err)
 			return

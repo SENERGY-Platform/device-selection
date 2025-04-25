@@ -449,8 +449,20 @@ const docTemplatedevicemanager = `{
                     },
                     {
                         "type": "string",
+                        "description": "comma seperated list of device ids; result devices must be in this list (if one is given)",
+                        "name": "devices",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "comma seperated list of local device ids; result devices must be in this list (if one is given)",
                         "name": "local_devices",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "used in combination with local_devices to identify devices, default is the requesting user",
+                        "name": "local_device_owner",
                         "in": "query"
                     },
                     {
@@ -551,8 +563,20 @@ const docTemplatedevicemanager = `{
                     },
                     {
                         "type": "string",
+                        "description": "comma seperated list of device ids; result devices must be in this list (if one is given)",
+                        "name": "devices",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "comma seperated list of local device ids; result devices must be in this list (if one is given)",
                         "name": "local_devices",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "used in combination with local_devices to identify devices, default is the requesting user",
+                        "name": "local_device_owner",
                         "in": "query"
                     },
                     {
@@ -885,6 +909,12 @@ const docTemplatedevicemanager = `{
                         "$ref": "#/definitions/devicemodel.FilterCriteria"
                     }
                 },
+                "devices": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "filter_by_device_attribute_keys": {
                     "type": "array",
                     "items": {
@@ -908,6 +938,9 @@ const docTemplatedevicemanager = `{
                 },
                 "include_imports": {
                     "type": "boolean"
+                },
+                "local_device_owner": {
+                    "type": "string"
                 },
                 "local_devices": {
                     "type": "array",

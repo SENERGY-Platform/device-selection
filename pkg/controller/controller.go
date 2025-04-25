@@ -138,7 +138,9 @@ func (this *Controller) handleBulkRequestElementV2(
 			IncludeGroups:               request.IncludeGroups,
 			IncludeImports:              request.IncludeImports,
 			IncludeIdModified:           request.IncludeIdModifiedDevices,
+			WithDeviceIds:               request.Devices,
 			WithLocalDeviceIds:          request.LocalDevices,
+			LocalDeviceOwner:            request.LocalDeviceOwner,
 			FilterByDeviceAttributeKeys: request.FilterByDeviceAttributeKeys,
 			ImportPathTrimFirstElement:  request.ImportPathTrimFirstElement,
 		},
@@ -278,7 +280,7 @@ func (this *Controller) getFilteredDevicesV2(
 			log.Println("DEBUG: getFilteredDevicesV2()::GetDeviceTypeSelectablesCachedV2()", len(deviceTypeSelectables))
 		}
 
-		devicesByDeviceType, err, code := this.getDevicesOfDeviceTypeSelectables(token, devicesByDeviceTypeCache, deviceTypeSelectables, options.WithLocalDeviceIds, options.FilterByDeviceAttributeKeys)
+		devicesByDeviceType, err, code := this.getDevicesOfDeviceTypeSelectables(token, devicesByDeviceTypeCache, deviceTypeSelectables, options.WithDeviceIds, options.WithLocalDeviceIds, options.LocalDeviceOwner, options.FilterByDeviceAttributeKeys)
 		if err != nil {
 			return result, err, code
 		}
@@ -358,7 +360,7 @@ func (this *Controller) getFilteredDevicesV2(
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesByDeviceTypeCache *map[string][]models.ExtendedDevice, deviceTypeSelectables []devicemodel.DeviceTypeSelectable, withLocalDeviceIds []string, filterByDeviceAttributeKeys []string) (devicesByDeviceType map[string][]models.ExtendedDevice, err error, code int) {
+func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesByDeviceTypeCache *map[string][]models.ExtendedDevice, deviceTypeSelectables []devicemodel.DeviceTypeSelectable, withDeviceIds []string, withLocalDeviceIds []string, owner string, filterByDeviceAttributeKeys []string) (devicesByDeviceType map[string][]models.ExtendedDevice, err error, code int) {
 	if devicesByDeviceTypeCache == nil {
 		devicesByDeviceTypeCache = &map[string][]models.ExtendedDevice{}
 	}
@@ -380,26 +382,17 @@ func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesB
 	//find matching devices
 	matchingDevices := []models.ExtendedDevice{}
 	if len(dtList) > 0 {
-		if len(withLocalDeviceIds) == 0 {
-			matchingDevices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
-				DeviceTypeIds: dtList,
-				Limit:         1000,
-				Offset:        0,
-				Permission:    client.EXECUTE,
-				SortBy:        "name.asc",
-				AttributeKeys: filterByDeviceAttributeKeys,
-			})
-		} else {
-			matchingDevices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
-				DeviceTypeIds: dtList,
-				LocalIds:      withLocalDeviceIds,
-				Limit:         1000,
-				Offset:        0,
-				Permission:    client.EXECUTE,
-				SortBy:        "name.asc",
-				AttributeKeys: filterByDeviceAttributeKeys,
-			})
-		}
+		matchingDevices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+			DeviceTypeIds: dtList,
+			Ids:           withDeviceIds,
+			LocalIds:      withLocalDeviceIds,
+			Owner:         owner,
+			Limit:         1000,
+			Offset:        0,
+			Permission:    client.EXECUTE,
+			SortBy:        "name.asc",
+			AttributeKeys: filterByDeviceAttributeKeys,
+		})
 		if err != nil {
 			debug.PrintStack()
 			return devicesByDeviceType, err, code

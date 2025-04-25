@@ -112,7 +112,9 @@ func (this *DeviceGroupsHelper) Selectables(router *http.ServeMux, config config
 // @Param        include_imports query bool false "result should include matching imports"
 // @Param        include_id_modified query bool false "result should include all valid device id modifications"
 // @Param        import_path_trim_first_element query bool false "trim first element of import paths"
+// @Param        devices query string false "comma seperated list of device ids; result devices must be in this list (if one is given)"
 // @Param        local_devices query string false "comma seperated list of local device ids; result devices must be in this list (if one is given)"
+// @Param        local_device_owner query string false "used in combination with local_devices to identify devices, default is the requesting user"
 // @Param        json query string false "json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;interaction&quot;:&quot;&quot;,&quot;function_id&quot;:&quot;&quot;,&quot;aspect_id&quot;:&quot;&quot;,&quot;device_class_id&quot;:&quot;&quot;}])"
 // @Param        base64 query string false "alternative to json; base64 encoded json of criteria list"
 // @Param        interaction query string false "alternative to json and base64 if only one filter criteria is needed"
@@ -144,9 +146,21 @@ func (this *DeviceGroupsHelper) SelectablesV2(router *http.ServeMux, config conf
 
 		var withLocalDeviceIds []string
 		localDevicesQueryParam := request.URL.Query().Get("local_devices")
-		if localDevicesQueryParam != "" {
+		if request.URL.Query().Has("local_devices") {
+			withLocalDeviceIds = []string{}
 			for _, localId := range strings.Split(localDevicesQueryParam, ",") {
 				withLocalDeviceIds = append(withLocalDeviceIds, strings.TrimSpace(localId))
+			}
+		}
+
+		localDeviceOwner := request.URL.Query().Get("local_device_owner")
+
+		var withDeviceIds []string
+		devicesQueryParam := request.URL.Query().Get("devices")
+		if request.URL.Query().Has("devices") {
+			withDeviceIds = []string{}
+			for _, Id := range strings.Split(devicesQueryParam, ",") {
+				withDeviceIds = append(withDeviceIds, strings.TrimSpace(Id))
 			}
 		}
 
@@ -164,7 +178,9 @@ func (this *DeviceGroupsHelper) SelectablesV2(router *http.ServeMux, config conf
 			IncludeGroups:               includeGroups,
 			IncludeImports:              includeImports,
 			IncludeIdModified:           includeIdModified,
+			WithDeviceIds:               withDeviceIds,
 			WithLocalDeviceIds:          withLocalDeviceIds,
+			LocalDeviceOwner:            localDeviceOwner,
 			FilterByDeviceAttributeKeys: filterDevicesByAttributeKeys,
 			ImportPathTrimFirstElement:  importPathTrimFirstElement,
 		})
@@ -192,7 +208,9 @@ func (this *DeviceGroupsHelper) SelectablesV2(router *http.ServeMux, config conf
 // @Param        include_imports query bool false "result should include matching imports"
 // @Param        include_id_modified query bool false "result should include all valid device id modifications"
 // @Param        import_path_trim_first_element query bool false "trim first element of import paths"
+// @Param        devices query string false "comma seperated list of device ids; result devices must be in this list (if one is given)"
 // @Param        local_devices query string false "comma seperated list of local device ids; result devices must be in this list (if one is given)"
+// @Param        local_device_owner query string false "used in combination with local_devices to identify devices, default is the requesting user"
 // @Param        filter_devices_by_attr_keys query string false "comma seperated list of attribute keys; result devices have these attributes (if one is given)"
 // @Param        message body model.FilterCriteriaAndSet true "criteria list"
 // @Success      200 {array}  []model.Selectable
@@ -219,11 +237,21 @@ func (this *DeviceGroupsHelper) QuerySelectables(router *http.ServeMux, config c
 		includeIdModified, _ := strconv.ParseBool(request.URL.Query().Get("include_id_modified"))
 		importPathTrimFirstElement, _ := strconv.ParseBool(request.URL.Query().Get("import_path_trim_first_element"))
 
-		var withLocalDeviceIds []string
+		var withLocalDeviceIds []string = nil
 		localDevicesQueryParam := request.URL.Query().Get("local_devices")
 		if localDevicesQueryParam != "" {
 			for _, localId := range strings.Split(localDevicesQueryParam, ",") {
 				withLocalDeviceIds = append(withLocalDeviceIds, strings.TrimSpace(localId))
+			}
+		}
+
+		localDeviceOwner := request.URL.Query().Get("local_device_owner")
+
+		var withDeviceIds []string = nil
+		devicesQueryParam := request.URL.Query().Get("devices")
+		if devicesQueryParam != "" {
+			for _, id := range strings.Split(devicesQueryParam, ",") {
+				withDeviceIds = append(withDeviceIds, strings.TrimSpace(id))
 			}
 		}
 
@@ -241,7 +269,9 @@ func (this *DeviceGroupsHelper) QuerySelectables(router *http.ServeMux, config c
 			IncludeGroups:               includeGroups,
 			IncludeImports:              includeImports,
 			IncludeIdModified:           includeIdModified,
+			WithDeviceIds:               withDeviceIds,
 			WithLocalDeviceIds:          withLocalDeviceIds,
+			LocalDeviceOwner:            localDeviceOwner,
 			FilterByDeviceAttributeKeys: filterDevicesByAttributeKeys,
 			ImportPathTrimFirstElement:  importPathTrimFirstElement,
 		})

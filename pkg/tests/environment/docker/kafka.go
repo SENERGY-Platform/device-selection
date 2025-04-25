@@ -30,7 +30,7 @@ import (
 )
 
 func Kafka(ctx context.Context, wg *sync.WaitGroup, zookeeperUrl string) (kafkaUrl string, err error) {
-	kafkaport, err := getFreePort()
+	kafkaport, err := GetFreePort()
 	if err != nil {
 		return kafkaUrl, err
 	}
@@ -153,7 +153,7 @@ func Zookeeper(ctx context.Context, wg *sync.WaitGroup) (hostPort string, ipAddr
 	return hostPort, ipAddress, err
 }
 
-func getFreePort() (int, error) {
+func GetFreePort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
 		return 0, err

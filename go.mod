@@ -1,6 +1,8 @@
 module github.com/SENERGY-Platform/device-selection
 
-go 1.23
+go 1.24.0
+
+toolchain go1.24.2
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
@@ -12,11 +14,12 @@ require (
 
 require (
 	github.com/IBM/sarama v1.43.3
-	github.com/SENERGY-Platform/device-repository v0.2.3
+	github.com/SENERGY-Platform/device-repository v0.2.23
 	github.com/SENERGY-Platform/import-repository v0.0.12
 	github.com/SENERGY-Platform/models/go v0.0.0-20241007061544-de7132ae94e4
-	github.com/SENERGY-Platform/service-commons v0.0.0-20250123095636-6dfc659ee43e
+	github.com/SENERGY-Platform/service-commons v0.0.0-20250331120616-ff35c05099d3
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/swaggo/swag v1.16.4
 	github.com/testcontainers/testcontainers-go v0.33.0
 )
 
@@ -39,7 +42,8 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/SENERGY-Platform/developer-notifications v0.0.4 // indirect
-	github.com/SENERGY-Platform/permissions-v2 v0.0.27 // indirect
+	github.com/SENERGY-Platform/go-service-base/struct-logger v0.4.1 // indirect
+	github.com/SENERGY-Platform/permissions-v2 v0.0.36 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
@@ -91,7 +95,6 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
 	github.com/swaggo/http-swagger v1.3.4 // indirect
-	github.com/swaggo/swag v1.16.4 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

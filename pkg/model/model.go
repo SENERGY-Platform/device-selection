@@ -71,7 +71,9 @@ type BulkRequestElementV2 struct {
 	IncludeDevices              bool                 `json:"include_devices"`
 	IncludeIdModifiedDevices    bool                 `json:"include_id_modified_devices"`
 	ImportPathTrimFirstElement  bool                 `json:"import_path_trim_first_element"`
+	Devices                     []string             `json:"devices"`
 	LocalDevices                []string             `json:"local_devices"`
+	LocalDeviceOwner            string               `json:"local_device_owner"`
 	FilterByDeviceAttributeKeys []string             `json:"filter_by_device_attribute_keys"`
 }
 
@@ -113,7 +115,9 @@ type GetFilteredDevicesV2Options struct {
 	IncludeGroups               bool
 	IncludeImports              bool
 	IncludeIdModified           bool
+	WithDeviceIds               []string
 	WithLocalDeviceIds          []string
+	LocalDeviceOwner            string
 	FilterByDeviceAttributeKeys []string
 	ImportPathTrimFirstElement  bool
 }
