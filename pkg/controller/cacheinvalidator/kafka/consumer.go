@@ -22,7 +22,6 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/segmentio/kafka-go"
 	"io"
-	"io/ioutil"
 	"log"
 	"time"
 )
@@ -34,19 +33,22 @@ func NewConsumer(ctx context.Context, config configuration.Config, topic string,
 		return err
 	}
 
-	err = InitTopic(config.KafkaUrl, topic)
-	if err != nil {
-		log.Println("ERROR: unable to create topic", err)
-		return err
+	if config.InitTopics {
+		err = InitTopic(config.KafkaUrl, topic)
+		if err != nil {
+			log.Println("ERROR: unable to create topic", err)
+			return err
+		}
 	}
+
 	r := kafka.NewReader(kafka.ReaderConfig{
 		CommitInterval: 0, //synchronous commits
 		Brokers:        broker,
 		GroupID:        config.KafkaConsumerGroup,
 		Topic:          topic,
 		MaxWait:        1 * time.Second,
-		Logger:         log.New(ioutil.Discard, "", 0),
-		ErrorLogger:    log.New(ioutil.Discard, "", 0),
+		Logger:         log.New(io.Discard, "", 0),
+		ErrorLogger:    log.New(io.Discard, "", 0),
 	})
 	go func() {
 		defer r.Close()
@@ -57,7 +59,7 @@ func NewConsumer(ctx context.Context, config configuration.Config, topic string,
 				return
 			default:
 				m, err := r.FetchMessage(ctx)
-				if err == io.EOF || err == context.Canceled {
+				if err == io.EOF || errors.Is(err, context.Canceled) {
 					return
 				}
 				if err != nil {

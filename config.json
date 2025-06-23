@@ -8,5 +8,7 @@
 
   "kafka_url": "",
   "kafka_consumer_group": "device_selection",
-  "kafka_topics_for_cache_invalidation": ["device-types", "functions", "aspects"]
+  "kafka_topics_for_cache_invalidation": ["device-types", "functions", "aspects"],
+
+  "init_topics": false
 }

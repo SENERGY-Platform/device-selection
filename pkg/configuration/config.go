@@ -38,6 +38,8 @@ type ConfigStruct struct {
 	KafkaUrl                        string   `json:"kafka_url"`
 	KafkaConsumerGroup              string   `json:"kafka_consumer_group"`
 	KafkaTopicsForCacheInvalidation []string `json:"kafka_topics_for_cache_invalidation"`
+
+	InitTopics bool `json:"init_topics"`
 }
 
 type Config = *ConfigStruct
