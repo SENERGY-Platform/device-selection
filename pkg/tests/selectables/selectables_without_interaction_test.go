@@ -18,6 +18,12 @@ package selectables
 
 import (
 	"context"
+	"reflect"
+	"sort"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
@@ -28,11 +34,6 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/legacy"
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/helper"
 	kafka2 "github.com/segmentio/kafka-go"
-	"reflect"
-	"sort"
-	"sync"
-	"testing"
-	"time"
 )
 
 func TestSelectableWithoutInteractionFilter(t *testing.T) {
@@ -280,6 +281,12 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 	humidityConcept := "urn:infai:ses:concept:humidity"
 
 	testCharacteristic := "urn:infai:ses:characteristic:test"
+
+	err = kafka.InitTopic(kafkaUrl, environment.FunctionTopic, environment.ConceptTopic)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	functionProducer, err := kafka.GetProducer([]string{kafkaUrl}, environment.FunctionTopic)
 	if err != nil {

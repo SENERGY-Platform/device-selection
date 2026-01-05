@@ -20,6 +20,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
+	"net/http"
+	"reflect"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
@@ -28,12 +35,6 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/kafka"
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/helper"
 	kafka2 "github.com/segmentio/kafka-go"
-	"io"
-	"net/http"
-	"reflect"
-	"sync"
-	"testing"
-	"time"
 )
 
 func TestSelectableImports(t *testing.T) {
@@ -91,6 +92,12 @@ func TestSelectableImports(t *testing.T) {
 	humidityConcept := "urn:infai:ses:concept:humidity"
 
 	testCharacteristic := "urn:infai:ses:characteristic:test"
+
+	err = kafka.InitTopic(kafkabroker, environment.FunctionTopic, environment.ConceptTopic)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	functionProducer, err := kafka.GetProducer([]string{kafkabroker}, environment.FunctionTopic)
 	if err != nil {
