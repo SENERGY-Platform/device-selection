@@ -18,12 +18,13 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"runtime/debug"
+
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"log"
-	"net/http"
-	"runtime/debug"
 )
 
 func init() {
@@ -59,10 +60,7 @@ func (this *BulkEndpoints) SelectablesV2(router *http.ServeMux, config configura
 			return
 		}
 
-		if config.Debug {
-			temp, _ := json.Marshal(criteria)
-			log.Println("DEBUG:", string(temp))
-		}
+		config.GetLogger().Debug("bulk request", "criteria", fmt.Sprintf("%+v", criteria))
 
 		result, err, code := ctrl.BulkGetFilteredDevicesV2(token, criteria)
 		if err != nil {
@@ -77,15 +75,12 @@ func (this *BulkEndpoints) SelectablesV2(router *http.ServeMux, config configura
 			}
 		}
 
-		if config.Debug {
-			temp, _ := json.Marshal(result)
-			log.Println("DEBUG:", string(temp))
-		}
+		config.GetLogger().Debug("bulk request result", "result", fmt.Sprintf("%+v", result))
 
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR:", err)
+			config.GetLogger().Error("unable to encode result", "error", err)
 			debug.PrintStack()
 		}
 	})
@@ -118,10 +113,7 @@ func (this *BulkEndpoints) Selectables(router *http.ServeMux, config configurati
 			return
 		}
 
-		if config.Debug {
-			temp, _ := json.Marshal(criteria)
-			log.Println("DEBUG:", string(temp))
-		}
+		config.GetLogger().Debug("bulk request", "criteria", fmt.Sprintf("%+v", criteria))
 
 		result, err, code := ctrl.BulkGetFilteredDevices(token, criteria)
 		if err != nil {
@@ -136,15 +128,12 @@ func (this *BulkEndpoints) Selectables(router *http.ServeMux, config configurati
 			}
 		}
 
-		if config.Debug {
-			temp, _ := json.Marshal(result)
-			log.Println("DEBUG:", string(temp))
-		}
+		config.GetLogger().Debug("bulk request result", "result", fmt.Sprintf("%+v", result))
 
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR:", err)
+			config.GetLogger().Error("unable to encode result", "error", err)
 			debug.PrintStack()
 		}
 	})
@@ -193,7 +182,7 @@ func (this *BulkEndpoints) SelectablesCombinedDevices(router *http.ServeMux, con
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR:", err)
+			config.GetLogger().Error("unable to encode result", "error", err)
 			debug.PrintStack()
 		}
 	})

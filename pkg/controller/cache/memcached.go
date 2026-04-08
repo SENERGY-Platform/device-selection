@@ -18,8 +18,10 @@ package cache
 
 import (
 	"encoding/json"
+	"errors"
+	"log/slog"
+
 	"github.com/bradfitz/gomemcache/memcache"
-	"log"
 )
 
 type GlobalCache struct {
@@ -54,7 +56,7 @@ func (this *GlobalCache) Set(key string, value []byte) {
 		Expiration: this.expiration,
 	})
 	if err != nil {
-		log.Println("WARNING: err in LocalCache::l1.Set()", err)
+		slog.Warn("err in LocalCache::l1.Set()", "error", err)
 	}
 	return
 }
@@ -64,8 +66,8 @@ func (this *GlobalCache) Use(key string, getter func() (interface{}, error), res
 	if err == nil {
 		err = json.Unmarshal(value, result)
 		return
-	} else if err != ErrNotFound {
-		log.Println("WARNING: err in GlobalCache::l1.Get()", err)
+	} else if !errors.Is(err, ErrNotFound) {
+		slog.Warn("err in GlobalCache::l1.Get()", "error", err)
 	}
 	temp, err := getter()
 	if err != nil {

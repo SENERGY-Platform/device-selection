@@ -20,16 +20,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"runtime/debug"
+	"strconv"
+	"strings"
+
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	importrepo "github.com/SENERGY-Platform/import-repository/lib/client"
 	importrepomodel "github.com/SENERGY-Platform/import-repository/lib/model"
 	"github.com/SENERGY-Platform/service-commons/pkg/jwt"
-	"log"
-	"net/http"
-	"runtime/debug"
-	"strconv"
-	"strings"
 )
 
 func (this *Controller) getFilteredImports(token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
@@ -69,17 +69,13 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 		importTypeIds = append(importTypeIds, importType.Id)
 	}
 
-	if this.config.Debug {
-		log.Println("DEBUG: getFilteredImports()::Found " + strconv.Itoa(len(importTypeIds)) + " matching import types")
-	}
+	this.config.GetLogger().Debug("getFilteredImports()::Found "+strconv.Itoa(len(importTypeIds))+" matching import types", "importTypeIds", importTypeIds)
 
 	instances, err, code := this.getImportsByTypes(token, importTypeIds)
 	if err != nil {
 		return result, err, code
 	}
-	if this.config.Debug {
-		log.Println("DEBUG: getFilteredImports()::Found " + strconv.Itoa(len(instances)) + " matching import instances")
-	}
+	this.config.GetLogger().Debug("getFilteredImports()::Found " + strconv.Itoa(len(instances)) + " matching import instances")
 
 	for _, instance := range instances {
 		temp := instance //prevent that every result element becomes the last element of groups
@@ -129,17 +125,13 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 		importTypeIds = append(importTypeIds, importType.Id)
 	}
 
-	if this.config.Debug {
-		log.Println("DEBUG: getFilteredImports()::Found " + strconv.Itoa(len(importTypeIds)) + " matching import types")
-	}
+	this.config.GetLogger().Debug("getFilteredImports()::Found "+strconv.Itoa(len(importTypeIds))+" matching import types", "importTypeIds", importTypeIds)
 
 	instances, err, code := this.getImportsByTypes(token, importTypeIds)
 	if err != nil {
 		return result, err, code
 	}
-	if this.config.Debug {
-		log.Println("DEBUG: getFilteredImports()::Found " + strconv.Itoa(len(instances)) + " matching import instances")
-	}
+	this.config.GetLogger().Debug("getFilteredImports()::Found " + strconv.Itoa(len(instances)) + " matching import instances")
 
 	aspectCache := &map[string]devicemodel.AspectNode{}
 

@@ -18,10 +18,10 @@ package controller
 
 import (
 	"errors"
+
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/basecontentvariable"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"log"
 )
 
 func (this *Controller) CompleteServices(token string, selectables []model.Selectable, filter []devicemodel.FilterCriteria) ([]model.Selectable, error) {
@@ -154,7 +154,7 @@ func (this *Controller) getAspectNodeWithCache(token string, aspectCache *map[st
 	if !ok {
 		aspectNode, err = this.GetAspectNode(aspectId, token)
 		if err != nil {
-			log.Println("WARNING: unable to load aspect node", aspectId, err)
+			this.config.GetLogger().Warn("unable to load aspect node", "aspectId", aspectId, "error", err)
 			return aspectNode, err
 		}
 		(*aspectCache)[aspectId] = aspectNode

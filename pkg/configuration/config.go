@@ -19,12 +19,16 @@ package configuration
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"reflect"
 	"regexp"
+	"runtime/debug"
 	"strconv"
 	"strings"
+	"time"
+
+	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 )
 
 type ConfigStruct struct {
@@ -40,21 +44,22 @@ type ConfigStruct struct {
 	KafkaTopicsForCacheInvalidation []string `json:"kafka_topics_for_cache_invalidation"`
 
 	InitTopics bool `json:"init_topics"`
+
+	LogLevel string       `json:"log_level"`
+	logger   *slog.Logger `json:"-"`
 }
 
 type Config = *ConfigStruct
 
 func Load(location string) (config Config, err error) {
-	file, error := os.Open(location)
-	if error != nil {
-		log.Println("error on config load: ", error)
-		return config, error
+	file, err := os.Open(location)
+	if err != nil {
+		return config, fmt.Errorf("error on config load, unable to open file: %w", err)
 	}
 	decoder := json.NewDecoder(file)
-	error = decoder.Decode(&config)
-	if error != nil {
-		log.Println("invalid config json: ", error)
-		return config, error
+	err = decoder.Decode(&config)
+	if err != nil {
+		return config, fmt.Errorf("error on config load, not valid json: %w", err)
 	}
 	HandleEnvironmentVars(config)
 	return config, nil
@@ -119,4 +124,36 @@ func HandleEnvironmentVars(config Config) {
 			}
 		}
 	}
+}
+
+func (this *ConfigStruct) GetLogger() *slog.Logger {
+	if this.logger == nil {
+		if this.Debug {
+			this.LogLevel = "debug"
+		}
+		info, ok := debug.ReadBuildInfo()
+		project := ""
+		org := ""
+		if ok {
+			if parts := strings.Split(info.Main.Path, "/"); len(parts) > 2 {
+				project = strings.Join(parts[2:], "/")
+				org = strings.Join(parts[:2], "/")
+			}
+		}
+		this.logger = struct_logger.New(
+			struct_logger.Config{
+				Handler:    struct_logger.JsonHandlerSelector,
+				Level:      this.LogLevel,
+				TimeFormat: time.RFC3339Nano,
+				TimeUtc:    true,
+				AddMeta:    true,
+			},
+			os.Stdout,
+			org,
+			project,
+		)
+		slog.SetDefault(this.logger)
+		slog.SetLogLoggerLevel(slog.LevelInfo)
+	}
+	return this.logger
 }

@@ -19,14 +19,14 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
-	"github.com/SENERGY-Platform/device-selection/pkg/controller"
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"log"
 	"net/http"
 	"runtime/debug"
 	"strconv"
 	"strings"
+
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller"
+	"github.com/SENERGY-Platform/device-selection/pkg/model"
 )
 
 func init() {
@@ -101,7 +101,7 @@ func (this *DeviceGroupsHelper) DeviceGroupsHelper(router *http.ServeMux, config
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR:", err)
+			config.GetLogger().Error("unable to encode result", "error", err)
 			debug.PrintStack()
 		}
 	})

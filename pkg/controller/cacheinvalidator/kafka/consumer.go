@@ -19,24 +19,26 @@ package kafka
 import (
 	"context"
 	"errors"
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
-	"github.com/segmentio/kafka-go"
 	"io"
 	"log"
+	"log/slog"
 	"time"
+
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/segmentio/kafka-go"
 )
 
 func NewConsumer(ctx context.Context, config configuration.Config, topic string, listener func(delivery []byte) error) error {
 	broker, err := GetBroker(config.KafkaUrl)
 	if err != nil {
-		log.Println("ERROR: unable to get broker list", err)
+		config.GetLogger().Error("unable to get broker list", "error", err)
 		return err
 	}
 
 	if config.InitTopics {
 		err = InitTopic(config.KafkaUrl, topic)
 		if err != nil {
-			log.Println("ERROR: unable to create topic", err)
+			config.GetLogger().Error("unable to create topic", "error", err)
 			return err
 		}
 	}
@@ -52,7 +54,7 @@ func NewConsumer(ctx context.Context, config configuration.Config, topic string,
 	})
 	go func() {
 		defer r.Close()
-		defer log.Println("close consumer for topic ", topic)
+		defer config.GetLogger().Info("close kafka consumer", "topic", topic)
 		for {
 			select {
 			case <-ctx.Done():
@@ -63,6 +65,7 @@ func NewConsumer(ctx context.Context, config configuration.Config, topic string,
 					return
 				}
 				if err != nil {
+					config.GetLogger().Error("FATAL: unable to fetch message", "topic", topic, "error", err)
 					log.Fatal("ERROR: while consuming topic ", topic, err)
 					return
 				}
@@ -94,10 +97,10 @@ func retry(f func() error, waitProvider func(n int64) time.Duration, timeout tim
 	for i := int64(1); err != nil && time.Since(start) < timeout; i++ {
 		err = f()
 		if err != nil {
-			log.Println("ERROR: kafka listener error:", err)
+			slog.Error("kafka listener error", "error", err)
 			wait := waitProvider(i)
 			if time.Since(start)+wait < timeout {
-				log.Println("ERROR: retry after:", wait.String())
+				slog.Info("retry after", "wait", wait.String())
 				time.Sleep(wait)
 			} else {
 				return err

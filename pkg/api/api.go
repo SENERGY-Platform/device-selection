@@ -18,15 +18,17 @@ package api
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/device-selection/pkg/api/util"
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
-	"github.com/SENERGY-Platform/device-selection/pkg/controller"
-	"github.com/SENERGY-Platform/service-commons/pkg/accesslog"
+	"errors"
 	"log"
 	"net/http"
 	"reflect"
 	"sync"
 	"time"
+
+	"github.com/SENERGY-Platform/device-selection/pkg/api/util"
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller"
+	"github.com/SENERGY-Platform/service-commons/pkg/accesslog"
 )
 
 //go:generate go install github.com/swaggo/swag/cmd/swag@latest
@@ -38,20 +40,20 @@ var endpoints = []interface{}{} //list of objects with EndpointMethod
 
 // starts http server; if wg is not nil it will be set as done when the server is stopped
 func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, ctrl *controller.Controller) (err error) {
-	log.Println("start api on " + config.ApiPort)
+	config.GetLogger().Info("start api on " + config.ApiPort)
 	router := Router(config, ctrl)
 	server := &http.Server{Addr: ":" + config.ApiPort, Handler: router, WriteTimeout: 10 * time.Second, ReadTimeout: 2 * time.Second, ReadHeaderTimeout: 2 * time.Second}
 	wg.Add(1)
 	go func() {
-		log.Println("Listening on ", server.Addr)
-		if err := server.ListenAndServe(); err != http.ErrServerClosed {
-			log.Println("ERROR: api server error", err)
+		config.GetLogger().Info("listening", "address", server.Addr)
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			config.GetLogger().Error("FATAL: api server error", "error", err)
 			log.Fatal(err)
 		}
 	}()
 	go func() {
 		<-ctx.Done()
-		log.Println("DEBUG: api shutdown", server.Shutdown(context.Background()))
+		config.GetLogger().Info("api shutdown", "result", server.Shutdown(context.Background()))
 		wg.Done()
 	}()
 	return nil
@@ -69,22 +71,22 @@ func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config,
 // @description Type "Bearer" followed by a space and JWT token.
 func Router(config configuration.Config, ctrl *controller.Controller) http.Handler {
 	handler := GetRouterWithoutMiddleware(config, ctrl)
-	log.Println("add cors")
+	config.GetLogger().Info("add cors")
 	corsHandler := util.NewCors(handler)
-	log.Println("add logging")
+	config.GetLogger().Info("add logging")
 	logger := accesslog.New(corsHandler)
 	return logger
 }
 
 func GetRouterWithoutMiddleware(config configuration.Config, command *controller.Controller) http.Handler {
 	router := http.NewServeMux()
-	log.Println("add heart beat endpoint")
+	config.GetLogger().Info("add heart beat endpoint")
 	router.HandleFunc("GET /", func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusOK)
 	})
 	for _, e := range endpoints {
 		for name, call := range getEndpointMethods(e) {
-			log.Println("add endpoint " + name)
+			config.GetLogger().Info("add endpoint " + name)
 			call(router, config, command)
 		}
 	}

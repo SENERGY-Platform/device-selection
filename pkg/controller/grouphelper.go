@@ -17,16 +17,17 @@
 package controller
 
 import (
+	"fmt"
+	"net/http"
+	"slices"
+	"sort"
+	"strings"
+
 	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/idmodifier"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/models/go/models"
-	"log"
-	"net/http"
-	"slices"
-	"sort"
-	"strings"
 )
 
 func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, search model.DeviceGroupHelperPagination, maintainGroupUsability bool, functionBlockList []string) (result model.DeviceGroupHelperResult, err error, code int) {
@@ -148,7 +149,7 @@ func (this *Controller) getDeviceGroupOptionsGetDevice(
 	if maintainGroupUsability && len(criteria) > 0 {
 		validDeviceTypes, err = this.getValidDeviceTypesForDeviceGroup(token, criteria, functionBlockList)
 		if err != nil {
-			log.Println("ERROR: getValidDeviceTypesForDeviceGroup()", err)
+			this.config.GetLogger().Warn("unable to get valid device-types for device-group", "error", err, "criteria", fmt.Sprintf("%#v", criteria), "functionBlockList", functionBlockList)
 			err = nil
 		}
 	}
@@ -426,10 +427,7 @@ func (this *Controller) getValidDeviceTypesForDeviceGroupCriteria(token string, 
 	if err != nil {
 		return deviceTypeIds, err
 	}
-	if this.config.Debug {
-		log.Println("DEBUG: GetFilteredDevices()::getCachedFilteredDeviceTypes()", deviceTypes)
-	}
-
+	this.config.GetLogger().Debug("GetFilteredDevices()::getCachedFilteredDeviceTypes()", "deviceTypes", deviceTypes)
 	for _, dt := range deviceTypes {
 		deviceTypeIds = append(deviceTypeIds, dt.Id)
 	}

@@ -19,12 +19,13 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/SENERGY-Platform/device-selection/pkg"
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/SENERGY-Platform/device-selection/pkg"
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 )
 
 func main() {
@@ -33,6 +34,7 @@ func main() {
 
 	config, err := configuration.Load(*configLocation)
 	if err != nil {
+		config.GetLogger().Error("FATAL: unable to load configuration", "error", err)
 		log.Fatal(err)
 	}
 
@@ -47,7 +49,7 @@ func main() {
 		shutdown := make(chan os.Signal, 1)
 		signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 		sig := <-shutdown
-		log.Println("received shutdown signal", sig)
+		config.GetLogger().Info("received shutdown signal", "signal", sig)
 		cancel()
 	}()
 

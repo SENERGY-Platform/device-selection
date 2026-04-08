@@ -18,8 +18,14 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
+	"runtime/debug"
+	"slices"
+	"sort"
+	"strings"
+
 	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/cache"
@@ -29,12 +35,6 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	importrepo "github.com/SENERGY-Platform/import-repository/lib/client"
 	"github.com/SENERGY-Platform/models/go/models"
-	"log"
-	"net/http"
-	"runtime/debug"
-	"slices"
-	"sort"
-	"strings"
 )
 
 type Controller struct {
@@ -47,7 +47,7 @@ type Controller struct {
 func New(ctx context.Context, config configuration.Config) (*Controller, error) {
 	c := cache.New(config.MemcachedUrls)
 	if config.KafkaUrl != "" && config.KafkaConsumerGroup != "" && len(config.KafkaTopicsForCacheInvalidation) > 0 {
-		log.Println("start listeners to invalidate cache on kafka message to:", config.KafkaTopicsForCacheInvalidation)
+		config.GetLogger().Info("start listeners to invalidate cache on kafka message", "topics", config.KafkaTopicsForCacheInvalidation)
 		err := cacheinvalidator.StartCacheInvalidator(ctx, config, c)
 		if err != nil {
 			return nil, err
@@ -209,9 +209,7 @@ func (this *Controller) getFilteredDevices(
 			if err != nil {
 				return result, err, code
 			}
-			if this.config.Debug {
-				log.Println("DEBUG: GetFilteredDevices()::getDevicesOfType()", dtSelectable.DeviceTypeId, devices)
-			}
+			this.config.GetLogger().Debug("GetFilteredDevices()::getDevicesOfType()", "deviceTypeId", dtSelectable.DeviceTypeId, "devices", devices)
 			for _, device := range devices {
 				temp := device //make copy to prevent that Selectable.Device is the last element of devices every time
 				result = append(result, model.Selectable{
@@ -241,20 +239,16 @@ func (this *Controller) getFilteredDevices(
 		result = append(result, groupResult...)
 	}
 	if includeImports && (expectedInteraction == devicemodel.EVENT || expectedInteraction == "") {
-		if this.config.Debug {
-			log.Println("DEBUG: GetFilteredDevices() Loading matching imports")
-		}
+		this.config.GetLogger().Debug("GetFilteredDevices() Loading matching imports")
 		importResult, err, code := this.getFilteredImports(token, descriptions)
 		if err != nil {
 			return result, err, code
 		}
 		result = append(result, importResult...)
-	} else if this.config.Debug {
-		log.Println("DEBUG: GetFilteredDevices() Not loading imports")
+	} else {
+		this.config.GetLogger().Debug("GetFilteredDevices() Not loading imports")
 	}
-	if this.config.Debug {
-		log.Println("DEBUG: GetFilteredDevices()", result)
-	}
+	this.config.GetLogger().Debug("GetFilteredDevices()", "result", result)
 	return result, nil, 200
 }
 
@@ -267,18 +261,13 @@ func (this *Controller) getFilteredDevicesV2(
 	err error,
 	code int,
 ) {
-	if this.config.Debug {
-		temp, _ := json.Marshal(options.FilterCriteria)
-		log.Println("DEBUG: getFilteredDevicesV2() inputs:", options.IncludeDevices, options.IncludeGroups, options.IncludeImports, string(temp), options.WithLocalDeviceIds)
-	}
+	this.config.GetLogger().Debug("getFilteredDevicesV2() inputs", "options", fmt.Sprintf("%+v", options))
 	if options.IncludeDevices {
 		deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCachedV2(token, options.FilterCriteria, options.IncludeIdModified)
 		if err != nil {
 			return result, err, 500
 		}
-		if this.config.Debug {
-			log.Println("DEBUG: getFilteredDevicesV2()::GetDeviceTypeSelectablesCachedV2()", len(deviceTypeSelectables))
-		}
+		this.config.GetLogger().Debug("getFilteredDevicesV2()::GetDeviceTypeSelectablesCachedV2()", "deviceTypeSelectables_count", len(deviceTypeSelectables))
 
 		devicesByDeviceType, err, code := this.getDevicesOfDeviceTypeSelectables(token, devicesByDeviceTypeCache, deviceTypeSelectables, options.WithDeviceIds, options.WithLocalDeviceIds, options.LocalDeviceOwner, options.FilterByDeviceAttributeKeys)
 		if err != nil {
@@ -346,9 +335,7 @@ func (this *Controller) getFilteredDevicesV2(
 		}
 		result = append(result, importResult...)
 	}
-	if this.config.Debug {
-		log.Println("DEBUG: GetFilteredDevices()", result)
-	}
+	this.config.GetLogger().Debug("getFilteredDevicesV2()", "result", result)
 
 	for i, e := range result {
 		sort.Slice(e.Services, func(i, j int) bool {

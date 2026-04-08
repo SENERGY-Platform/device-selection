@@ -19,15 +19,15 @@ package api
 import (
 	"encoding/base64"
 	"encoding/json"
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
-	"github.com/SENERGY-Platform/device-selection/pkg/controller"
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"log"
 	"net/http"
 	"runtime/debug"
 	"strconv"
 	"strings"
+
+	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/pkg/controller"
+	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 )
 
 func init() {
@@ -95,7 +95,7 @@ func (this *DeviceGroupsHelper) Selectables(router *http.ServeMux, config config
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR:", err)
+			config.GetLogger().Error("unable to encode result", "error", err)
 			debug.PrintStack()
 		}
 	})
@@ -191,7 +191,7 @@ func (this *DeviceGroupsHelper) SelectablesV2(router *http.ServeMux, config conf
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR:", err)
+			config.GetLogger().Error("unable to encode result", "error", err)
 			debug.PrintStack()
 		}
 	})
@@ -282,7 +282,7 @@ func (this *DeviceGroupsHelper) QuerySelectables(router *http.ServeMux, config c
 		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err = json.NewEncoder(writer).Encode(result)
 		if err != nil {
-			log.Println("ERROR:", err)
+			config.GetLogger().Error("unable to encode result", "error", err)
 			debug.PrintStack()
 		}
 	})

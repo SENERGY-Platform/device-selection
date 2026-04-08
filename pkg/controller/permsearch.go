@@ -17,12 +17,12 @@
 package controller
 
 import (
-	"encoding/json"
+	"fmt"
+	"net/http"
+
 	"github.com/SENERGY-Platform/device-repository/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/idmodifier"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"log"
-	"net/http"
 )
 
 func (this *Controller) getDevicesOfType(token string, deviceTypeId string) (result []model.PermSearchDevice, err error, code int) {
@@ -84,10 +84,7 @@ func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string
 		(*cache)[deviceTypeId] = result
 	}
 
-	if this.config.Debug {
-		jsonResult, _ := json.Marshal(result)
-		log.Println("DEBUG: getCachedDevicesOfType(", deviceTypeId, ") = \n\t", string(jsonResult))
-	}
+	this.config.GetLogger().Debug("getCachedDevicesOfType()", "deviceTypeId", deviceTypeId, "result", fmt.Sprintf("%#v", result))
 
 	return result, nil, http.StatusOK
 }

@@ -19,9 +19,10 @@ package cache
 import (
 	"encoding/json"
 	"errors"
-	"github.com/patrickmn/go-cache"
-	"log"
+	"log/slog"
 	"time"
+
+	"github.com/patrickmn/go-cache"
 )
 
 type LocalCache struct {
@@ -61,8 +62,8 @@ func (this *LocalCache) Use(key string, getter func() (interface{}, error), resu
 	if err == nil {
 		err = json.Unmarshal(value, result)
 		return
-	} else if err != ErrNotFound {
-		log.Println("WARNING: err in LocalCache::l1.Get()", err)
+	} else if !errors.Is(err, ErrNotFound) {
+		slog.Warn("err in LocalCache::l1.Get()", "error", err)
 	}
 	temp, err := getter()
 	if err != nil {
