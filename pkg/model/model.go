@@ -16,7 +16,10 @@
 
 package model
 
-import "github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+import (
+	devicerepo "github.com/SENERGY-Platform/device-repository/v2/lib/model"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+)
 
 type PermSearchDevice struct {
 	devicemodel.Device
@@ -86,21 +89,18 @@ type BulkResultElement struct {
 	Selectables []Selectable `json:"selectables"`
 }
 
-type DeviceGroupHelperResult struct {
-	Criteria []devicemodel.DeviceGroupFilterCriteria `json:"criteria"`
-	Options  []DeviceGroupOption                     `json:"options"`
-}
+// DeviceGroupHelperResult is the device-repository answer, passed on unchanged. The
+// device-group criteria are derived and recomputed there, so a shape of our own would only be
+// a second one to keep in sync - see Controller.DeviceGroupHelper.
+type DeviceGroupHelperResult = devicerepo.DeviceGroupHelperResult
 
-type DeviceGroupOption struct {
-	Device                  PermSearchDevice                        `json:"device"`
-	RemovesCriteria         []devicemodel.DeviceGroupFilterCriteria `json:"removes_criteria"`
-	MaintainsGroupUsability bool                                    `json:"maintains_group_usability"`
-}
+type DeviceGroupOption = devicerepo.DeviceGroupOption
 
 type PathOption struct {
 	Path             string                     `json:"path"`
 	CharacteristicId string                     `json:"characteristicId"`
-	AspectNode       devicemodel.AspectNode     `json:"aspectNode"`
+	AspectNode       devicemodel.AspectNode     `json:"aspectNode"` //deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id
+	AspectNodes      []devicemodel.AspectNode   `json:"aspectNodes,omitempty"`
 	FunctionId       string                     `json:"functionId"`
 	IsVoid           bool                       `json:"isVoid"`
 	Value            interface{}                `json:"value,omitempty"`

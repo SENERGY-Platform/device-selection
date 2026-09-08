@@ -9,10 +9,10 @@ require (
 )
 
 require (
-	github.com/SENERGY-Platform/device-repository v0.3.2
+	github.com/SENERGY-Platform/device-repository/v2 v2.2.0
 	github.com/SENERGY-Platform/go-service-base/struct-logger v0.8.0
-	github.com/SENERGY-Platform/import-repository v0.0.15
-	github.com/SENERGY-Platform/models/go v0.0.0-20260710115411-5b8e00d6e038
+	github.com/SENERGY-Platform/import-repository v0.1.0
+	github.com/SENERGY-Platform/models/go v0.0.0-20260902082034-9c8c8bd56d88
 	github.com/SENERGY-Platform/service-commons v0.0.0-20260821114734-3e4578ac2358
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/swaggo/swag v1.16.6

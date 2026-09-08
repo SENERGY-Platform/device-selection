@@ -18,6 +18,7 @@ package model
 
 import (
 	"github.com/SENERGY-Platform/device-selection/pkg/model/basecontentvariable"
+	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/models/go/models"
 )
 
@@ -41,7 +42,8 @@ type ImportContentVariable struct {
 	SubContentVariables []ImportContentVariable `json:"sub_content_variables"`
 	UseAsTag            bool                    `json:"use_as_tag"`
 	FunctionId          string                  `json:"function_id,omitempty"`
-	AspectId            string                  `json:"aspect_id,omitempty"`
+	AspectId            string                  `json:"aspect_id,omitempty"` //deprecated: alias for a single element AspectIds
+	AspectIds           []string                `json:"aspect_ids,omitempty"`
 }
 
 type ImportTypeConfig struct {
@@ -95,8 +97,8 @@ func (this *ImportContentVariable) GetFunctionId() string {
 	return this.FunctionId
 }
 
-func (this *ImportContentVariable) GetAspectId() string {
-	return this.AspectId
+func (this *ImportContentVariable) GetAspectIds() []string {
+	return devicemodel.AspectIds(this.AspectId, this.AspectIds)
 }
 
 func (this *ImportContentVariable) GetIsVoid() bool {

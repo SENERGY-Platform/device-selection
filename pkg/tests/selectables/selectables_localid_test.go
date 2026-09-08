@@ -343,6 +343,7 @@ func testCheckSelectionWithLocalIdsWithoutOptions(ctrl *controller.Controller, c
 			expectedResult[i] = e
 		}
 		normalizeTestSelectables(&result, true)
+		expectedResult = helper.ExpandExpectedSelectables(expectedResult)
 		normalizeTestSelectables(&expectedResult, true)
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)
@@ -373,6 +374,7 @@ func testCheckSelectionV2WithDeviceIds(config configuration.Config, criteria []m
 			expectedResult[i] = e
 		}
 		normalizeTestSelectables(&result, true)
+		expectedResult = helper.ExpandExpectedSelectables(expectedResult)
 		normalizeTestSelectables(&expectedResult, true)
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)
@@ -406,6 +408,7 @@ func testCheckSelectionV2WithLocalDeviceIds(config configuration.Config, criteri
 			expectedResult[i] = e
 		}
 		normalizeTestSelectables(&result, true)
+		expectedResult = helper.ExpandExpectedSelectables(expectedResult)
 		normalizeTestSelectables(&expectedResult, true)
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)

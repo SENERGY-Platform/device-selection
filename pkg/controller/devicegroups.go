@@ -17,7 +17,7 @@
 package controller
 
 import (
-	"github.com/SENERGY-Platform/device-repository/lib/client"
+	"github.com/SENERGY-Platform/device-repository/v2/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/models/go/models"
@@ -30,6 +30,7 @@ func (this *Controller) getFilteredDeviceGroups(token string, descriptions model
 			FunctionId:    c.FunctionId,
 			DeviceClassId: c.DeviceClassId,
 			AspectId:      c.AspectId,
+			AspectIds:     c.AspectIds,
 		}
 		if expectedInteraction != "" {
 			criteria.Interaction = expectedInteraction
@@ -70,6 +71,7 @@ func (this *Controller) getFilteredDeviceGroupsV2(token string, descriptions mod
 			FunctionId:    c.FunctionId,
 			DeviceClassId: c.DeviceClassId,
 			AspectId:      c.AspectId,
+			AspectIds:     c.AspectIds,
 		}
 		criteriaList = append(criteriaList, criteria)
 	}

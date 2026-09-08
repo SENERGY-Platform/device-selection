@@ -27,6 +27,7 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/docker"
+	"github.com/SENERGY-Platform/models/go/models"
 	"io"
 	"log"
 	"net/http"
@@ -75,13 +76,33 @@ func GroupHelper(selectionurl string, maintainUsability bool, deviceIds []string
 			return
 		}
 		result = normalizeGroupHelperResult(result)
-		expectedResult = normalizeGroupHelperResult(expectedResult)
+		expectedResult = normalizeGroupHelperResult(ExpandExpectedAspectIds(expectedResult))
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)
 			expectedJson, _ := json.Marshal(expectedResult)
 			t.Error("\na=", string(resultJson), "\ne=", string(expectedJson))
 		}
 	}
+}
+
+// ExpandExpectedAspectIds fills AspectIds from the deprecated AspectId of an expected
+// criteria. The fixtures are written with the alias, while a criteria of a result carries the
+// list it stands for. This is applied to the expectation only, so that a result leaving
+// AspectIds unset still fails.
+func ExpandExpectedAspectIds(expected model.DeviceGroupHelperResult) model.DeviceGroupHelperResult {
+	expected.Criteria = ExpandExpectedCriteriaAspectIds(expected.Criteria)
+	for i, option := range expected.Options {
+		option.RemovesCriteria = ExpandExpectedCriteriaAspectIds(option.RemovesCriteria)
+		expected.Options[i] = option
+	}
+	return expected
+}
+
+func ExpandExpectedCriteriaAspectIds(expected []devicemodel.DeviceGroupFilterCriteria) []devicemodel.DeviceGroupFilterCriteria {
+	for i := range expected {
+		expected[i].AspectIds = devicemodel.AspectIds(expected[i].AspectId, expected[i].AspectIds)
+	}
+	return expected
 }
 
 func normalizeGroupHelperResult(result model.DeviceGroupHelperResult) model.DeviceGroupHelperResult {
@@ -100,6 +121,8 @@ func normalizeGroupHelperResult(result model.DeviceGroupHelperResult) model.Devi
 	for i, option := range result.Options {
 		option.Device.LocalId = option.Device.Id
 		option.Device.DisplayName = ""
+		option.Device.DeviceTypeName = ""
+		option.Device.ConnectionState = ""
 		sort.SliceStable(option.RemovesCriteria, func(i, j int) bool {
 			return option.RemovesCriteria[i].AspectId < option.RemovesCriteria[j].AspectId
 		})
@@ -109,8 +132,7 @@ func normalizeGroupHelperResult(result model.DeviceGroupHelperResult) model.Devi
 		sort.SliceStable(option.RemovesCriteria, func(i, j int) bool {
 			return option.RemovesCriteria[i].Interaction < option.RemovesCriteria[j].Interaction
 		})
-		option.Device.Permissions = model.Permissions{}
-		option.Device.Creator = ""
+		option.Device.Permissions = models.Permissions{}
 		result.Options[i] = option
 	}
 	return result

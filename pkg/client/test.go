@@ -24,9 +24,10 @@ import (
 )
 
 type TestClient struct {
-	value []model.Selectable
-	code  int
-	err   error
+	value                   []model.Selectable
+	code                    int
+	err                     error
+	deviceGroupHelperResult model.DeviceGroupHelperResult
 }
 
 func NewTestClient() *TestClient {
@@ -37,8 +38,18 @@ func (c *TestClient) GetSelectables(token string, criteria []models.DeviceGroupF
 	return c.value, c.code, c.err
 }
 
+func (c *TestClient) DeviceGroupHelper(token string, deviceIds []string, options *DeviceGroupHelperOptions) (model.DeviceGroupHelperResult, int, error) {
+	return c.deviceGroupHelperResult, c.code, c.err
+}
+
 func (c *TestClient) SetResponse(value []model.Selectable, code int, err error) {
 	c.value = value
+	c.code = code
+	c.err = err
+}
+
+func (c *TestClient) SetDeviceGroupHelperResponse(value model.DeviceGroupHelperResult, code int, err error) {
+	c.deviceGroupHelperResult = value
 	c.code = code
 	c.err = err
 }

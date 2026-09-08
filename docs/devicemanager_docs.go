@@ -194,7 +194,7 @@ const docTemplatedevicemanager = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.DeviceGroupHelperResult"
+                                "$ref": "#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.DeviceGroupHelperResult"
                             }
                         }
                     },
@@ -271,7 +271,7 @@ const docTemplatedevicemanager = `{
                     },
                     {
                         "type": "string",
-                        "description": "json encoded criteria list (model.FilterCriteriaAndSet like [{\u0026quot;function_id\u0026quot;:\u0026quot;\u0026quot;,\u0026quot;aspect_id\u0026quot;:\u0026quot;\u0026quot;,\u0026quot;device_class_id\u0026quot;:\u0026quot;\u0026quot;}])",
+                        "description": "json encoded criteria list (model.FilterCriteriaAndSet like [{\u0026quot;function_id\u0026quot;:\u0026quot;\u0026quot;,\u0026quot;aspect_ids\u0026quot;:[],\u0026quot;device_class_id\u0026quot;:\u0026quot;\u0026quot;}])",
                         "name": "json",
                         "in": "query"
                     },
@@ -295,8 +295,14 @@ const docTemplatedevicemanager = `{
                     },
                     {
                         "type": "string",
-                        "description": "alternative to json and base64 if only one filter criteria is needed",
+                        "description": "alternative to json and base64 if only one filter criteria is needed; deprecated: alias for a single element aspect_ids",
                         "name": "aspect_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "alternative to json and base64 if only one filter criteria is needed; comma seperated list of aspect ids, all of which the same content variable has to carry",
+                        "name": "aspect_ids",
                         "in": "query"
                     }
                 ],
@@ -581,7 +587,7 @@ const docTemplatedevicemanager = `{
                     },
                     {
                         "type": "string",
-                        "description": "json encoded criteria list (model.FilterCriteriaAndSet like [{\u0026quot;interaction\u0026quot;:\u0026quot;\u0026quot;,\u0026quot;function_id\u0026quot;:\u0026quot;\u0026quot;,\u0026quot;aspect_id\u0026quot;:\u0026quot;\u0026quot;,\u0026quot;device_class_id\u0026quot;:\u0026quot;\u0026quot;}])",
+                        "description": "json encoded criteria list (model.FilterCriteriaAndSet like [{\u0026quot;interaction\u0026quot;:\u0026quot;\u0026quot;,\u0026quot;function_id\u0026quot;:\u0026quot;\u0026quot;,\u0026quot;aspect_ids\u0026quot;:[],\u0026quot;device_class_id\u0026quot;:\u0026quot;\u0026quot;}])",
                         "name": "json",
                         "in": "query"
                     },
@@ -611,8 +617,14 @@ const docTemplatedevicemanager = `{
                     },
                     {
                         "type": "string",
-                        "description": "alternative to json and base64 if only one filter criteria is needed",
+                        "description": "alternative to json and base64 if only one filter criteria is needed; deprecated: alias for a single element aspect_ids",
                         "name": "aspect_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "alternative to json and base64 if only one filter criteria is needed; comma seperated list of aspect ids, all of which the same content variable has to carry",
+                        "name": "aspect_ids",
                         "in": "query"
                     },
                     {
@@ -664,6 +676,9 @@ const docTemplatedevicemanager = `{
                         "type": "string"
                     }
                 },
+                "aspect_class_id": {
+                    "type": "string"
+                },
                 "child_ids": {
                     "type": "array",
                     "items": {
@@ -694,7 +709,18 @@ const docTemplatedevicemanager = `{
             "type": "object",
             "properties": {
                 "aspect_node": {
-                    "$ref": "#/definitions/models.AspectNode"
+                    "description": "deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AspectNode"
+                        }
+                    ]
+                },
+                "aspect_nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AspectNode"
+                    }
                 },
                 "characteristic_id": {
                     "type": "string"
@@ -711,28 +737,18 @@ const docTemplatedevicemanager = `{
                 "value": {}
             }
         },
-        "devicemodel.DeviceGroupFilterCriteria": {
-            "type": "object",
-            "properties": {
-                "aspect_id": {
-                    "type": "string"
-                },
-                "device_class_id": {
-                    "type": "string"
-                },
-                "function_id": {
-                    "type": "string"
-                },
-                "interaction": {
-                    "$ref": "#/definitions/models.Interaction"
-                }
-            }
-        },
         "devicemodel.FilterCriteria": {
             "type": "object",
             "properties": {
                 "aspect_id": {
+                    "description": "deprecated: alias for a single element AspectIds",
                     "type": "string"
+                },
+                "aspect_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "device_class_id": {
                     "type": "string"
@@ -802,6 +818,40 @@ const docTemplatedevicemanager = `{
                 },
                 "service_group_key": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_SENERGY-Platform_device-repository_v2_lib_model.DeviceGroupOption": {
+            "type": "object",
+            "properties": {
+                "device": {
+                    "$ref": "#/definitions/models.ExtendedDevice"
+                },
+                "maintains_group_usability": {
+                    "type": "boolean"
+                },
+                "removes_criteria": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DeviceGroupFilterCriteria"
+                    }
+                }
+            }
+        },
+        "github_com_SENERGY-Platform_device-selection_pkg_model.DeviceGroupHelperResult": {
+            "type": "object",
+            "properties": {
+                "criteria": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DeviceGroupFilterCriteria"
+                    }
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_SENERGY-Platform_device-repository_v2_lib_model.DeviceGroupOption"
+                    }
                 }
             }
         },
@@ -975,40 +1025,6 @@ const docTemplatedevicemanager = `{
                 }
             }
         },
-        "model.DeviceGroupHelperResult": {
-            "type": "object",
-            "properties": {
-                "criteria": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/devicemodel.DeviceGroupFilterCriteria"
-                    }
-                },
-                "options": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.DeviceGroupOption"
-                    }
-                }
-            }
-        },
-        "model.DeviceGroupOption": {
-            "type": "object",
-            "properties": {
-                "device": {
-                    "$ref": "#/definitions/model.PermSearchDevice"
-                },
-                "maintains_group_usability": {
-                    "type": "boolean"
-                },
-                "removes_criteria": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/devicemodel.DeviceGroupFilterCriteria"
-                    }
-                }
-            }
-        },
         "model.Import": {
             "type": "object",
             "properties": {
@@ -1042,7 +1058,14 @@ const docTemplatedevicemanager = `{
             "type": "object",
             "properties": {
                 "aspect_id": {
+                    "description": "deprecated: alias for a single element AspectIds",
                     "type": "string"
+                },
+                "aspect_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "characteristic_id": {
                     "type": "string"
@@ -1086,7 +1109,18 @@ const docTemplatedevicemanager = `{
             "type": "object",
             "properties": {
                 "aspectNode": {
-                    "$ref": "#/definitions/devicemodel.AspectNode"
+                    "description": "deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/devicemodel.AspectNode"
+                        }
+                    ]
+                },
+                "aspectNodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/devicemodel.AspectNode"
+                    }
                 },
                 "characteristicId": {
                     "type": "string"
@@ -1211,6 +1245,9 @@ const docTemplatedevicemanager = `{
                         "type": "string"
                     }
                 },
+                "aspect_class_id": {
+                    "type": "string"
+                },
                 "child_ids": {
                     "type": "array",
                     "items": {
@@ -1272,7 +1309,14 @@ const docTemplatedevicemanager = `{
             "type": "object",
             "properties": {
                 "aspect_id": {
+                    "description": "deprecated: please use AspectIds",
                     "type": "string"
+                },
+                "aspect_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "characteristic_id": {
                     "type": "string"
@@ -1313,6 +1357,121 @@ const docTemplatedevicemanager = `{
                 "value": {}
             }
         },
+        "models.DeviceGroupFilterCriteria": {
+            "type": "object",
+            "properties": {
+                "aspect_id": {
+                    "description": "deprecated: please use AspectIds",
+                    "type": "string"
+                },
+                "aspect_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "device_class_id": {
+                    "type": "string"
+                },
+                "function_id": {
+                    "type": "string"
+                },
+                "interaction": {
+                    "$ref": "#/definitions/models.Interaction"
+                }
+            }
+        },
+        "models.DeviceType": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Attribute"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "device_class_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "service_groups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ServiceGroup"
+                    }
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Service"
+                    }
+                }
+            }
+        },
+        "models.ExtendedDevice": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Attribute"
+                    }
+                },
+                "connection_state": {
+                    "type": "string"
+                },
+                "device_type": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.DeviceType"
+                        }
+                    ]
+                },
+                "device_type_id": {
+                    "type": "string"
+                },
+                "device_type_name": {
+                    "description": "computed on request, not stored",
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "local_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "description": "computed on request, not stored",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Permissions"
+                        }
+                    ]
+                },
+                "shared": {
+                    "description": "computed on request, not stored",
+                    "type": "boolean"
+                }
+            }
+        },
         "models.Interaction": {
             "type": "string",
             "enum": [
@@ -1326,6 +1485,23 @@ const docTemplatedevicemanager = `{
                 "EVENT_AND_REQUEST"
             ]
         },
+        "models.Permissions": {
+            "type": "object",
+            "properties": {
+                "administrate": {
+                    "type": "boolean"
+                },
+                "execute": {
+                    "type": "boolean"
+                },
+                "read": {
+                    "type": "boolean"
+                },
+                "write": {
+                    "type": "boolean"
+                }
+            }
+        },
         "models.Serialization": {
             "type": "string",
             "enum": [
@@ -1338,6 +1514,64 @@ const docTemplatedevicemanager = `{
                 "JSON",
                 "PlainText"
             ]
+        },
+        "models.Service": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Attribute"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "inputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Content"
+                    }
+                },
+                "interaction": {
+                    "$ref": "#/definitions/models.Interaction"
+                },
+                "local_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Content"
+                    }
+                },
+                "protocol_id": {
+                    "type": "string"
+                },
+                "service_group_key": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ServiceGroup": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
         },
         "models.Type": {
             "type": "string",

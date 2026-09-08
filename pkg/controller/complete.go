@@ -18,6 +18,7 @@ package controller
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/basecontentvariable"
@@ -97,7 +98,7 @@ func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentv
 		return err
 	}
 	if ok {
-		aspectNode, err := this.getAspectNodeWithCache(token, aspectCache, contentVariable.GetAspectId())
+		aspectNodes, aspectNode, err := this.aspectNodesWithCache(token, aspectCache, contentVariable.GetAspectIds())
 		if err != nil {
 			return err
 		}
@@ -105,6 +106,7 @@ func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentv
 			Path:             path,
 			CharacteristicId: contentVariable.GetCharacteristicId(),
 			AspectNode:       aspectNode,
+			AspectNodes:      aspectNodes,
 			FunctionId:       contentVariable.GetFunctionId(),
 			IsVoid:           contentVariable.GetIsVoid(),
 		})
@@ -132,20 +134,47 @@ func (this *Controller) contentVariableContainsAnyCriteria(variable basecontentv
 }
 
 func (this *Controller) contentVariableContainsCriteria(variable basecontentvariable.Descriptor, criteria devicemodel.FilterCriteria, token string, aspectCache *map[string]devicemodel.AspectNode) (result bool, err error) {
-	aspectNode := devicemodel.AspectNode{}
-	if criteria.AspectId != "" {
-		aspectNode, err = this.getAspectNodeWithCache(token, aspectCache, criteria.AspectId)
+	if variable.GetFunctionId() != criteria.FunctionId {
+		return false, nil
+	}
+	//the aspects of a criteria are ANDed on the content variable, so every one of them has to
+	//be carried by this variable, each covering its own subtree. A criteria without an aspect
+	//filters by function only. This is the reading the import-repository gives an aspect list
+	//with and_combine_criteria_aspect_ids, applied here per path instead of per import type.
+	for _, aspectId := range criteria.GetAspectIds() {
+		aspectNode, err := this.getAspectNodeWithCache(token, aspectCache, aspectId)
 		if err != nil {
 			return false, err
 		}
+		covered := slices.ContainsFunc(variable.GetAspectIds(), func(variableAspectId string) bool {
+			return variableAspectId == aspectId || listContains(aspectNode.DescendentIds, variableAspectId)
+		})
+		if !covered {
+			return false, nil
+		}
 	}
-	if variable.GetFunctionId() == criteria.FunctionId &&
-		(criteria.AspectId == "" ||
-			variable.GetAspectId() == criteria.AspectId ||
-			listContains(aspectNode.DescendentIds, variable.GetAspectId())) {
-		return true, nil
+	return true, nil
+}
+
+// aspectNodesWithCache resolves the aspects of a content variable in a stable order and derives
+// the deprecated single node from the result. AspectNode is the alias for a single element
+// list, so it gets the node with the alphabetically first id; without any aspect it stays the
+// unset node the answer carried before the list existed.
+func (this *Controller) aspectNodesWithCache(token string, aspectCache *map[string]devicemodel.AspectNode, aspectIds []string) (nodes []devicemodel.AspectNode, deprecated devicemodel.AspectNode, err error) {
+	for _, aspectId := range slices.Sorted(slices.Values(aspectIds)) {
+		if aspectId == "" {
+			continue
+		}
+		node, err := this.getAspectNodeWithCache(token, aspectCache, aspectId)
+		if err != nil {
+			return nil, deprecated, err
+		}
+		nodes = append(nodes, node)
 	}
-	return false, nil
+	if len(nodes) > 0 {
+		deprecated = nodes[0]
+	}
+	return nodes, deprecated, nil
 }
 
 func (this *Controller) getAspectNodeWithCache(token string, aspectCache *map[string]devicemodel.AspectNode, aspectId string) (aspectNode devicemodel.AspectNode, err error) {

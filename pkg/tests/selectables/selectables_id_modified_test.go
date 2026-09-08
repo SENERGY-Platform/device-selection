@@ -242,25 +242,25 @@ func TestIdModifiedSelectables(t *testing.T) {
 		},
 	}
 
-	t.Run("get selectables without modified", helper.TestRequest(selectionurl, "GET", "/v2/selectables?include_devices=true&json="+criteriaQuery, nil, 200, []model.Selectable{
+	t.Run("get selectables without modified", helper.TestRequest(selectionurl, "GET", "/v2/selectables?include_devices=true&json="+criteriaQuery, nil, 200, helper.ExpandExpectedSelectables([]model.Selectable{
 		expectedSelectionWithoutModify,
-	}))
+	})))
 
-	t.Run("query selectables without modified", helper.TestRequest(selectionurl, "POST", "/v2/query/selectables?include_devices=true", criteria, 200, []model.Selectable{
+	t.Run("query selectables without modified", helper.TestRequest(selectionurl, "POST", "/v2/query/selectables?include_devices=true", criteria, 200, helper.ExpandExpectedSelectables([]model.Selectable{
 		expectedSelectionWithoutModify,
-	}))
+	})))
 
-	t.Run("get selectables with modified", helper.TestRequest(selectionurl, "GET", "/v2/selectables?include_devices=true&include_id_modified=true&json="+criteriaQuery, nil, 200, []model.Selectable{
+	t.Run("get selectables with modified", helper.TestRequest(selectionurl, "GET", "/v2/selectables?include_devices=true&include_id_modified=true&json="+criteriaQuery, nil, 200, helper.ExpandExpectedSelectables([]model.Selectable{
 		expectedSelectionWithoutModify,
 		expectedSg1Selection,
 		expectedSg2Selection,
-	}))
+	})))
 
-	t.Run("query selectables with modified", helper.TestRequest(selectionurl, "POST", "/v2/query/selectables?include_devices=true&include_id_modified=true", criteria, 200, []model.Selectable{
+	t.Run("query selectables with modified", helper.TestRequest(selectionurl, "POST", "/v2/query/selectables?include_devices=true&include_id_modified=true", criteria, 200, helper.ExpandExpectedSelectables([]model.Selectable{
 		expectedSelectionWithoutModify,
 		expectedSg1Selection,
 		expectedSg2Selection,
-	}))
+	})))
 }
 
 func testServiceGroupSelectModifyDevice(device devicemodel.Device, serviceGroupId string, serviceGroupName string) devicemodel.Device {

@@ -22,6 +22,7 @@ import (
 	"errors"
 	"net/http"
 	"runtime/debug"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -38,28 +39,14 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 		return result, err, http.StatusInternalServerError
 	}
 
-	criteria := []importrepo.ImportTypeFilterCriteria{}
-
-	for _, c := range descriptions {
-		importTypeCriteria := importrepo.ImportTypeFilterCriteria{
-			FunctionId: c.FunctionId,
-			AspectIds:  []string{c.AspectId},
-		}
-		aspect, err := this.GetAspectNode(c.AspectId, token)
-		if err != nil {
-			return result, err, http.StatusInternalServerError
-		}
-		for _, aid := range aspect.DescendentIds {
-			importTypeCriteria.AspectIds = append(importTypeCriteria.AspectIds, aid)
-		}
-		criteria = append(criteria, importTypeCriteria)
-	}
+	criteria := getImportTypeCriteria(descriptions)
 
 	importTypes, _, err, code := this.importrepo.ListImportTypes(jwtToken, importrepo.ImportTypeListOptions{
-		Limit:    1000,
-		Offset:   0,
-		SortBy:   "name.asc",
-		Criteria: criteria,
+		Limit:                       1000,
+		Offset:                      0,
+		SortBy:                      "name.asc",
+		Criteria:                    criteria,
+		AndCombineCriteriaAspectIds: true,
 	})
 	if err != nil {
 		return result, err, code
@@ -89,33 +76,33 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 	return result, err, code
 }
 
+// getImportTypeCriteria renders filter criteria as import-type criteria. The queried aspects
+// are passed on as they are and the request sets AndCombineCriteriaAspectIds: the
+// import-repository then requires the same content variable to carry all of them and resolves
+// the subtree each of them covers itself, which is the same reading the device-repository
+// gives an aspect list.
+func getImportTypeCriteria(descriptions model.FilterCriteriaAndSet) (result []importrepo.ImportTypeFilterCriteria) {
+	for _, c := range descriptions {
+		result = append(result, importrepo.ImportTypeFilterCriteria{
+			FunctionId: c.FunctionId,
+			AspectIds:  c.GetAspectIds(),
+		})
+	}
+	return result
+}
+
 func (this *Controller) getFilteredImportsV2(token string, descriptions model.FilterCriteriaAndSet, importPathTrimFirstElement bool) (result []model.Selectable, err error, code int) {
 	jwtToken, err := jwt.Parse(token)
 	if err != nil {
 		return result, err, http.StatusInternalServerError
 	}
-	criteria := []importrepo.ImportTypeFilterCriteria{}
-	for _, c := range descriptions {
-		criteriaFilter := importrepo.ImportTypeFilterCriteria{
-			FunctionId: c.FunctionId,
-		}
-		if c.AspectId != "" {
-			criteriaFilter.AspectIds = []string{c.AspectId}
-			aspect, err := this.GetAspectNode(c.AspectId, token)
-			if err != nil {
-				return result, err, http.StatusInternalServerError
-			}
-			for _, aid := range aspect.DescendentIds {
-				criteriaFilter.AspectIds = append(criteriaFilter.AspectIds, aid)
-			}
-		}
-		criteria = append(criteria, criteriaFilter)
-	}
+	criteria := getImportTypeCriteria(descriptions)
 	importTypes, _, err, code := this.importrepo.ListImportTypes(jwtToken, importrepo.ImportTypeListOptions{
-		Limit:    1000,
-		Offset:   0,
-		SortBy:   "name.asc",
-		Criteria: criteria,
+		Limit:                       1000,
+		Offset:                      0,
+		SortBy:                      "name.asc",
+		Criteria:                    criteria,
+		AndCombineCriteriaAspectIds: true,
 	})
 	if err != nil {
 		return result, err, code
@@ -176,16 +163,25 @@ func (this *Controller) getImportPathOptions(token string, variable model.Import
 		return result, err
 	}
 	if match {
+		//the aspects of an import content variable are answered as the bare nodes they name;
+		//unlike a device path option this one never resolved the hierarchy
+		var aspectNodes []devicemodel.AspectNode
+		for _, aspectId := range slices.Sorted(slices.Values(variable.GetAspectIds())) {
+			aspectNodes = append(aspectNodes, devicemodel.AspectNode{Id: aspectId})
+		}
+		aspectNode := devicemodel.AspectNode{}
+		if len(aspectNodes) > 0 {
+			aspectNode = aspectNodes[0] //deprecated alias: the alphabetically first
+		}
 		result = append(result, model.PathOption{
 			Path:             strings.Join(currentPath, "."),
 			CharacteristicId: variable.CharacteristicId,
-			AspectNode: devicemodel.AspectNode{
-				Id: variable.AspectId,
-			},
-			FunctionId:  variable.FunctionId,
-			IsVoid:      false,
-			Type:        variable.Type,
-			Interaction: devicemodel.EVENT,
+			AspectNode:       aspectNode,
+			AspectNodes:      aspectNodes,
+			FunctionId:       variable.FunctionId,
+			IsVoid:           false,
+			Type:             variable.Type,
+			Interaction:      devicemodel.EVENT,
 		})
 	}
 	for _, sub := range variable.SubContentVariables {
@@ -309,6 +305,7 @@ func castImportTypeContentVariable(cv importrepomodel.ContentVariable) model.Imp
 		UseAsTag:            cv.UseAsTag,
 		FunctionId:          cv.FunctionId,
 		AspectId:            cv.AspectId,
+		AspectIds:           cv.AspectIds,
 	}
 }
 

@@ -33,13 +33,14 @@ const InternalAdminToken = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAi
 
 type Client interface {
 	GetSelectables(token string, criteria []models.DeviceGroupFilterCriteria, options *GetSelectablesOptions) ([]model.Selectable, int, error)
+	DeviceGroupHelper(token string, deviceIds []string, options *DeviceGroupHelperOptions) (model.DeviceGroupHelperResult, int, error)
 }
 
 type ClientImpl struct {
 	baseUrl string
 }
 
-// Client only implements GetSelectables. Client should be extended if more API functionality is required
+// Client only implements GetSelectables and DeviceGroupHelper. Client should be extended if more API functionality is required
 func NewClient(baseUrl string) Client {
 	return &ClientImpl{baseUrl: baseUrl}
 }

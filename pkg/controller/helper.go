@@ -27,16 +27,3 @@ func RemoveDuplicates[T comparable](slice []T) []T {
 	}
 	return result
 }
-
-func RemoveDuplicatesF[T any, C comparable](slice []T, f func(T) C) []T {
-	keys := make(map[C]bool)
-	result := []T{}
-	for _, entry := range slice {
-		key := f(entry)
-		if _, value := keys[key]; !value {
-			keys[key] = true
-			result = append(result, entry)
-		}
-	}
-	return result
-}

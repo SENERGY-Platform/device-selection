@@ -20,6 +20,8 @@ import "github.com/SENERGY-Platform/models/go/models"
 
 type Device = models.Device
 
+type ExtendedDevice = models.ExtendedDevice
+
 type DeviceType = models.DeviceType
 
 type ServiceGroup = models.ServiceGroup

@@ -48,11 +48,12 @@ type SelectablesEndpoints struct{}
 // @Param        complete_services query bool false "adds full import-type and import path options to the result. device services are already complete, the name is a legacy artefact"
 // @Param        filter_protocols query string false "comma seperated list of protocol ids, that should be ignored"
 // @Param        filter_interaction query string false "interaction that is not allowed in the result"
-// @Param        json query string false "json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;function_id&quot;:&quot;&quot;,&quot;aspect_id&quot;:&quot;&quot;,&quot;device_class_id&quot;:&quot;&quot;}])"
+// @Param        json query string false "json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;function_id&quot;:&quot;&quot;,&quot;aspect_ids&quot;:[],&quot;device_class_id&quot;:&quot;&quot;}])"
 // @Param        base64 query string false "alternative to json; base64 encoded json of criteria list"
 // @Param        function_id query string false "alternative to json and base64 if only one filter criteria is needed"
 // @Param        device_class_id query string false "alternative to json and base64 if only one filter criteria is needed"
-// @Param        aspect_id query string false "alternative to json and base64 if only one filter criteria is needed"
+// @Param        aspect_id query string false "alternative to json and base64 if only one filter criteria is needed; deprecated: alias for a single element aspect_ids"
+// @Param        aspect_ids query string false "alternative to json and base64 if only one filter criteria is needed; comma seperated list of aspect ids, all of which the same content variable has to carry"
 // @Success      200 {array}  []model.Selectable
 // @Failure      400
 // @Failure      401
@@ -115,12 +116,13 @@ func (this *DeviceGroupsHelper) Selectables(router *http.ServeMux, config config
 // @Param        devices query string false "comma seperated list of device ids; result devices must be in this list (if one is given)"
 // @Param        local_devices query string false "comma seperated list of local device ids; result devices must be in this list (if one is given)"
 // @Param        local_device_owner query string false "used in combination with local_devices to identify devices, default is the requesting user"
-// @Param        json query string false "json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;interaction&quot;:&quot;&quot;,&quot;function_id&quot;:&quot;&quot;,&quot;aspect_id&quot;:&quot;&quot;,&quot;device_class_id&quot;:&quot;&quot;}])"
+// @Param        json query string false "json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;interaction&quot;:&quot;&quot;,&quot;function_id&quot;:&quot;&quot;,&quot;aspect_ids&quot;:[],&quot;device_class_id&quot;:&quot;&quot;}])"
 // @Param        base64 query string false "alternative to json; base64 encoded json of criteria list"
 // @Param        interaction query string false "alternative to json and base64 if only one filter criteria is needed"
 // @Param        function_id query string false "alternative to json and base64 if only one filter criteria is needed"
 // @Param        device_class_id query string false "alternative to json and base64 if only one filter criteria is needed"
-// @Param        aspect_id query string false "alternative to json and base64 if only one filter criteria is needed"
+// @Param        aspect_id query string false "alternative to json and base64 if only one filter criteria is needed; deprecated: alias for a single element aspect_ids"
+// @Param        aspect_ids query string false "alternative to json and base64 if only one filter criteria is needed; comma seperated list of aspect ids, all of which the same content variable has to carry"
 // @Param        filter_devices_by_attr_keys query string false "comma seperated list of attribute keys; result devices have these attributes (if one is given)"
 // @Success      200 {array}  []model.Selectable
 // @Failure      400
@@ -314,6 +316,7 @@ func getCriteriaFromRequest(request *http.Request) (criteria model.FilterCriteri
 		FunctionId:    request.URL.Query().Get("function_id"),
 		DeviceClassId: request.URL.Query().Get("device_class_id"),
 		AspectId:      request.URL.Query().Get("aspect_id"),
+		AspectIds:     getAspectIdsFromRequest(request),
 	}}
 	return
 }
@@ -334,8 +337,22 @@ func getCriteriaFromRequestV2(request *http.Request) (criteria model.FilterCrite
 		FunctionId:    request.URL.Query().Get("function_id"),
 		DeviceClassId: request.URL.Query().Get("device_class_id"),
 		AspectId:      request.URL.Query().Get("aspect_id"),
+		AspectIds:     getAspectIdsFromRequest(request),
 	}}
 	return
+}
+
+// getAspectIdsFromRequest reads the aspect list of the single criteria shortcut. The aspects
+// of one criteria are ANDed on the content variable, so this is not a list of alternatives.
+func getAspectIdsFromRequest(request *http.Request) (result []string) {
+	param := request.URL.Query().Get("aspect_ids")
+	if param == "" {
+		return nil
+	}
+	for _, aspectId := range strings.Split(param, ",") {
+		result = append(result, strings.TrimSpace(aspectId))
+	}
+	return result
 }
 
 func getCriteriaFromBase64(b64 string) (descriptions model.FilterCriteriaAndSet, err error) {

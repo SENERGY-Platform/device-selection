@@ -256,7 +256,7 @@ func TestSelectableImports(t *testing.T) {
 				},
 			},
 		}
-		expectedSelectables, err = normalizeImportSelectable(expectedSelectables)
+		expectedSelectables, err = normalizeImportSelectable(helper.ExpandExpectedSelectables(expectedSelectables))
 		if err != nil {
 			t.Error(err)
 			return
@@ -281,7 +281,7 @@ func testCheckImportSelection(ctrl *controller.Controller, criteria model.Filter
 			t.Error(err)
 			return
 		}
-		expectedResult, err = normalizeImportSelectable(expectedResult)
+		expectedResult, err = normalizeImportSelectable(helper.ExpandExpectedSelectables(expectedResult))
 		if err != nil {
 			t.Error(err)
 			return

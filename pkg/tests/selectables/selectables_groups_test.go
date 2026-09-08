@@ -806,6 +806,7 @@ func testCheckSelectionWithoutOptions(ctrl *controller.Controller, criteria mode
 			expectedResult[i] = e
 		}
 		normalizeTestSelectables(&result, true)
+		expectedResult = helper.ExpandExpectedSelectables(expectedResult)
 		normalizeTestSelectables(&expectedResult, true)
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)

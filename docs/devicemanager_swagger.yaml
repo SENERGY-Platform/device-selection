@@ -6,6 +6,8 @@ definitions:
         items:
           type: string
         type: array
+      aspect_class_id:
+        type: string
       child_ids:
         items:
           type: string
@@ -26,7 +28,14 @@ definitions:
   devicemodel.Configurable:
     properties:
       aspect_node:
-        $ref: '#/definitions/models.AspectNode'
+        allOf:
+        - $ref: '#/definitions/models.AspectNode'
+        description: 'deprecated: alias for a single element AspectNodes; holds the
+          node with the alphabetically first id'
+      aspect_nodes:
+        items:
+          $ref: '#/definitions/models.AspectNode'
+        type: array
       characteristic_id:
         type: string
       function_id:
@@ -37,21 +46,15 @@ definitions:
         $ref: '#/definitions/models.Type'
       value: {}
     type: object
-  devicemodel.DeviceGroupFilterCriteria:
-    properties:
-      aspect_id:
-        type: string
-      device_class_id:
-        type: string
-      function_id:
-        type: string
-      interaction:
-        $ref: '#/definitions/models.Interaction'
-    type: object
   devicemodel.FilterCriteria:
     properties:
       aspect_id:
+        description: 'deprecated: alias for a single element AspectIds'
         type: string
+      aspect_ids:
+        items:
+          type: string
+        type: array
       device_class_id:
         type: string
       function_id:
@@ -100,6 +103,28 @@ definitions:
         type: string
       service_group_key:
         type: string
+    type: object
+  github_com_SENERGY-Platform_device-repository_v2_lib_model.DeviceGroupOption:
+    properties:
+      device:
+        $ref: '#/definitions/models.ExtendedDevice'
+      maintains_group_usability:
+        type: boolean
+      removes_criteria:
+        items:
+          $ref: '#/definitions/models.DeviceGroupFilterCriteria'
+        type: array
+    type: object
+  github_com_SENERGY-Platform_device-selection_pkg_model.DeviceGroupHelperResult:
+    properties:
+      criteria:
+        items:
+          $ref: '#/definitions/models.DeviceGroupFilterCriteria'
+        type: array
+      options:
+        items:
+          $ref: '#/definitions/github_com_SENERGY-Platform_device-repository_v2_lib_model.DeviceGroupOption'
+        type: array
     type: object
   github_com_SENERGY-Platform_device-selection_pkg_model.ImportConfig:
     properties:
@@ -216,28 +241,6 @@ definitions:
       name:
         type: string
     type: object
-  model.DeviceGroupHelperResult:
-    properties:
-      criteria:
-        items:
-          $ref: '#/definitions/devicemodel.DeviceGroupFilterCriteria'
-        type: array
-      options:
-        items:
-          $ref: '#/definitions/model.DeviceGroupOption'
-        type: array
-    type: object
-  model.DeviceGroupOption:
-    properties:
-      device:
-        $ref: '#/definitions/model.PermSearchDevice'
-      maintains_group_usability:
-        type: boolean
-      removes_criteria:
-        items:
-          $ref: '#/definitions/devicemodel.DeviceGroupFilterCriteria'
-        type: array
-    type: object
   model.Import:
     properties:
       configs:
@@ -260,7 +263,12 @@ definitions:
   model.ImportContentVariable:
     properties:
       aspect_id:
+        description: 'deprecated: alias for a single element AspectIds'
         type: string
+      aspect_ids:
+        items:
+          type: string
+        type: array
       characteristic_id:
         type: string
       function_id:
@@ -289,7 +297,14 @@ definitions:
   model.PathOption:
     properties:
       aspectNode:
-        $ref: '#/definitions/devicemodel.AspectNode'
+        allOf:
+        - $ref: '#/definitions/devicemodel.AspectNode'
+        description: 'deprecated: alias for a single element AspectNodes; holds the
+          node with the alphabetically first id'
+      aspectNodes:
+        items:
+          $ref: '#/definitions/devicemodel.AspectNode'
+        type: array
       characteristicId:
         type: string
       configurables:
@@ -371,6 +386,8 @@ definitions:
         items:
           type: string
         type: array
+      aspect_class_id:
+        type: string
       child_ids:
         items:
           type: string
@@ -411,7 +428,12 @@ definitions:
   models.ContentVariable:
     properties:
       aspect_id:
+        description: 'deprecated: please use AspectIds'
         type: string
+      aspect_ids:
+        items:
+          type: string
+        type: array
       characteristic_id:
         type: string
       function_id:
@@ -438,6 +460,80 @@ definitions:
         type: string
       value: {}
     type: object
+  models.DeviceGroupFilterCriteria:
+    properties:
+      aspect_id:
+        description: 'deprecated: please use AspectIds'
+        type: string
+      aspect_ids:
+        items:
+          type: string
+        type: array
+      device_class_id:
+        type: string
+      function_id:
+        type: string
+      interaction:
+        $ref: '#/definitions/models.Interaction'
+    type: object
+  models.DeviceType:
+    properties:
+      attributes:
+        items:
+          $ref: '#/definitions/models.Attribute'
+        type: array
+      description:
+        type: string
+      device_class_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      service_groups:
+        items:
+          $ref: '#/definitions/models.ServiceGroup'
+        type: array
+      services:
+        items:
+          $ref: '#/definitions/models.Service'
+        type: array
+    type: object
+  models.ExtendedDevice:
+    properties:
+      attributes:
+        items:
+          $ref: '#/definitions/models.Attribute'
+        type: array
+      connection_state:
+        type: string
+      device_type:
+        allOf:
+        - $ref: '#/definitions/models.DeviceType'
+        description: optional
+      device_type_id:
+        type: string
+      device_type_name:
+        description: computed on request, not stored
+        type: string
+      display_name:
+        type: string
+      id:
+        type: string
+      local_id:
+        type: string
+      name:
+        type: string
+      owner_id:
+        type: string
+      permissions:
+        allOf:
+        - $ref: '#/definitions/models.Permissions'
+        description: computed on request, not stored
+      shared:
+        description: computed on request, not stored
+        type: boolean
+    type: object
   models.Interaction:
     enum:
     - event
@@ -448,6 +544,17 @@ definitions:
     - EVENT
     - REQUEST
     - EVENT_AND_REQUEST
+  models.Permissions:
+    properties:
+      administrate:
+        type: boolean
+      execute:
+        type: boolean
+      read:
+        type: boolean
+      write:
+        type: boolean
+    type: object
   models.Serialization:
     enum:
     - xml
@@ -458,6 +565,44 @@ definitions:
     - XML
     - JSON
     - PlainText
+  models.Service:
+    properties:
+      attributes:
+        items:
+          $ref: '#/definitions/models.Attribute'
+        type: array
+      description:
+        type: string
+      id:
+        type: string
+      inputs:
+        items:
+          $ref: '#/definitions/models.Content'
+        type: array
+      interaction:
+        $ref: '#/definitions/models.Interaction'
+      local_id:
+        type: string
+      name:
+        type: string
+      outputs:
+        items:
+          $ref: '#/definitions/models.Content'
+        type: array
+      protocol_id:
+        type: string
+      service_group_key:
+        type: string
+    type: object
+  models.ServiceGroup:
+    properties:
+      description:
+        type: string
+      key:
+        type: string
+      name:
+        type: string
+    type: object
   models.Type:
     enum:
     - https://schema.org/Text
@@ -595,7 +740,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.DeviceGroupHelperResult'
+              $ref: '#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.DeviceGroupHelperResult'
             type: array
         "400":
           description: Bad Request
@@ -644,7 +789,7 @@ paths:
         in: query
         name: filter_interaction
         type: string
-      - description: json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;function_id&quot;:&quot;&quot;,&quot;aspect_id&quot;:&quot;&quot;,&quot;device_class_id&quot;:&quot;&quot;}])
+      - description: json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;function_id&quot;:&quot;&quot;,&quot;aspect_ids&quot;:[],&quot;device_class_id&quot;:&quot;&quot;}])
         in: query
         name: json
         type: string
@@ -662,10 +807,16 @@ paths:
         in: query
         name: device_class_id
         type: string
-      - description: alternative to json and base64 if only one filter criteria is
-          needed
+      - description: 'alternative to json and base64 if only one filter criteria is
+          needed; deprecated: alias for a single element aspect_ids'
         in: query
         name: aspect_id
+        type: string
+      - description: alternative to json and base64 if only one filter criteria is
+          needed; comma seperated list of aspect ids, all of which the same content
+          variable has to carry
+        in: query
+        name: aspect_ids
         type: string
       produces:
       - application/json
@@ -859,7 +1010,7 @@ paths:
         in: query
         name: local_device_owner
         type: string
-      - description: json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;interaction&quot;:&quot;&quot;,&quot;function_id&quot;:&quot;&quot;,&quot;aspect_id&quot;:&quot;&quot;,&quot;device_class_id&quot;:&quot;&quot;}])
+      - description: json encoded criteria list (model.FilterCriteriaAndSet like [{&quot;interaction&quot;:&quot;&quot;,&quot;function_id&quot;:&quot;&quot;,&quot;aspect_ids&quot;:[],&quot;device_class_id&quot;:&quot;&quot;}])
         in: query
         name: json
         type: string
@@ -882,10 +1033,16 @@ paths:
         in: query
         name: device_class_id
         type: string
-      - description: alternative to json and base64 if only one filter criteria is
-          needed
+      - description: 'alternative to json and base64 if only one filter criteria is
+          needed; deprecated: alias for a single element aspect_ids'
         in: query
         name: aspect_id
+        type: string
+      - description: alternative to json and base64 if only one filter criteria is
+          needed; comma seperated list of aspect ids, all of which the same content
+          variable has to carry
+        in: query
+        name: aspect_ids
         type: string
       - description: comma seperated list of attribute keys; result devices have these
           attributes (if one is given)

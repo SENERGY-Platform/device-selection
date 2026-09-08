@@ -1778,6 +1778,7 @@ func testSnrgy1807Selectables(config configuration.Config, criteria []devicemode
 		result = sortServices(result)
 		expectedResult = sortServices(expectedResult)
 		normalizeTestSelectables(&result, true)
+		expectedResult = helper.ExpandExpectedSelectables(expectedResult)
 		normalizeTestSelectables(&expectedResult, true)
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)

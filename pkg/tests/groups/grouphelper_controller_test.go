@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller"
+	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/legacy"
 	"github.com/SENERGY-Platform/device-selection/pkg/tests/helper"
@@ -259,15 +260,15 @@ func TestGroupHelperCriteria(t *testing.T) {
 
 func testGroupHelper(repo *controller.Controller, deviceIds []string, expectedResult []devicemodel.DeviceGroupFilterCriteria) func(t *testing.T) {
 	return func(t *testing.T) {
-		dtCache := &map[string]devicemodel.DeviceType{}
-		dCache := &map[string]devicemodel.Device{}
-		result, err, code := repo.GetDeviceGroupCriteria(helper.AdminJwt, dtCache, dCache, deviceIds)
+		//the criteria come from the device-repository, which owns them; the helper only passes
+		//the request on, so this asserts what the group would look like end to end
+		helperResult, err, code := repo.DeviceGroupHelper(helper.AdminJwt, deviceIds, model.DeviceGroupHelperPagination{Limit: 100}, false, nil)
 		if err != nil {
 			t.Error(err, code)
 			return
 		}
-		result = normalizeCriteria(result)
-		expectedResult = normalizeCriteria(expectedResult)
+		result := normalizeCriteria(helperResult.Criteria)
+		expectedResult = normalizeCriteria(helper.ExpandExpectedCriteriaAspectIds(expectedResult))
 		if !reflect.DeepEqual(result, expectedResult) {
 			resultJson, _ := json.Marshal(result)
 			expectedJson, _ := json.Marshal(expectedResult)

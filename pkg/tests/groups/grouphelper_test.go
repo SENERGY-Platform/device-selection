@@ -182,7 +182,7 @@ func TestGroupHelper(t *testing.T) {
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -192,7 +192,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
@@ -202,7 +202,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
@@ -212,7 +212,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -222,7 +222,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
@@ -232,7 +232,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -242,7 +242,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
@@ -252,7 +252,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -262,7 +262,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
@@ -285,7 +285,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -298,7 +298,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
@@ -311,7 +311,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -324,7 +324,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
@@ -337,7 +337,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -350,7 +350,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
@@ -366,7 +366,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -382,7 +382,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
@@ -410,7 +410,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -423,7 +423,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
@@ -433,7 +433,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -443,7 +443,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
@@ -453,7 +453,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -463,7 +463,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
@@ -477,7 +477,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -491,7 +491,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
@@ -519,7 +519,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -534,7 +534,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
@@ -547,7 +547,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
@@ -560,7 +560,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -573,7 +573,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -583,7 +583,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
@@ -599,7 +599,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -615,7 +615,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
@@ -643,7 +643,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -656,7 +656,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
@@ -666,7 +666,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -676,7 +676,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -686,7 +686,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
@@ -700,7 +700,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -714,7 +714,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
@@ -737,7 +737,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -749,7 +749,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: false,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
@@ -759,7 +759,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -769,7 +769,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -779,7 +779,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -789,7 +789,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
@@ -807,7 +807,7 @@ func TestGroupHelper(t *testing.T) {
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -817,7 +817,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
@@ -827,7 +827,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
@@ -837,7 +837,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -847,7 +847,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
@@ -857,7 +857,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -867,7 +867,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
@@ -877,7 +877,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -887,7 +887,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "t1",
 					Name:         "t1",
 					DeviceTypeId: "temperature",
@@ -910,7 +910,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -923,7 +923,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
@@ -936,7 +936,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -949,7 +949,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
@@ -962,7 +962,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -975,7 +975,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
@@ -991,7 +991,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -1018,7 +1018,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -1031,7 +1031,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
@@ -1041,7 +1041,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -1051,7 +1051,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp1",
 					Name:         "colorlamp1",
 					DeviceTypeId: "colorlamp",
@@ -1061,7 +1061,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -1071,7 +1071,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
@@ -1085,7 +1085,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -1112,7 +1112,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -1127,7 +1127,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
@@ -1140,7 +1140,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp1",
 					Name:         "lamp1",
 					DeviceTypeId: "lamp",
@@ -1153,7 +1153,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -1166,7 +1166,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -1176,7 +1176,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
@@ -1192,7 +1192,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -1219,7 +1219,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "elamp",
 					Name:         "elamp",
 					DeviceTypeId: "event_lamp",
@@ -1232,7 +1232,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
@@ -1242,7 +1242,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -1252,7 +1252,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -1262,7 +1262,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug1",
 					Name:         "plug1",
 					DeviceTypeId: "plug",
@@ -1276,7 +1276,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",
@@ -1298,7 +1298,7 @@ func TestGroupHelper(t *testing.T) {
 		},
 		Options: []model.DeviceGroupOption{
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "blamp",
 					Name:         "blamp",
 					DeviceTypeId: "both_lamp",
@@ -1308,7 +1308,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "lamp2",
 					Name:         "lamp2",
 					DeviceTypeId: "lamp",
@@ -1318,7 +1318,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "colorlamp2",
 					Name:         "colorlamp2",
 					DeviceTypeId: "colorlamp",
@@ -1328,7 +1328,7 @@ func TestGroupHelper(t *testing.T) {
 				MaintainsGroupUsability: true,
 			},
 			{
-				Device: model.PermSearchDevice{Device: devicemodel.Device{
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
 					Id:           "plug2",
 					Name:         "plug2",
 					DeviceTypeId: "plug",

@@ -17,11 +17,12 @@
 package controller
 
 import (
-	"github.com/SENERGY-Platform/device-repository/lib/client"
+	"strconv"
+
+	"github.com/SENERGY-Platform/device-repository/v2/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/models/go/models"
-	"strconv"
 )
 
 func (this *Controller) GetDeviceTypeSelectablesCached(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
@@ -49,6 +50,7 @@ func (this *Controller) GetDeviceTypeSelectables(token string, descriptions mode
 			FunctionId:    c.FunctionId,
 			DeviceClassId: c.DeviceClassId,
 			AspectId:      c.AspectId,
+			AspectIds:     c.AspectIds,
 		})
 	}
 	result, err, _ = this.devicerepo.GetDeviceTypeSelectables(criteria, "", nil, false)
@@ -63,6 +65,7 @@ func (this *Controller) GetDeviceTypeSelectablesV2(token string, descriptions mo
 			FunctionId:    c.FunctionId,
 			DeviceClassId: c.DeviceClassId,
 			AspectId:      c.AspectId,
+			AspectIds:     c.AspectIds,
 		})
 	}
 	result, err, _ = this.devicerepo.GetDeviceTypeSelectablesV2(criteria, "", includeIdModified, false)

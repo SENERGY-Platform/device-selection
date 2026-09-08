@@ -26,7 +26,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/SENERGY-Platform/device-repository/lib/client"
+	"github.com/SENERGY-Platform/device-repository/v2/lib/client"
 	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/cache"
 	"github.com/SENERGY-Platform/device-selection/pkg/controller/cacheinvalidator"
@@ -437,6 +437,7 @@ func getServicePathOptionsFromDeviceRepoResult(in map[string][]devicemodel.Servi
 						Path:             element.Path,
 						CharacteristicId: element.CharacteristicId,
 						AspectNode:       element.AspectNode,
+						AspectNodes:      element.AspectNodes,
 						FunctionId:       element.FunctionId,
 						IsVoid:           element.IsVoid,
 						Value:            element.Value,
@@ -462,6 +463,7 @@ func getServicePathOptionsFromDeviceRepoResultV2(in map[string][]devicemodel.Ser
 				Path:             element.Path,
 				CharacteristicId: element.CharacteristicId,
 				AspectNode:       element.AspectNode,
+				AspectNodes:      element.AspectNodes,
 				FunctionId:       element.FunctionId,
 				IsVoid:           element.IsVoid,
 				Value:            element.Value,
