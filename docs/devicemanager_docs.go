@@ -667,76 +667,6 @@ const docTemplatedevicemanager = `{
         }
     },
     "definitions": {
-        "devicemodel.AspectNode": {
-            "type": "object",
-            "properties": {
-                "ancestor_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "aspect_class_id": {
-                    "type": "string"
-                },
-                "child_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "descendent_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "parent_id": {
-                    "type": "string"
-                },
-                "root_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "devicemodel.Configurable": {
-            "type": "object",
-            "properties": {
-                "aspect_node": {
-                    "description": "deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.AspectNode"
-                        }
-                    ]
-                },
-                "aspect_nodes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.AspectNode"
-                    }
-                },
-                "characteristic_id": {
-                    "type": "string"
-                },
-                "function_id": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/models.Type"
-                },
-                "value": {}
-            }
-        },
         "devicemodel.FilterCriteria": {
             "type": "object",
             "properties": {
@@ -1112,14 +1042,14 @@ const docTemplatedevicemanager = `{
                     "description": "deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/devicemodel.AspectNode"
+                            "$ref": "#/definitions/models.AspectNode"
                         }
                     ]
                 },
                 "aspectNodes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/devicemodel.AspectNode"
+                        "$ref": "#/definitions/models.AspectNode"
                     }
                 },
                 "characteristicId": {
@@ -1128,14 +1058,14 @@ const docTemplatedevicemanager = `{
                 "configurables": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/devicemodel.Configurable"
+                        "$ref": "#/definitions/models.Configurable"
                     }
                 },
                 "functionId": {
                     "type": "string"
                 },
                 "interaction": {
-                    "$ref": "#/definitions/devicemodel.Interaction"
+                    "$ref": "#/definitions/models.Interaction"
                 },
                 "isVoid": {
                     "type": "boolean"
@@ -1144,7 +1074,7 @@ const docTemplatedevicemanager = `{
                     "type": "string"
                 },
                 "type": {
-                    "$ref": "#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.Type"
+                    "$ref": "#/definitions/models.Type"
                 },
                 "value": {}
             }
@@ -1286,6 +1216,38 @@ const docTemplatedevicemanager = `{
                 "value": {
                     "type": "string"
                 }
+            }
+        },
+        "models.Configurable": {
+            "type": "object",
+            "properties": {
+                "aspect_node": {
+                    "description": "deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.AspectNode"
+                        }
+                    ]
+                },
+                "aspect_nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AspectNode"
+                    }
+                },
+                "characteristic_id": {
+                    "type": "string"
+                },
+                "function_id": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.Type"
+                },
+                "value": {}
             }
         },
         "models.Content": {

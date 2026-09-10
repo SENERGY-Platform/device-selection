@@ -19,6 +19,7 @@ package model
 import (
 	devicerepo "github.com/SENERGY-Platform/device-repository/v2/lib/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/models/go/models"
 )
 
 type PermSearchDevice struct {
@@ -96,18 +97,10 @@ type DeviceGroupHelperResult = devicerepo.DeviceGroupHelperResult
 
 type DeviceGroupOption = devicerepo.DeviceGroupOption
 
-type PathOption struct {
-	Path             string                     `json:"path"`
-	CharacteristicId string                     `json:"characteristicId"`
-	AspectNode       devicemodel.AspectNode     `json:"aspectNode"` //deprecated: alias for a single element AspectNodes; holds the node with the alphabetically first id
-	AspectNodes      []devicemodel.AspectNode   `json:"aspectNodes,omitempty"`
-	FunctionId       string                     `json:"functionId"`
-	IsVoid           bool                       `json:"isVoid"`
-	Value            interface{}                `json:"value,omitempty"`
-	Type             Type                       `json:"type,omitempty"`
-	Configurables    []devicemodel.Configurable `json:"configurables,omitempty"`
-	Interaction      devicemodel.Interaction    `json:"interaction,omitempty"`
-}
+// PathOption is shaped in the shared model, so that a client of the selectables answer does
+// not have to import this service to read it. The aspect fields carry the list next to the
+// deprecated single node; the alias rule is described on the type itself.
+type PathOption = models.PathOption
 
 type GetFilteredDevicesV2Options struct {
 	FilterCriteria              FilterCriteriaAndSet

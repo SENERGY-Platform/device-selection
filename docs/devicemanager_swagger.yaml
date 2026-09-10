@@ -1,51 +1,5 @@
 basePath: /
 definitions:
-  devicemodel.AspectNode:
-    properties:
-      ancestor_ids:
-        items:
-          type: string
-        type: array
-      aspect_class_id:
-        type: string
-      child_ids:
-        items:
-          type: string
-        type: array
-      descendent_ids:
-        items:
-          type: string
-        type: array
-      id:
-        type: string
-      name:
-        type: string
-      parent_id:
-        type: string
-      root_id:
-        type: string
-    type: object
-  devicemodel.Configurable:
-    properties:
-      aspect_node:
-        allOf:
-        - $ref: '#/definitions/models.AspectNode'
-        description: 'deprecated: alias for a single element AspectNodes; holds the
-          node with the alphabetically first id'
-      aspect_nodes:
-        items:
-          $ref: '#/definitions/models.AspectNode'
-        type: array
-      characteristic_id:
-        type: string
-      function_id:
-        type: string
-      path:
-        type: string
-      type:
-        $ref: '#/definitions/models.Type'
-      value: {}
-    type: object
   devicemodel.FilterCriteria:
     properties:
       aspect_id:
@@ -298,29 +252,29 @@ definitions:
     properties:
       aspectNode:
         allOf:
-        - $ref: '#/definitions/devicemodel.AspectNode'
+        - $ref: '#/definitions/models.AspectNode'
         description: 'deprecated: alias for a single element AspectNodes; holds the
           node with the alphabetically first id'
       aspectNodes:
         items:
-          $ref: '#/definitions/devicemodel.AspectNode'
+          $ref: '#/definitions/models.AspectNode'
         type: array
       characteristicId:
         type: string
       configurables:
         items:
-          $ref: '#/definitions/devicemodel.Configurable'
+          $ref: '#/definitions/models.Configurable'
         type: array
       functionId:
         type: string
       interaction:
-        $ref: '#/definitions/devicemodel.Interaction'
+        $ref: '#/definitions/models.Interaction'
       isVoid:
         type: boolean
       path:
         type: string
       type:
-        $ref: '#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.Type'
+        $ref: '#/definitions/models.Type'
       value: {}
     type: object
   model.PermSearchDevice:
@@ -413,6 +367,27 @@ definitions:
         type: string
       value:
         type: string
+    type: object
+  models.Configurable:
+    properties:
+      aspect_node:
+        allOf:
+        - $ref: '#/definitions/models.AspectNode'
+        description: 'deprecated: alias for a single element AspectNodes; holds the
+          node with the alphabetically first id'
+      aspect_nodes:
+        items:
+          $ref: '#/definitions/models.AspectNode'
+        type: array
+      characteristic_id:
+        type: string
+      function_id:
+        type: string
+      path:
+        type: string
+      type:
+        $ref: '#/definitions/models.Type'
+      value: {}
     type: object
   models.Content:
     properties:

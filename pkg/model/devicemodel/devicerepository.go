@@ -17,14 +17,13 @@
 package devicemodel
 
 import (
-	"github.com/SENERGY-Platform/device-repository/v2/lib/model"
 	"github.com/SENERGY-Platform/models/go/models"
 )
 
 type AspectNode = models.AspectNode
 
-type DeviceTypeSelectable = model.DeviceTypeSelectable
+type DeviceTypeSelectable = models.DeviceTypeSelectable
 
-type ServicePathOption = model.ServicePathOption
+type ServicePathOption = models.ServicePathOption
 
-type Configurable = model.Configurable
+type Configurable = models.Configurable
