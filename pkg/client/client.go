@@ -60,5 +60,7 @@ func do[T any](req *http.Request) (result T, code int, err error) {
 		_, _ = io.ReadAll(resp.Body) //ensure resp.Body is read to EOF
 		return result, http.StatusInternalServerError, err
 	}
-	return
+	//the naked return this replaced left code at its zero value, so every successful call
+	//answered 0 while every failing one answered a real status
+	return result, resp.StatusCode, nil
 }
