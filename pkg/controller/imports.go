@@ -29,7 +29,6 @@ import (
 	"github.com/SENERGY-Platform/device-selection/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
 	importrepo "github.com/SENERGY-Platform/import-repository/lib/client"
-	importrepomodel "github.com/SENERGY-Platform/import-repository/lib/model"
 	"github.com/SENERGY-Platform/service-commons/pkg/jwt"
 )
 
@@ -68,7 +67,7 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 		temp := instance //prevent that every result element becomes the last element of groups
 		for _, importType := range importTypes {
 			if importType.Id == temp.ImportTypeId {
-				tempType := castImportType(importType)
+				tempType := importType //prevent that every result element points at the same type
 				result = append(result, model.Selectable{Import: &temp, ImportType: &tempType})
 			}
 		}
@@ -157,7 +156,8 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 
 func (this *Controller) getImportPathOptions(token string, variable model.ImportContentVariable, criteria model.FilterCriteriaAndSet, currentPath []string, aspectCache *map[string]devicemodel.AspectNode) (result []model.PathOption, err error) {
 	currentPath = append(currentPath, variable.Name)
-	match, err := this.contentVariableContainsAnyCriteria(&variable, criteria, token, aspectCache)
+	descriptor := model.ImportVariable(&variable)
+	match, err := this.contentVariableContainsAnyCriteria(descriptor, criteria, token, aspectCache)
 	//match, err := this.importVariableMatchesAllCriteria(token, variable, criteria, aspectCache)
 	if err != nil {
 		return result, err
@@ -166,7 +166,7 @@ func (this *Controller) getImportPathOptions(token string, variable model.Import
 		//the aspects of an import content variable are answered as the bare nodes they name;
 		//unlike a device path option this one never resolved the hierarchy
 		var aspectNodes []devicemodel.AspectNode
-		for _, aspectId := range slices.Sorted(slices.Values(variable.GetAspectIds())) {
+		for _, aspectId := range slices.Sorted(slices.Values(descriptor.GetAspectIds())) {
 			aspectNodes = append(aspectNodes, devicemodel.AspectNode{Id: aspectId})
 		}
 		aspectNode := devicemodel.AspectNode{}
@@ -196,7 +196,7 @@ func (this *Controller) getImportPathOptions(token string, variable model.Import
 
 func (this *Controller) importVariableMatchesAllCriteria(token string, variable model.ImportContentVariable, criteria []devicemodel.FilterCriteria, cache *map[string]devicemodel.AspectNode) (match bool, err error) {
 	for _, c := range criteria {
-		match, err = this.contentVariableContainsCriteria(&variable, c, token, cache)
+		match, err = this.contentVariableContainsCriteria(model.ImportVariable(&variable), c, token, cache)
 		if err != nil {
 			return false, err
 		}
@@ -277,49 +277,4 @@ func (this *Controller) getFullImportType(token string, id string) (fullType mod
 	}, &fullType)
 
 	return
-}
-
-func castImportType(importType importrepomodel.ImportType) model.ImportType {
-	return model.ImportType{
-		Id:             importType.Id,
-		Name:           importType.Name,
-		Description:    importType.Description,
-		Image:          importType.Image,
-		DefaultRestart: importType.DefaultRestart,
-		Configs:        castImportTypeConfigs(importType.Configs),
-		Output:         castImportTypeContentVariable(importType.Output),
-		Owner:          importType.Owner,
-	}
-}
-
-func castImportTypeContentVariable(cv importrepomodel.ContentVariable) model.ImportContentVariable {
-	sub := []model.ImportContentVariable{}
-	for _, s := range cv.SubContentVariables {
-		sub = append(sub, castImportTypeContentVariable(s))
-	}
-	return model.ImportContentVariable{
-		Name:                cv.Name,
-		Type:                model.Type(cv.Type),
-		CharacteristicId:    cv.CharacteristicId,
-		SubContentVariables: sub,
-		UseAsTag:            cv.UseAsTag,
-		FunctionId:          cv.FunctionId,
-		AspectId:            cv.AspectId,
-		AspectIds:           cv.AspectIds,
-	}
-}
-
-func castImportTypeConfigs(configs []importrepomodel.ImportConfig) (result []model.ImportTypeConfig) {
-	if configs != nil {
-		result = []model.ImportTypeConfig{}
-	}
-	for _, config := range configs {
-		result = append(result, model.ImportTypeConfig{
-			Name:         config.Name,
-			Description:  config.Description,
-			Type:         model.Type(config.Type),
-			DefaultValue: config.DefaultValue,
-		})
-	}
-	return result
 }

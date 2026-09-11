@@ -67,7 +67,7 @@ func (this *Controller) completeServices(token string, selectables []model.Selec
 				var pathCharacteristicPairs []model.PathOption
 				for _, subOutput := range fullType.Output.SubContentVariables { // root element has to be ignored to find correct path
 					var subPathCharacteristicPairs []model.PathOption
-					err = this.findPathCharacteristicPairs(&subOutput, filter, "", &subPathCharacteristicPairs, token, aspectCache)
+					err = this.findPathCharacteristicPairs(model.ImportVariable(&subOutput), filter, "", &subPathCharacteristicPairs, token, aspectCache)
 					if err != nil {
 						return nil, err
 					}

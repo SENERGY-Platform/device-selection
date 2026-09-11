@@ -80,18 +80,14 @@ definitions:
           $ref: '#/definitions/github_com_SENERGY-Platform_device-repository_v2_lib_model.DeviceGroupOption'
         type: array
     type: object
-  github_com_SENERGY-Platform_device-selection_pkg_model.ImportConfig:
-    properties:
-      name:
-        type: string
-      value: {}
-    type: object
   github_com_SENERGY-Platform_device-selection_pkg_model.ImportType:
     properties:
       configs:
         items:
-          $ref: '#/definitions/model.ImportTypeConfig'
+          $ref: '#/definitions/models.ImportTypeConfig'
         type: array
+      cost:
+        type: integer
       default_restart:
         type: boolean
       description:
@@ -103,26 +99,10 @@ definitions:
       name:
         type: string
       output:
-        $ref: '#/definitions/model.ImportContentVariable'
+        $ref: '#/definitions/models.ImportContentVariable'
       owner:
         type: string
     type: object
-  github_com_SENERGY-Platform_device-selection_pkg_model.Type:
-    enum:
-    - https://schema.org/Text
-    - https://schema.org/Integer
-    - https://schema.org/Float
-    - https://schema.org/Boolean
-    - https://schema.org/ItemList
-    - https://schema.org/StructuredValue
-    type: string
-    x-enum-varnames:
-    - String
-    - Integer
-    - Float
-    - Boolean
-    - List
-    - Structure
   model.BulkRequestElement:
     properties:
       criteria:
@@ -199,7 +179,7 @@ definitions:
     properties:
       configs:
         items:
-          $ref: '#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.ImportConfig'
+          $ref: '#/definitions/models.ImportConfig'
         type: array
       id:
         type: string
@@ -213,40 +193,6 @@ definitions:
         type: string
       restart:
         type: boolean
-    type: object
-  model.ImportContentVariable:
-    properties:
-      aspect_id:
-        description: 'deprecated: alias for a single element AspectIds'
-        type: string
-      aspect_ids:
-        items:
-          type: string
-        type: array
-      characteristic_id:
-        type: string
-      function_id:
-        type: string
-      name:
-        type: string
-      sub_content_variables:
-        items:
-          $ref: '#/definitions/model.ImportContentVariable'
-        type: array
-      type:
-        $ref: '#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.Type'
-      use_as_tag:
-        type: boolean
-    type: object
-  model.ImportTypeConfig:
-    properties:
-      default_value: {}
-      description:
-        type: string
-      name:
-        type: string
-      type:
-        $ref: '#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.Type'
     type: object
   model.PathOption:
     properties:
@@ -508,6 +454,46 @@ definitions:
       shared:
         description: computed on request, not stored
         type: boolean
+    type: object
+  models.ImportConfig:
+    properties:
+      name:
+        type: string
+      value: {}
+    type: object
+  models.ImportContentVariable:
+    properties:
+      aspect_id:
+        description: 'deprecated: please use AspectIds'
+        type: string
+      aspect_ids:
+        items:
+          type: string
+        type: array
+      characteristic_id:
+        type: string
+      function_id:
+        type: string
+      name:
+        type: string
+      sub_content_variables:
+        items:
+          $ref: '#/definitions/models.ImportContentVariable'
+        type: array
+      type:
+        $ref: '#/definitions/models.Type'
+      use_as_tag:
+        type: boolean
+    type: object
+  models.ImportTypeConfig:
+    properties:
+      default_value: {}
+      description:
+        type: string
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/models.Type'
     type: object
   models.Interaction:
     enum:

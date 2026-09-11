@@ -785,23 +785,17 @@ const docTemplatedevicemanager = `{
                 }
             }
         },
-        "github_com_SENERGY-Platform_device-selection_pkg_model.ImportConfig": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "value": {}
-            }
-        },
         "github_com_SENERGY-Platform_device-selection_pkg_model.ImportType": {
             "type": "object",
             "properties": {
                 "configs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.ImportTypeConfig"
+                        "$ref": "#/definitions/models.ImportTypeConfig"
                     }
+                },
+                "cost": {
+                    "type": "integer"
                 },
                 "default_restart": {
                     "type": "boolean"
@@ -819,31 +813,12 @@ const docTemplatedevicemanager = `{
                     "type": "string"
                 },
                 "output": {
-                    "$ref": "#/definitions/model.ImportContentVariable"
+                    "$ref": "#/definitions/models.ImportContentVariable"
                 },
                 "owner": {
                     "type": "string"
                 }
             }
-        },
-        "github_com_SENERGY-Platform_device-selection_pkg_model.Type": {
-            "type": "string",
-            "enum": [
-                "https://schema.org/Text",
-                "https://schema.org/Integer",
-                "https://schema.org/Float",
-                "https://schema.org/Boolean",
-                "https://schema.org/ItemList",
-                "https://schema.org/StructuredValue"
-            ],
-            "x-enum-varnames": [
-                "String",
-                "Integer",
-                "Float",
-                "Boolean",
-                "List",
-                "Structure"
-            ]
         },
         "model.BulkRequestElement": {
             "type": "object",
@@ -961,7 +936,7 @@ const docTemplatedevicemanager = `{
                 "configs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.ImportConfig"
+                        "$ref": "#/definitions/models.ImportConfig"
                     }
                 },
                 "id": {
@@ -981,57 +956,6 @@ const docTemplatedevicemanager = `{
                 },
                 "restart": {
                     "type": "boolean"
-                }
-            }
-        },
-        "model.ImportContentVariable": {
-            "type": "object",
-            "properties": {
-                "aspect_id": {
-                    "description": "deprecated: alias for a single element AspectIds",
-                    "type": "string"
-                },
-                "aspect_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "characteristic_id": {
-                    "type": "string"
-                },
-                "function_id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "sub_content_variables": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.ImportContentVariable"
-                    }
-                },
-                "type": {
-                    "$ref": "#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.Type"
-                },
-                "use_as_tag": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "model.ImportTypeConfig": {
-            "type": "object",
-            "properties": {
-                "default_value": {},
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.Type"
                 }
             }
         },
@@ -1431,6 +1355,66 @@ const docTemplatedevicemanager = `{
                 "shared": {
                     "description": "computed on request, not stored",
                     "type": "boolean"
+                }
+            }
+        },
+        "models.ImportConfig": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {}
+            }
+        },
+        "models.ImportContentVariable": {
+            "type": "object",
+            "properties": {
+                "aspect_id": {
+                    "description": "deprecated: please use AspectIds",
+                    "type": "string"
+                },
+                "aspect_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "characteristic_id": {
+                    "type": "string"
+                },
+                "function_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sub_content_variables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ImportContentVariable"
+                    }
+                },
+                "type": {
+                    "$ref": "#/definitions/models.Type"
+                },
+                "use_as_tag": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.ImportTypeConfig": {
+            "type": "object",
+            "properties": {
+                "default_value": {},
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.Type"
                 }
             }
         },

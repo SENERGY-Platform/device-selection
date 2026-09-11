@@ -22,85 +22,64 @@ import (
 	"github.com/SENERGY-Platform/models/go/models"
 )
 
-type ImportType struct {
-	Id             string                `json:"id"`
-	Name           string                `json:"name"`
-	Description    string                `json:"description"`
-	Image          string                `json:"image"`
-	DefaultRestart bool                  `json:"default_restart"`
-	Configs        []ImportTypeConfig    `json:"configs"`
-	Output         ImportContentVariable `json:"output"`
-	Owner          string                `json:"owner"`
-}
+// The import shapes live in the shared model, so the declarations here were duplicates of
+// what the wire already carries. The import-repository and the import-deploy alias the same
+// types since import-repository v0.1.1, which makes the three of them one type instead of
+// three structurally equal ones - the cast layer this replaced dropped every field the copy
+// here did not name, Cost among them.
+
+type ImportType = models.ImportType
+
+type ImportContentVariable = models.ImportContentVariable
+
+type ImportTypeConfig = models.ImportTypeConfig
 
 type Type = models.Type
 
-type ImportContentVariable struct {
-	Name                string                  `json:"name"`
-	Type                Type                    `json:"type"`
-	CharacteristicId    string                  `json:"characteristic_id"`
-	SubContentVariables []ImportContentVariable `json:"sub_content_variables"`
-	UseAsTag            bool                    `json:"use_as_tag"`
-	FunctionId          string                  `json:"function_id,omitempty"`
-	AspectId            string                  `json:"aspect_id,omitempty"` //deprecated: alias for a single element AspectIds
-	AspectIds           []string                `json:"aspect_ids,omitempty"`
+type Import = models.Import
+
+type ImportConfig = models.ImportConfig
+
+type ImportTypeFilterCriteria = models.ImportTypeFilterCriteria
+
+// ImportVariable views a content variable of an import type as a
+// basecontentvariable.Descriptor. The shape is the shared model's, which carries the fields
+// but no methods, and a method cannot be declared on an alias to another package's type -
+// hence a wrapper rather than methods on ImportContentVariable.
+func ImportVariable(variable *ImportContentVariable) basecontentvariable.Descriptor {
+	return importVariable{variable}
 }
 
-type ImportTypeConfig struct {
-	Name         string      `json:"name"`
-	Description  string      `json:"description"`
-	Type         Type        `json:"type"`
-	DefaultValue interface{} `json:"default_value"`
+type importVariable struct {
+	*ImportContentVariable
 }
 
-type Import struct {
-	Id           string         `json:"id"`
-	Name         string         `json:"name"`
-	ImportTypeId string         `json:"import_type_id"`
-	Image        string         `json:"image"`
-	KafkaTopic   string         `json:"kafka_topic"`
-	Configs      []ImportConfig `json:"configs"`
-	Restart      *bool          `json:"restart"`
-}
-
-type ImportConfig struct {
-	Name  string      `json:"name"`
-	Value interface{} `json:"value"`
-}
-
-type ImportTypeFilterCriteria struct {
-	FunctionId string `json:"function_id"`
-	AspectId   string `json:"aspect_id"`
-}
-
-func (this ImportTypeFilterCriteria) Short() string {
-	return this.AspectId + "_" + this.FunctionId
-}
-
-func (this *ImportContentVariable) GetName() string {
+func (this importVariable) GetName() string {
 	return this.Name
 }
 
-func (this *ImportContentVariable) GetCharacteristicId() string {
+func (this importVariable) GetCharacteristicId() string {
 	return this.CharacteristicId
 }
 
-func (this *ImportContentVariable) GetSubContentVariables() []basecontentvariable.Descriptor {
+func (this importVariable) GetSubContentVariables() []basecontentvariable.Descriptor {
 	ls := make([]basecontentvariable.Descriptor, len(this.SubContentVariables))
 	for idx := range this.SubContentVariables {
-		ls[idx] = &this.SubContentVariables[idx]
+		ls[idx] = importVariable{&this.SubContentVariables[idx]}
 	}
 	return ls
 }
 
-func (this *ImportContentVariable) GetFunctionId() string {
+func (this importVariable) GetFunctionId() string {
 	return this.FunctionId
 }
 
-func (this *ImportContentVariable) GetAspectIds() []string {
+// GetAspectIds returns the aspects this variable carries, with the deprecated AspectId folded
+// into the list, the same way the import-repository folds it on write.
+func (this importVariable) GetAspectIds() []string {
 	return devicemodel.AspectIds(this.AspectId, this.AspectIds)
 }
 
-func (this *ImportContentVariable) GetIsVoid() bool {
+func (this importVariable) GetIsVoid() bool {
 	return false
 }
