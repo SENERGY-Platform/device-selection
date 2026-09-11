@@ -70,3 +70,30 @@ func (c *ClientImpl) GetSelectables(token string, criteria []models.DeviceGroupF
 	req.Header.Set("Authorization", token)
 	return do[[]model.Selectable](req)
 }
+
+type GetBulkSelectablesOptions struct {
+	// CompleteServices adds the full import type and the import path options to the answer.
+	// Device services are complete either way; the name is a legacy artefact of the endpoint.
+	CompleteServices bool
+}
+
+// GetBulkSelectablesV2 asks for the selectables of several criteria sets in one request. Each
+// element of the answer carries the id its request element had, so a caller that named them
+// after something of its own - a bpmn element, say - can match the result back to it without
+// relying on the order.
+func (c *ClientImpl) GetBulkSelectablesV2(token string, bulk model.BulkRequestV2, options *GetBulkSelectablesOptions) (model.BulkResult, int, error) {
+	query := url.Values{}
+	if options != nil {
+		query.Set("complete_services", strconv.FormatBool(options.CompleteServices))
+	}
+	b, err := json.Marshal(bulk)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	req, err := http.NewRequest(http.MethodPost, c.baseUrl+"/v2/bulk/selectables?"+query.Encode(), bytes.NewBuffer(b))
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	req.Header.Set("Authorization", token)
+	return do[model.BulkResult](req)
+}

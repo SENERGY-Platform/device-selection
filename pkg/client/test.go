@@ -28,6 +28,7 @@ type TestClient struct {
 	code                    int
 	err                     error
 	deviceGroupHelperResult model.DeviceGroupHelperResult
+	bulkResult              model.BulkResult
 }
 
 func NewTestClient() *TestClient {
@@ -36,6 +37,20 @@ func NewTestClient() *TestClient {
 
 func (c *TestClient) GetSelectables(token string, criteria []models.DeviceGroupFilterCriteria, options *GetSelectablesOptions) ([]model.Selectable, int, error) {
 	return c.value, c.code, c.err
+}
+
+// GetBulkSelectablesV2 answers every request element with the same selectables, unless a bulk
+// result was set explicitly. Answering per element is what a caller that keys the result by id
+// needs, so the fallback keeps the ids of the request rather than returning an empty list.
+func (c *TestClient) GetBulkSelectablesV2(token string, bulk model.BulkRequestV2, options *GetBulkSelectablesOptions) (model.BulkResult, int, error) {
+	if c.bulkResult != nil {
+		return c.bulkResult, c.code, c.err
+	}
+	result := model.BulkResult{}
+	for _, element := range bulk {
+		result = append(result, model.BulkResultElement{Id: element.Id, Selectables: c.value})
+	}
+	return result, c.code, c.err
 }
 
 func (c *TestClient) DeviceGroupHelper(token string, deviceIds []string, options *DeviceGroupHelperOptions) (model.DeviceGroupHelperResult, int, error) {
@@ -50,6 +65,12 @@ func (c *TestClient) SetResponse(value []model.Selectable, code int, err error) 
 
 func (c *TestClient) SetDeviceGroupHelperResponse(value model.DeviceGroupHelperResult, code int, err error) {
 	c.deviceGroupHelperResult = value
+	c.code = code
+	c.err = err
+}
+
+func (c *TestClient) SetBulkResponse(value model.BulkResult, code int, err error) {
+	c.bulkResult = value
 	c.code = code
 	c.err = err
 }
