@@ -18,7 +18,7 @@ package controller
 
 import (
 	"github.com/SENERGY-Platform/device-repository/v2/lib/client"
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
 )
 
 // DeviceGroupHelper is answered by the device-repository, which owns the device-group criteria:

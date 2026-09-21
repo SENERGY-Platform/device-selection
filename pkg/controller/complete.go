@@ -20,9 +20,9 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/basecontentvariable"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/basecontentvariable"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 )
 
 func (this *Controller) CompleteServices(token string, selectables []model.Selectable, filter []devicemodel.FilterCriteria) ([]model.Selectable, error) {

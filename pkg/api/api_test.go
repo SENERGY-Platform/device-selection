@@ -17,7 +17,7 @@
 package api
 
 import (
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/configuration"
 	"testing"
 )
 

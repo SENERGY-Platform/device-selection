@@ -24,8 +24,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/SENERGY-Platform/device-selection/pkg"
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/configuration"
 )
 
 func main() {

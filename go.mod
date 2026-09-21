@@ -1,4 +1,4 @@
-module github.com/SENERGY-Platform/device-selection
+module github.com/SENERGY-Platform/device-selection/v2
 
 go 1.26.1
 

@@ -28,9 +28,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"github.com/SENERGY-Platform/device-selection/pkg/tests/helper"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/tests/helper"
 )
 
 // The aspects of one filter criteria are ANDed on the content variable: the variable has to

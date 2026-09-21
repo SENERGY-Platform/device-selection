@@ -26,9 +26,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/SENERGY-Platform/device-selection/pkg/client"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"github.com/SENERGY-Platform/device-selection/pkg/tests/helper"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/client"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/tests/helper"
 )
 
 // A content variable may carry several aspects, and the criteria of a device record that: one

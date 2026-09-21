@@ -18,7 +18,7 @@ package mock
 
 import (
 	"encoding/json"
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
 	"github.com/julienschmidt/httprouter"
 	"net"
 	"net/http"

@@ -18,9 +18,9 @@ package pkg
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/device-selection/pkg/api"
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
-	"github.com/SENERGY-Platform/device-selection/pkg/controller"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/api"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller"
 	"sync"
 )
 

@@ -26,8 +26,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 	importrepo "github.com/SENERGY-Platform/import-repository/lib/client"
 	"github.com/SENERGY-Platform/service-commons/pkg/jwt"
 )

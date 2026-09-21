@@ -21,8 +21,8 @@ import (
 	"net/http"
 
 	"github.com/SENERGY-Platform/device-repository/v2/lib/client"
-	"github.com/SENERGY-Platform/device-selection/pkg/controller/idmodifier"
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller/idmodifier"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
 )
 
 func (this *Controller) getDevicesOfType(token string, deviceTypeId string) (result []model.PermSearchDevice, err error, code int) {

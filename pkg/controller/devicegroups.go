@@ -18,8 +18,8 @@ package controller
 
 import (
 	"github.com/SENERGY-Platform/device-repository/v2/lib/client"
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/models/go/models"
 )
 

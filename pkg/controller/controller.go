@@ -27,12 +27,12 @@ import (
 	"strings"
 
 	"github.com/SENERGY-Platform/device-repository/v2/lib/client"
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
-	"github.com/SENERGY-Platform/device-selection/pkg/controller/cache"
-	"github.com/SENERGY-Platform/device-selection/pkg/controller/cacheinvalidator"
-	"github.com/SENERGY-Platform/device-selection/pkg/controller/idmodifier"
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller/cache"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller/cacheinvalidator"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller/idmodifier"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 	importrepo "github.com/SENERGY-Platform/import-repository/lib/client"
 	"github.com/SENERGY-Platform/models/go/models"
 )

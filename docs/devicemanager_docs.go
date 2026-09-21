@@ -194,7 +194,7 @@ const docTemplatedevicemanager = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.DeviceGroupHelperResult"
+                                "$ref": "#/definitions/github_com_SENERGY-Platform_device-selection_v2_pkg_model.DeviceGroupHelperResult"
                             }
                         }
                     },
@@ -768,7 +768,7 @@ const docTemplatedevicemanager = `{
                 }
             }
         },
-        "github_com_SENERGY-Platform_device-selection_pkg_model.DeviceGroupHelperResult": {
+        "github_com_SENERGY-Platform_device-selection_v2_pkg_model.DeviceGroupHelperResult": {
             "type": "object",
             "properties": {
                 "criteria": {
@@ -785,7 +785,7 @@ const docTemplatedevicemanager = `{
                 }
             }
         },
-        "github_com_SENERGY-Platform_device-selection_pkg_model.ImportType": {
+        "github_com_SENERGY-Platform_device-selection_v2_pkg_model.ImportType": {
             "type": "object",
             "properties": {
                 "configs": {
@@ -1071,7 +1071,7 @@ const docTemplatedevicemanager = `{
                     "$ref": "#/definitions/model.Import"
                 },
                 "importType": {
-                    "$ref": "#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.ImportType"
+                    "$ref": "#/definitions/github_com_SENERGY-Platform_device-selection_v2_pkg_model.ImportType"
                 },
                 "servicePathOptions": {
                     "type": "object",

@@ -17,7 +17,7 @@
 package controller
 
 import (
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 )
 
 func (this *Controller) GetConcept(id string, token string) (c devicemodel.Concept, err error) {

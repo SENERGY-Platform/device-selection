@@ -22,9 +22,9 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
-	"github.com/SENERGY-Platform/device-selection/pkg/controller"
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
 )
 
 func init() {

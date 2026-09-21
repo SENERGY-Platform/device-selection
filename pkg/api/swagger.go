@@ -17,9 +17,9 @@
 package api
 
 import (
-	_ "github.com/SENERGY-Platform/device-selection/docs"
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
-	"github.com/SENERGY-Platform/device-selection/pkg/controller"
+	_ "github.com/SENERGY-Platform/device-selection/v2/docs"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller"
 	"github.com/swaggo/swag"
 	"net/http"
 	"strings"

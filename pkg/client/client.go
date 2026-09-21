@@ -22,7 +22,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
 )
 

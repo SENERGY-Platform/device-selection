@@ -22,10 +22,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/SENERGY-Platform/device-selection/pkg/client"
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
-	"github.com/SENERGY-Platform/device-selection/pkg/tests/environment/legacy"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/client"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/tests/environment/legacy"
 )
 
 // The v2 bulk endpoint had no test of its own until the client gained a method for it. The

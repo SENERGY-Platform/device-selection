@@ -69,7 +69,7 @@ definitions:
           $ref: '#/definitions/models.DeviceGroupFilterCriteria'
         type: array
     type: object
-  github_com_SENERGY-Platform_device-selection_pkg_model.DeviceGroupHelperResult:
+  github_com_SENERGY-Platform_device-selection_v2_pkg_model.DeviceGroupHelperResult:
     properties:
       criteria:
         items:
@@ -80,7 +80,7 @@ definitions:
           $ref: '#/definitions/github_com_SENERGY-Platform_device-repository_v2_lib_model.DeviceGroupOption'
         type: array
     type: object
-  github_com_SENERGY-Platform_device-selection_pkg_model.ImportType:
+  github_com_SENERGY-Platform_device-selection_v2_pkg_model.ImportType:
     properties:
       configs:
         items:
@@ -268,7 +268,7 @@ definitions:
       import:
         $ref: '#/definitions/model.Import'
       importType:
-        $ref: '#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.ImportType'
+        $ref: '#/definitions/github_com_SENERGY-Platform_device-selection_v2_pkg_model.ImportType'
       servicePathOptions:
         additionalProperties:
           items:
@@ -701,7 +701,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_SENERGY-Platform_device-selection_pkg_model.DeviceGroupHelperResult'
+              $ref: '#/definitions/github_com_SENERGY-Platform_device-selection_v2_pkg_model.DeviceGroupHelperResult'
             type: array
         "400":
           description: Bad Request

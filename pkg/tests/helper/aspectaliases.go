@@ -17,8 +17,8 @@
 package helper
 
 import (
-	"github.com/SENERGY-Platform/device-selection/pkg/model"
-	"github.com/SENERGY-Platform/device-selection/pkg/model/devicemodel"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 )
 
 //A content variable, a filter criteria, a path option and a configurable each carry a single

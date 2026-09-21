@@ -18,7 +18,7 @@ package kafka
 
 import (
 	"context"
-	"github.com/SENERGY-Platform/device-selection/pkg/configuration"
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/configuration"
 )
 
 type FactoryType struct{}
