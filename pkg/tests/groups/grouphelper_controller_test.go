@@ -176,11 +176,17 @@ func TestGroupHelperCriteria(t *testing.T) {
 
 	t.Run("empty list", testGroupHelper(repo, []string{}, []devicemodel.DeviceGroupFilterCriteria{}))
 
+	//setOn, setOff and setColor count as controlling functions: next to their device-class they are
+	//combined with every aspect of their variables, ancestors included, like a measuring function
 	t.Run("lamp1", testGroupHelper(repo, []string{"lamp1"}, []devicemodel.DeviceGroupFilterCriteria{
 		{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("elamp", testGroupHelper(repo, []string{"elamp"}, []devicemodel.DeviceGroupFilterCriteria{
@@ -188,6 +194,10 @@ func TestGroupHelperCriteria(t *testing.T) {
 		{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("blamp", testGroupHelper(repo, []string{"blamp"}, []devicemodel.DeviceGroupFilterCriteria{
@@ -197,6 +207,10 @@ func TestGroupHelperCriteria(t *testing.T) {
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("lamp1 blamp", testGroupHelper(repo, []string{"lamp1", "blamp"}, []devicemodel.DeviceGroupFilterCriteria{
@@ -204,11 +218,19 @@ func TestGroupHelperCriteria(t *testing.T) {
 		{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("lamp1 elamp", testGroupHelper(repo, []string{"lamp1", "elamp"}, []devicemodel.DeviceGroupFilterCriteria{
 		{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("colorlamp1", testGroupHelper(repo, []string{"colorlamp1"}, []devicemodel.DeviceGroupFilterCriteria{
@@ -218,12 +240,19 @@ func TestGroupHelperCriteria(t *testing.T) {
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("plug2", testGroupHelper(repo, []string{"plug2"}, []devicemodel.DeviceGroupFilterCriteria{
 		{FunctionId: "setOn", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: "setOff", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("lamp1 colorlamp1", testGroupHelper(repo, []string{"lamp1", "colorlamp1"}, []devicemodel.DeviceGroupFilterCriteria{
@@ -231,16 +260,24 @@ func TestGroupHelperCriteria(t *testing.T) {
 		{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("lamp1 colorlamp1 plug1", testGroupHelper(repo, []string{"lamp1", "colorlamp1", "plug1"}, []devicemodel.DeviceGroupFilterCriteria{
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("aspect-hierarchy-check-parent", testGroupHelper(repo, []string{"aspect-hierarchy-check-parent"}, []devicemodel.DeviceGroupFilterCriteria{
 		{FunctionId: "setOn", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: "setOff", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("aspect-hierarchy-check-child", testGroupHelper(repo, []string{"aspect-hierarchy-check-child"}, []devicemodel.DeviceGroupFilterCriteria{
@@ -249,12 +286,20 @@ func TestGroupHelperCriteria(t *testing.T) {
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "components", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "horn", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "components", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "horn", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "components", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "horn", Interaction: devicemodel.REQUEST},
 	}))
 
 	t.Run("aspect-hierarchy-check", testGroupHelper(repo, []string{"aspect-hierarchy-check-parent", "aspect-hierarchy-check-child"}, []devicemodel.DeviceGroupFilterCriteria{
 		{FunctionId: "setOn", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: "setOff", DeviceClassId: "plug", AspectId: "", Interaction: devicemodel.REQUEST},
 		{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+		{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 	}))
 }
 

@@ -282,6 +282,10 @@ func TestGroupHelper(t *testing.T) {
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 		},
 		Options: []model.DeviceGroupOption{
 			{
@@ -362,6 +366,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -378,6 +384,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -395,6 +403,10 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: false,
 			},
@@ -407,6 +419,10 @@ func TestGroupHelper(t *testing.T) {
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 		},
 		Options: []model.DeviceGroupOption{
 			{
@@ -473,6 +489,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -487,6 +505,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -502,6 +522,10 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: false,
 			},
@@ -516,6 +540,11 @@ func TestGroupHelper(t *testing.T) {
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 		},
 		Options: []model.DeviceGroupOption{
 			{
@@ -530,6 +559,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -543,6 +573,7 @@ func TestGroupHelper(t *testing.T) {
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -556,6 +587,7 @@ func TestGroupHelper(t *testing.T) {
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -569,6 +601,7 @@ func TestGroupHelper(t *testing.T) {
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -595,6 +628,9 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -611,6 +647,9 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -628,6 +667,11 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: false,
 			},
@@ -640,6 +684,10 @@ func TestGroupHelper(t *testing.T) {
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 		},
 		Options: []model.DeviceGroupOption{
 			{
@@ -696,6 +744,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -710,6 +760,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -725,6 +777,10 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: false,
 			},
@@ -734,6 +790,8 @@ func TestGroupHelper(t *testing.T) {
 	t.Run("lamp1 colorlamp1 plug1", helper.GroupHelper(selectionurl, false, []string{"lamp1", "colorlamp1", "plug1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		},
 		Options: []model.DeviceGroupOption{
 			{
@@ -746,7 +804,8 @@ func TestGroupHelper(t *testing.T) {
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 				},
-				MaintainsGroupUsability: false,
+				//elamp answers getState as event only, but keeps setOn and setOff on device
+				MaintainsGroupUsability: true,
 			},
 			{
 				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
@@ -797,6 +856,8 @@ func TestGroupHelper(t *testing.T) {
 				}},
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: false,
 			},
@@ -907,6 +968,10 @@ func TestGroupHelper(t *testing.T) {
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 		},
 		Options: []model.DeviceGroupOption{
 			{
@@ -987,6 +1052,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1003,6 +1070,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.EVENT},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.EVENT},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1015,6 +1084,10 @@ func TestGroupHelper(t *testing.T) {
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 		},
 		Options: []model.DeviceGroupOption{
 			{
@@ -1081,6 +1154,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1095,6 +1170,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1109,6 +1186,11 @@ func TestGroupHelper(t *testing.T) {
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 		},
 		Options: []model.DeviceGroupOption{
 			{
@@ -1123,6 +1205,7 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1136,6 +1219,7 @@ func TestGroupHelper(t *testing.T) {
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1149,6 +1233,7 @@ func TestGroupHelper(t *testing.T) {
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1162,6 +1247,7 @@ func TestGroupHelper(t *testing.T) {
 				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1188,6 +1274,9 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1204,6 +1293,9 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setColor", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setColor", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1216,6 +1308,10 @@ func TestGroupHelper(t *testing.T) {
 			{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 		},
 		Options: []model.DeviceGroupOption{
 			{
@@ -1272,6 +1368,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1286,6 +1384,8 @@ func TestGroupHelper(t *testing.T) {
 					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOn", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
 					{FunctionId: "setOff", DeviceClassId: "lamp", AspectId: "", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOff", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
+					{FunctionId: "setOn", DeviceClassId: "", AspectId: "light", Interaction: devicemodel.REQUEST},
 				},
 				MaintainsGroupUsability: true,
 			},
@@ -1295,6 +1395,8 @@ func TestGroupHelper(t *testing.T) {
 	t.Run("maintainUsability lamp1 colorlamp1 plug1", helper.GroupHelper(selectionurl, true, []string{"lamp1", "colorlamp1", "plug1"}, model.DeviceGroupHelperResult{
 		Criteria: []devicemodel.DeviceGroupFilterCriteria{
 			{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOff", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+			{FunctionId: "setOn", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
 		},
 		Options: []model.DeviceGroupOption{
 			{
@@ -1335,6 +1437,19 @@ func TestGroupHelper(t *testing.T) {
 					OwnerId:      helper.JwtSubject,
 				}},
 				RemovesCriteria:         []devicemodel.DeviceGroupFilterCriteria{},
+				MaintainsGroupUsability: true,
+			},
+			{
+				//elamp answers getState as event only, but keeps setOn and setOff on device
+				Device: devicemodel.ExtendedDevice{Device: devicemodel.Device{
+					Id:           "elamp",
+					Name:         "elamp",
+					DeviceTypeId: "event_lamp",
+					OwnerId:      helper.JwtSubject,
+				}},
+				RemovesCriteria: []devicemodel.DeviceGroupFilterCriteria{
+					{FunctionId: devicemodel.MEASURING_FUNCTION_PREFIX + "getState", DeviceClassId: "", AspectId: "device", Interaction: devicemodel.REQUEST},
+				},
 				MaintainsGroupUsability: true,
 			},
 		},
