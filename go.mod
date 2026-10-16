@@ -13,7 +13,7 @@ require (
 	github.com/SENERGY-Platform/go-service-base/struct-logger v0.8.0
 	github.com/SENERGY-Platform/import-repository v0.1.1
 	github.com/SENERGY-Platform/models/go v0.0.0-20260911075423-f01521c01da2
-	github.com/SENERGY-Platform/service-commons v0.0.0-20260821114734-3e4578ac2358
+	github.com/SENERGY-Platform/service-commons v0.0.0-20261016083822-dec36fce00ad
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/swaggo/swag v1.16.6
 	github.com/testcontainers/testcontainers-go v0.40.0
