@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/SENERGY-Platform/device-repository/v2/lib/client"
+	"github.com/SENERGY-Platform/device-repository/v3/lib/client"
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller/idmodifier"
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
 )

@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	github.com/SENERGY-Platform/device-repository/v2 v2.2.1
+	github.com/SENERGY-Platform/device-repository/v3 v3.4.4
 	github.com/SENERGY-Platform/go-service-base/struct-logger v0.8.0
 	github.com/SENERGY-Platform/import-repository v0.1.1
 	github.com/SENERGY-Platform/models/go v0.0.0-20260911075423-f01521c01da2

@@ -26,7 +26,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/SENERGY-Platform/device-repository/v2/lib/client"
+	"github.com/SENERGY-Platform/device-repository/v3/lib/client"
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller/cache"
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller/cacheinvalidator"
