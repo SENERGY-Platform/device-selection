@@ -41,13 +41,14 @@ func (this *Controller) GetFunctions(ctx context.Context, token string) (functio
 	err = this.cache.Use("functions", func() (interface{}, error) {
 		mux := sync.Mutex{}
 		wg := sync.WaitGroup{}
-		wg.Add(1)
+		//one for each of the two reads below; Wait must not return before both appended
+		wg.Add(2)
 		go func() {
 			defer wg.Done()
 			controllfunctions, localErr, _ := this.devicerepo.GetFunctionsByType(ctx, devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION)
 			mux.Lock()
 			defer mux.Unlock()
-			if err != nil {
+			if localErr != nil {
 				err = errors.Join(err, localErr)
 			} else {
 				functions = append(functions, controllfunctions...)
@@ -58,7 +59,7 @@ func (this *Controller) GetFunctions(ctx context.Context, token string) (functio
 			measuringfunctions, localErr, _ := this.devicerepo.GetFunctionsByType(ctx, devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION)
 			mux.Lock()
 			defer mux.Unlock()
-			if err != nil {
+			if localErr != nil {
 				err = errors.Join(err, localErr)
 			} else {
 				functions = append(functions, measuringfunctions...)
