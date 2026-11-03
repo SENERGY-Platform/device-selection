@@ -18,6 +18,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -29,23 +30,29 @@ import (
 )
 
 type GetSelectablesOptions struct {
-	IncludeGroups               bool
-	IncludeImports              bool
-	IncludeDevices              bool
-	IncludeIdModified           bool
+	IncludeGroups     bool
+	IncludeImports    bool
+	IncludeDevices    bool
+	IncludeIdModified bool
+	// ImportPathTrimFirstElement drops the first element of the import paths in the answer;
+	// only meaningful with IncludeImports
+	ImportPathTrimFirstElement  bool
 	WithDeviceIds               []string
 	WithLocalDeviceIds          []string
 	LocalDeviceOwner            string
 	FilterByDeviceAttributeKeys []string
 }
 
-func (c *ClientImpl) GetSelectables(token string, criteria []models.DeviceGroupFilterCriteria, options *GetSelectablesOptions) ([]model.Selectable, int, error) {
+func (c *ClientImpl) GetSelectables(ctx context.Context, token string, criteria []models.DeviceGroupFilterCriteria, options *GetSelectablesOptions) ([]model.Selectable, int, error) {
 	query := url.Values{}
 	if options != nil {
 		query.Set("include_groups", strconv.FormatBool(options.IncludeGroups))
 		query.Set("include_imports", strconv.FormatBool(options.IncludeImports))
 		query.Set("include_devices", strconv.FormatBool(options.IncludeDevices))
 		query.Set("include_id_modified", strconv.FormatBool(options.IncludeIdModified))
+		if options.ImportPathTrimFirstElement {
+			query.Set("import_path_trim_first_element", "true")
+		}
 		if options.WithLocalDeviceIds != nil {
 			query.Set("local_devices", strings.Join(options.WithLocalDeviceIds, ","))
 		}
@@ -63,12 +70,12 @@ func (c *ClientImpl) GetSelectables(token string, criteria []models.DeviceGroupF
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
-	req, err := http.NewRequest(http.MethodPost, c.baseUrl+"/v2/query/selectables?"+query.Encode(), bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseUrl+"/v2/query/selectables?"+query.Encode(), bytes.NewBuffer(b))
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
 	req.Header.Set("Authorization", token)
-	return do[[]model.Selectable](req)
+	return do[[]model.Selectable](c, req)
 }
 
 type GetBulkSelectablesOptions struct {
@@ -81,7 +88,7 @@ type GetBulkSelectablesOptions struct {
 // element of the answer carries the id its request element had, so a caller that named them
 // after something of its own - a bpmn element, say - can match the result back to it without
 // relying on the order.
-func (c *ClientImpl) GetBulkSelectablesV2(token string, bulk model.BulkRequestV2, options *GetBulkSelectablesOptions) (model.BulkResult, int, error) {
+func (c *ClientImpl) GetBulkSelectablesV2(ctx context.Context, token string, bulk model.BulkRequestV2, options *GetBulkSelectablesOptions) (model.BulkResult, int, error) {
 	query := url.Values{}
 	if options != nil {
 		query.Set("complete_services", strconv.FormatBool(options.CompleteServices))
@@ -90,10 +97,10 @@ func (c *ClientImpl) GetBulkSelectablesV2(token string, bulk model.BulkRequestV2
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
-	req, err := http.NewRequest(http.MethodPost, c.baseUrl+"/v2/bulk/selectables?"+query.Encode(), bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseUrl+"/v2/bulk/selectables?"+query.Encode(), bytes.NewBuffer(b))
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
 	req.Header.Set("Authorization", token)
-	return do[model.BulkResult](req)
+	return do[model.BulkResult](c, req)
 }

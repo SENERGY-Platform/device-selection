@@ -380,7 +380,7 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 	time.Sleep(5 * time.Second)
 
 	t.Run("selection 1", func(t *testing.T) {
-		result, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.GetFilteredDevicesV2Options{
+		result, err, _ := ctrl.GetFilteredDevicesV2(context.Background(), helper.AdminJwt, model.GetFilteredDevicesV2Options{
 			FilterCriteria: model.FilterCriteriaAndSet{{
 				FunctionId: getColorFunction,
 				AspectId:   lightAspect,
@@ -403,7 +403,7 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 			t.Errorf("%#v", resultIds)
 			t.Errorf("\na=%#v\ne=%#v", resultIds, expectedIds)
 
-			dg, err, _ := client.NewClient(deviceRepoUrl, nil).ReadDeviceGroup("dg_colorlamp", client.InternalAdminToken, false)
+			dg, err, _ := client.NewClient(deviceRepoUrl, client.Options{}).ReadDeviceGroup(context.Background(), "dg_colorlamp", client.InternalAdminToken, false)
 			t.Errorf("%v %#v\n", err, dg)
 
 			return
@@ -411,7 +411,7 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 	})
 
 	t.Run("import path options", func(t *testing.T) {
-		untrimmed, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.GetFilteredDevicesV2Options{
+		untrimmed, err, _ := ctrl.GetFilteredDevicesV2(context.Background(), helper.AdminJwt, model.GetFilteredDevicesV2Options{
 			FilterCriteria: model.FilterCriteriaAndSet{{
 				FunctionId: getColorFunction,
 				AspectId:   lightAspect,
@@ -435,7 +435,7 @@ func TestSelectableWithoutInteractionFilter(t *testing.T) {
 				}
 			}
 		}
-		trimmed, err, _ := ctrl.GetFilteredDevicesV2(helper.AdminJwt, model.GetFilteredDevicesV2Options{
+		trimmed, err, _ := ctrl.GetFilteredDevicesV2(context.Background(), helper.AdminJwt, model.GetFilteredDevicesV2Options{
 			FilterCriteria: model.FilterCriteriaAndSet{{
 				FunctionId: getColorFunction,
 				AspectId:   lightAspect,

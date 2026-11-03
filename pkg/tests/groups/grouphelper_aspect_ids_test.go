@@ -114,7 +114,7 @@ func TestGroupHelperAspectIds(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	c := client.NewClient(selectionurl)
+	c := client.NewClient(selectionurl, client.Options{})
 
 	measuring := func(aspectIds ...string) devicemodel.DeviceGroupFilterCriteria {
 		return devicemodel.DeviceGroupFilterCriteria{
@@ -195,7 +195,7 @@ func TestGroupHelperAspectIds(t *testing.T) {
 
 func testGroupHelperAspectIds(c client.Client, deviceIds []string, expectedCriteria []devicemodel.DeviceGroupFilterCriteria) func(t *testing.T) {
 	return func(t *testing.T) {
-		result, code, err := c.DeviceGroupHelper(helper.AdminJwt, deviceIds, nil)
+		result, code, err := c.DeviceGroupHelper(context.Background(), helper.AdminJwt, deviceIds, nil)
 		if err != nil {
 			t.Error(err, code)
 			return

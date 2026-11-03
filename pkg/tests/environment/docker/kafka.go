@@ -25,6 +25,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
 	"github.com/segmentio/kafka-go"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -55,7 +57,11 @@ func Kafka(ctx context.Context, wg *sync.WaitGroup) (kafkaUrl string, err error)
 				wait.ForLog("INFO Awaiting socket connections on"),
 				wait.ForListeningPort("9092/tcp"),
 			),
-			ExposedPorts:    []string{strconv.Itoa(kafkaport) + ":9092"},
+			ExposedPorts: []string{"9092/tcp"},
+			// testcontainers v0.44 no longer reads "host:container" in ExposedPorts, so the fixed host port is bound here
+			HostConfigModifier: func(hostConfig *container.HostConfig) {
+				hostConfig.PortBindings = network.PortMap{network.MustParsePort("9092/tcp"): {{HostPort: strconv.Itoa(kafkaport)}}}
+			},
 			AlwaysPullImage: false,
 			Env: map[string]string{
 				"KAFKA_NODE_ID":                                  "1",

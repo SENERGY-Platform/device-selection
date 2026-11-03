@@ -5,6 +5,7 @@
   "import_deploy_url": "http://import-deploy:8080",
   "import_repo_url": "http://import-repo:8080",
   "memcached_urls": [],
+  "otel_endpoint": "",
 
   "kafka_url": "",
   "kafka_consumer_group": "device_selection",

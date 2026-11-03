@@ -18,6 +18,7 @@ package controller
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -30,9 +31,11 @@ import (
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 	importrepo "github.com/SENERGY-Platform/import-repository/lib/client"
 	"github.com/SENERGY-Platform/service-commons/pkg/jwt"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
-func (this *Controller) getFilteredImports(token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
+func (this *Controller) getFilteredImports(ctx context.Context, token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
 	jwtToken, err := jwt.Parse(token)
 	if err != nil {
 		return result, err, http.StatusInternalServerError
@@ -57,7 +60,7 @@ func (this *Controller) getFilteredImports(token string, descriptions model.Filt
 
 	this.config.GetLogger().Debug("getFilteredImports()::Found "+strconv.Itoa(len(importTypeIds))+" matching import types", "importTypeIds", importTypeIds)
 
-	instances, err, code := this.getImportsByTypes(token, importTypeIds)
+	instances, err, code := this.getImportsByTypes(ctx, token, importTypeIds)
 	if err != nil {
 		return result, err, code
 	}
@@ -90,7 +93,7 @@ func getImportTypeCriteria(descriptions model.FilterCriteriaAndSet) (result []im
 	return result
 }
 
-func (this *Controller) getFilteredImportsV2(token string, descriptions model.FilterCriteriaAndSet, importPathTrimFirstElement bool) (result []model.Selectable, err error, code int) {
+func (this *Controller) getFilteredImportsV2(ctx context.Context, token string, descriptions model.FilterCriteriaAndSet, importPathTrimFirstElement bool) (result []model.Selectable, err error, code int) {
 	jwtToken, err := jwt.Parse(token)
 	if err != nil {
 		return result, err, http.StatusInternalServerError
@@ -113,7 +116,7 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 
 	this.config.GetLogger().Debug("getFilteredImports()::Found "+strconv.Itoa(len(importTypeIds))+" matching import types", "importTypeIds", importTypeIds)
 
-	instances, err, code := this.getImportsByTypes(token, importTypeIds)
+	instances, err, code := this.getImportsByTypes(ctx, token, importTypeIds)
 	if err != nil {
 		return result, err, code
 	}
@@ -124,21 +127,21 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 	for _, instance := range instances {
 		temp := instance //prevent that every result element becomes the last element of groups
 		if temp.ImportTypeId != "" {
-			fullType, err := this.getFullImportType(token, temp.ImportTypeId)
+			fullType, err := this.getFullImportType(ctx, token, temp.ImportTypeId)
 			if err != nil {
 				return result, err, code
 			}
 			var pathOptions []model.PathOption
 			if importPathTrimFirstElement {
 				for _, sub := range fullType.Output.SubContentVariables {
-					subOptions, err := this.getImportPathOptions(token, sub, descriptions, nil, aspectCache)
+					subOptions, err := this.getImportPathOptions(ctx, token, sub, descriptions, nil, aspectCache)
 					if err != nil {
 						return result, err, code
 					}
 					pathOptions = append(pathOptions, subOptions...)
 				}
 			} else {
-				pathOptions, err = this.getImportPathOptions(token, fullType.Output, descriptions, nil, aspectCache)
+				pathOptions, err = this.getImportPathOptions(ctx, token, fullType.Output, descriptions, nil, aspectCache)
 				if err != nil {
 					return result, err, code
 				}
@@ -154,11 +157,11 @@ func (this *Controller) getFilteredImportsV2(token string, descriptions model.Fi
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) getImportPathOptions(token string, variable model.ImportContentVariable, criteria model.FilterCriteriaAndSet, currentPath []string, aspectCache *map[string]devicemodel.AspectNode) (result []model.PathOption, err error) {
+func (this *Controller) getImportPathOptions(ctx context.Context, token string, variable model.ImportContentVariable, criteria model.FilterCriteriaAndSet, currentPath []string, aspectCache *map[string]devicemodel.AspectNode) (result []model.PathOption, err error) {
 	currentPath = append(currentPath, variable.Name)
 	descriptor := model.ImportVariable(&variable)
-	match, err := this.contentVariableContainsAnyCriteria(descriptor, criteria, token, aspectCache)
-	//match, err := this.importVariableMatchesAllCriteria(token, variable, criteria, aspectCache)
+	match, err := this.contentVariableContainsAnyCriteria(ctx, descriptor, criteria, token, aspectCache)
+	//match, err := this.importVariableMatchesAllCriteria(ctx, token, variable, criteria, aspectCache)
 	if err != nil {
 		return result, err
 	}
@@ -185,7 +188,7 @@ func (this *Controller) getImportPathOptions(token string, variable model.Import
 		})
 	}
 	for _, sub := range variable.SubContentVariables {
-		temp, err := this.getImportPathOptions(token, sub, criteria, currentPath, aspectCache)
+		temp, err := this.getImportPathOptions(ctx, token, sub, criteria, currentPath, aspectCache)
 		if err != nil {
 			return result, err
 		}
@@ -194,9 +197,9 @@ func (this *Controller) getImportPathOptions(token string, variable model.Import
 	return result, nil
 }
 
-func (this *Controller) importVariableMatchesAllCriteria(token string, variable model.ImportContentVariable, criteria []devicemodel.FilterCriteria, cache *map[string]devicemodel.AspectNode) (match bool, err error) {
+func (this *Controller) importVariableMatchesAllCriteria(ctx context.Context, token string, variable model.ImportContentVariable, criteria []devicemodel.FilterCriteria, cache *map[string]devicemodel.AspectNode) (match bool, err error) {
 	for _, c := range criteria {
-		match, err = this.contentVariableContainsCriteria(model.ImportVariable(&variable), c, token, cache)
+		match, err = this.contentVariableContainsCriteria(ctx, model.ImportVariable(&variable), c, token, cache)
 		if err != nil {
 			return false, err
 		}
@@ -207,13 +210,14 @@ func (this *Controller) importVariableMatchesAllCriteria(token string, variable 
 	return false, nil
 }
 
-func (this *Controller) getImportsByTypes(token string, typeIds []string) (result []model.Import, err error, code int) {
-	req, err := http.NewRequest("GET", this.config.ImportDeployUrl+"/instances?&limit=10000&offset=0&sort=name.asc", nil)
+func (this *Controller) getImportsByTypes(ctx context.Context, token string, typeIds []string) (result []model.Import, err error, code int) {
+	req, err := http.NewRequestWithContext(ctx, "GET", this.config.ImportDeployUrl+"/instances?&limit=10000&offset=0&sort=name.asc", nil)
 	if err != nil {
 		debug.PrintStack()
 		return result, err, http.StatusInternalServerError
 	}
 	req.Header.Set("Authorization", token)
+	otel.GetTextMapPropagator().Inject(req.Context(), propagation.HeaderCarrier(req.Header))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		debug.PrintStack()
@@ -245,15 +249,16 @@ func (this *Controller) getImportsByTypes(token string, typeIds []string) (resul
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) getFullImportType(token string, id string) (fullType model.ImportType, err error) {
+func (this *Controller) getFullImportType(ctx context.Context, token string, id string) (fullType model.ImportType, err error) {
 	err = this.cache.Use(id, func() (interface{}, error) {
 		var result model.ImportType
-		req, err := http.NewRequest("GET", this.config.ImportRepoUrl+"/import-types/"+id, nil)
+		req, err := http.NewRequestWithContext(ctx, "GET", this.config.ImportRepoUrl+"/import-types/"+id, nil)
 		if err != nil {
 			debug.PrintStack()
 			return result, err
 		}
 		req.Header.Set("Authorization", token)
+		otel.GetTextMapPropagator().Inject(req.Context(), propagation.HeaderCarrier(req.Header))
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			debug.PrintStack()

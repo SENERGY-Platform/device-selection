@@ -17,6 +17,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"slices"
 
@@ -25,13 +26,13 @@ import (
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 )
 
-func (this *Controller) CompleteServices(token string, selectables []model.Selectable, filter []devicemodel.FilterCriteria) ([]model.Selectable, error) {
-	return this.completeServices(token, selectables, filter)
+func (this *Controller) CompleteServices(ctx context.Context, token string, selectables []model.Selectable, filter []devicemodel.FilterCriteria) ([]model.Selectable, error) {
+	return this.completeServices(ctx, token, selectables, filter)
 }
 
-func (this *Controller) CompleteBulkServices(token string, bulk model.BulkResult, request model.BulkRequest) (_ model.BulkResult, err error) {
+func (this *Controller) CompleteBulkServices(ctx context.Context, token string, bulk model.BulkResult, request model.BulkRequest) (_ model.BulkResult, err error) {
 	for index, element := range bulk {
-		bulk[index].Selectables, err = this.completeServices(token, element.Selectables, request[index].Criteria)
+		bulk[index].Selectables, err = this.completeServices(ctx, token, element.Selectables, request[index].Criteria)
 		if err != nil {
 			return bulk, err
 		}
@@ -39,9 +40,9 @@ func (this *Controller) CompleteBulkServices(token string, bulk model.BulkResult
 	return bulk, nil
 }
 
-func (this *Controller) CompleteBulkServicesV2(token string, bulk model.BulkResult, request model.BulkRequestV2) (_ model.BulkResult, err error) {
+func (this *Controller) CompleteBulkServicesV2(ctx context.Context, token string, bulk model.BulkResult, request model.BulkRequestV2) (_ model.BulkResult, err error) {
 	for index, element := range bulk {
-		bulk[index].Selectables, err = this.completeServices(token, element.Selectables, request[index].Criteria)
+		bulk[index].Selectables, err = this.completeServices(ctx, token, element.Selectables, request[index].Criteria)
 		if err != nil {
 			return bulk, err
 		}
@@ -49,14 +50,14 @@ func (this *Controller) CompleteBulkServicesV2(token string, bulk model.BulkResu
 	return bulk, nil
 }
 
-func (this *Controller) completeServices(token string, selectables []model.Selectable, filter []devicemodel.FilterCriteria) (_ []model.Selectable, err error) {
+func (this *Controller) completeServices(ctx context.Context, token string, selectables []model.Selectable, filter []devicemodel.FilterCriteria) (_ []model.Selectable, err error) {
 	aspectCache := &map[string]devicemodel.AspectNode{}
 	for selectableIndex, selectable := range selectables {
 		selectable.ServicePathOptions = map[string][]model.PathOption{}
 		if selectable.Device != nil {
 			//already fully handled
 		} else if selectable.Import != nil {
-			fullType, err := this.getFullImportType(token, selectable.ImportType.Id)
+			fullType, err := this.getFullImportType(ctx, token, selectable.ImportType.Id)
 			if err != nil {
 				return nil, err
 			}
@@ -67,7 +68,7 @@ func (this *Controller) completeServices(token string, selectables []model.Selec
 				var pathCharacteristicPairs []model.PathOption
 				for _, subOutput := range fullType.Output.SubContentVariables { // root element has to be ignored to find correct path
 					var subPathCharacteristicPairs []model.PathOption
-					err = this.findPathCharacteristicPairs(model.ImportVariable(&subOutput), filter, "", &subPathCharacteristicPairs, token, aspectCache)
+					err = this.findPathCharacteristicPairs(ctx, model.ImportVariable(&subOutput), filter, "", &subPathCharacteristicPairs, token, aspectCache)
 					if err != nil {
 						return nil, err
 					}
@@ -81,7 +82,7 @@ func (this *Controller) completeServices(token string, selectables []model.Selec
 	return selectables, nil
 }
 
-func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentvariable.Descriptor, filterCriteria []devicemodel.FilterCriteria, prefix string, res *[]model.PathOption, token string, aspectCache *map[string]devicemodel.AspectNode) (err error) {
+func (this *Controller) findPathCharacteristicPairs(ctx context.Context, contentVariable basecontentvariable.Descriptor, filterCriteria []devicemodel.FilterCriteria, prefix string, res *[]model.PathOption, token string, aspectCache *map[string]devicemodel.AspectNode) (err error) {
 	if res == nil || contentVariable == nil {
 		return errors.New("encountered nil pointer")
 	}
@@ -93,12 +94,12 @@ func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentv
 	}
 	path += contentVariable.GetName()
 
-	ok, err := this.contentVariableContainsAnyCriteria(contentVariable, filterCriteria, token, aspectCache)
+	ok, err := this.contentVariableContainsAnyCriteria(ctx, contentVariable, filterCriteria, token, aspectCache)
 	if err != nil {
 		return err
 	}
 	if ok {
-		aspectNodes, aspectNode, err := this.aspectNodesWithCache(token, aspectCache, contentVariable.GetAspectIds())
+		aspectNodes, aspectNode, err := this.aspectNodesWithCache(ctx, token, aspectCache, contentVariable.GetAspectIds())
 		if err != nil {
 			return err
 		}
@@ -112,7 +113,7 @@ func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentv
 		})
 	}
 	for _, subContentVariable := range contentVariable.GetSubContentVariables() {
-		err = this.findPathCharacteristicPairs(subContentVariable, filterCriteria, path, res, token, aspectCache)
+		err = this.findPathCharacteristicPairs(ctx, subContentVariable, filterCriteria, path, res, token, aspectCache)
 		if err != nil {
 			return
 		}
@@ -120,9 +121,9 @@ func (this *Controller) findPathCharacteristicPairs(contentVariable basecontentv
 	return
 }
 
-func (this *Controller) contentVariableContainsAnyCriteria(variable basecontentvariable.Descriptor, criteria []devicemodel.FilterCriteria, token string, aspectCache *map[string]devicemodel.AspectNode) (result bool, err error) {
+func (this *Controller) contentVariableContainsAnyCriteria(ctx context.Context, variable basecontentvariable.Descriptor, criteria []devicemodel.FilterCriteria, token string, aspectCache *map[string]devicemodel.AspectNode) (result bool, err error) {
 	for _, c := range criteria {
-		temp, err := this.contentVariableContainsCriteria(variable, c, token, aspectCache)
+		temp, err := this.contentVariableContainsCriteria(ctx, variable, c, token, aspectCache)
 		if err != nil {
 			return result, err
 		}
@@ -133,7 +134,7 @@ func (this *Controller) contentVariableContainsAnyCriteria(variable basecontentv
 	return false, nil
 }
 
-func (this *Controller) contentVariableContainsCriteria(variable basecontentvariable.Descriptor, criteria devicemodel.FilterCriteria, token string, aspectCache *map[string]devicemodel.AspectNode) (result bool, err error) {
+func (this *Controller) contentVariableContainsCriteria(ctx context.Context, variable basecontentvariable.Descriptor, criteria devicemodel.FilterCriteria, token string, aspectCache *map[string]devicemodel.AspectNode) (result bool, err error) {
 	if variable.GetFunctionId() != criteria.FunctionId {
 		return false, nil
 	}
@@ -142,7 +143,7 @@ func (this *Controller) contentVariableContainsCriteria(variable basecontentvari
 	//filters by function only. This is the reading the import-repository gives an aspect list
 	//with and_combine_criteria_aspect_ids, applied here per path instead of per import type.
 	for _, aspectId := range criteria.GetAspectIds() {
-		aspectNode, err := this.getAspectNodeWithCache(token, aspectCache, aspectId)
+		aspectNode, err := this.getAspectNodeWithCache(ctx, token, aspectCache, aspectId)
 		if err != nil {
 			return false, err
 		}
@@ -160,12 +161,12 @@ func (this *Controller) contentVariableContainsCriteria(variable basecontentvari
 // the deprecated single node from the result. AspectNode is the alias for a single element
 // list, so it gets the node with the alphabetically first id; without any aspect it stays the
 // unset node the answer carried before the list existed.
-func (this *Controller) aspectNodesWithCache(token string, aspectCache *map[string]devicemodel.AspectNode, aspectIds []string) (nodes []devicemodel.AspectNode, deprecated devicemodel.AspectNode, err error) {
+func (this *Controller) aspectNodesWithCache(ctx context.Context, token string, aspectCache *map[string]devicemodel.AspectNode, aspectIds []string) (nodes []devicemodel.AspectNode, deprecated devicemodel.AspectNode, err error) {
 	for _, aspectId := range slices.Sorted(slices.Values(aspectIds)) {
 		if aspectId == "" {
 			continue
 		}
-		node, err := this.getAspectNodeWithCache(token, aspectCache, aspectId)
+		node, err := this.getAspectNodeWithCache(ctx, token, aspectCache, aspectId)
 		if err != nil {
 			return nil, deprecated, err
 		}
@@ -177,11 +178,11 @@ func (this *Controller) aspectNodesWithCache(token string, aspectCache *map[stri
 	return nodes, deprecated, nil
 }
 
-func (this *Controller) getAspectNodeWithCache(token string, aspectCache *map[string]devicemodel.AspectNode, aspectId string) (aspectNode devicemodel.AspectNode, err error) {
+func (this *Controller) getAspectNodeWithCache(ctx context.Context, token string, aspectCache *map[string]devicemodel.AspectNode, aspectId string) (aspectNode devicemodel.AspectNode, err error) {
 	var ok bool
 	aspectNode, ok = (*aspectCache)[aspectId]
 	if !ok {
-		aspectNode, err = this.GetAspectNode(aspectId, token)
+		aspectNode, err = this.GetAspectNode(ctx, aspectId, token)
 		if err != nil {
 			this.config.GetLogger().Warn("unable to load aspect node", "aspectId", aspectId, "error", err)
 			return aspectNode, err

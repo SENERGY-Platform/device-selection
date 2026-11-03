@@ -56,25 +56,25 @@ func New(ctx context.Context, config configuration.Config) (*Controller, error) 
 	return &Controller{
 		config:     config,
 		cache:      c,
-		devicerepo: client.NewClient(config.DeviceRepoUrl, nil),
+		devicerepo: client.NewClient(config.DeviceRepoUrl, client.Options{}),
 		importrepo: importrepo.NewClient(config.ImportRepoUrl),
 	}, nil
 }
 
-func (this *Controller) GetFilteredDevices(token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, includeGroups bool, includeImports bool, withLocalDeviceIds []string) (result []model.Selectable, err error, code int) {
-	return this.getFilteredDevices(token, descriptions, protocolBlockList, blockedInteraction, nil, includeGroups, includeImports, withLocalDeviceIds)
+func (this *Controller) GetFilteredDevices(ctx context.Context, token string, descriptions model.FilterCriteriaAndSet, protocolBlockList []string, blockedInteraction devicemodel.Interaction, includeGroups bool, includeImports bool, withLocalDeviceIds []string) (result []model.Selectable, err error, code int) {
+	return this.getFilteredDevices(ctx, token, descriptions, protocolBlockList, blockedInteraction, nil, includeGroups, includeImports, withLocalDeviceIds)
 }
 
 type GetFilteredDevicesV2Options = model.GetFilteredDevicesV2Options
 
-func (this *Controller) GetFilteredDevicesV2(token string, options GetFilteredDevicesV2Options) (result []model.Selectable, err error, code int) {
-	return this.getFilteredDevicesV2(token, options, nil)
+func (this *Controller) GetFilteredDevicesV2(ctx context.Context, token string, options GetFilteredDevicesV2Options) (result []model.Selectable, err error, code int) {
+	return this.getFilteredDevicesV2(ctx, token, options, nil)
 }
 
-func (this *Controller) BulkGetFilteredDevices(token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
+func (this *Controller) BulkGetFilteredDevices(ctx context.Context, token string, requests model.BulkRequest) (result model.BulkResult, err error, code int) {
 	devicesByDeviceTypeCache := map[string][]model.PermSearchDevice{}
 	for _, request := range requests {
-		resultElement, err, code := this.handleBulkRequestElement(token, request, &devicesByDeviceTypeCache)
+		resultElement, err, code := this.handleBulkRequestElement(ctx, token, request, &devicesByDeviceTypeCache)
 		if err != nil {
 			return result, err, code
 		}
@@ -83,10 +83,10 @@ func (this *Controller) BulkGetFilteredDevices(token string, requests model.Bulk
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) BulkGetFilteredDevicesV2(token string, requests model.BulkRequestV2) (result model.BulkResult, err error, code int) {
+func (this *Controller) BulkGetFilteredDevicesV2(ctx context.Context, token string, requests model.BulkRequestV2) (result model.BulkResult, err error, code int) {
 	devicesByDeviceTypeCache := map[string][]models.ExtendedDevice{}
 	for _, request := range requests {
-		resultElement, err, code := this.handleBulkRequestElementV2(token, request, &devicesByDeviceTypeCache)
+		resultElement, err, code := this.handleBulkRequestElementV2(ctx, token, request, &devicesByDeviceTypeCache)
 		if err != nil {
 			return result, err, code
 		}
@@ -96,6 +96,7 @@ func (this *Controller) BulkGetFilteredDevicesV2(token string, requests model.Bu
 }
 
 func (this *Controller) handleBulkRequestElement(
+	ctx context.Context,
 	token string,
 	request model.BulkRequestElement,
 	devicesByDeviceTypeCache *map[string][]model.PermSearchDevice,
@@ -111,7 +112,7 @@ func (this *Controller) handleBulkRequestElement(
 	}
 
 	protocolBlockList := request.FilterProtocols
-	selectables, err, code := this.getFilteredDevices(token, request.Criteria, protocolBlockList, blockedInteraction, devicesByDeviceTypeCache, request.IncludeGroups, request.IncludeImports, request.LocalDevices)
+	selectables, err, code := this.getFilteredDevices(ctx, token, request.Criteria, protocolBlockList, blockedInteraction, devicesByDeviceTypeCache, request.IncludeGroups, request.IncludeImports, request.LocalDevices)
 	if err != nil {
 		return result, err, code
 	}
@@ -122,6 +123,7 @@ func (this *Controller) handleBulkRequestElement(
 }
 
 func (this *Controller) handleBulkRequestElementV2(
+	ctx context.Context,
 	token string,
 	request model.BulkRequestElementV2,
 	devicesByDeviceTypeCache *map[string][]models.ExtendedDevice,
@@ -131,6 +133,7 @@ func (this *Controller) handleBulkRequestElementV2(
 	code int,
 ) {
 	selectables, err, code := this.getFilteredDevicesV2(
+		ctx,
 		token,
 		GetFilteredDevicesV2Options{
 			FilterCriteria:              request.Criteria,
@@ -156,6 +159,7 @@ func (this *Controller) handleBulkRequestElementV2(
 }
 
 func (this *Controller) getFilteredDevices(
+	ctx context.Context,
 	token string,
 	descriptions model.FilterCriteriaAndSet,
 	protocolBlockList []string,
@@ -174,7 +178,7 @@ func (this *Controller) getFilteredDevices(
 		filteredProtocols[protocolId] = true
 	}
 
-	deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCached(token, descriptions)
+	deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCached(ctx, token, descriptions)
 	if err != nil {
 		return result, err, code
 	}
@@ -202,9 +206,9 @@ func (this *Controller) getFilteredDevices(
 		if len(usedServices) > 0 {
 			var devices []model.PermSearchDevice
 			if len(withLocalDeviceIds) == 0 {
-				devices, err, code = this.getCachedDevicesOfType(token, dtSelectable.DeviceTypeId, devicesByDeviceTypeCache)
+				devices, err, code = this.getCachedDevicesOfType(ctx, token, dtSelectable.DeviceTypeId, devicesByDeviceTypeCache)
 			} else {
-				devices, err, code = this.getCachedDevicesOfTypeFilteredByLocalIdList(token, dtSelectable.DeviceTypeId, devicesByDeviceTypeCache, withLocalDeviceIds)
+				devices, err, code = this.getCachedDevicesOfTypeFilteredByLocalIdList(ctx, token, dtSelectable.DeviceTypeId, devicesByDeviceTypeCache, withLocalDeviceIds)
 			}
 			if err != nil {
 				return result, err, code
@@ -232,7 +236,7 @@ func (this *Controller) getFilteredDevices(
 		expectedInteraction = ""
 	}
 	if includeGroups {
-		groupResult, err, code := this.getFilteredDeviceGroups(token, descriptions, expectedInteraction)
+		groupResult, err, code := this.getFilteredDeviceGroups(ctx, token, descriptions, expectedInteraction)
 		if err != nil {
 			return result, err, code
 		}
@@ -240,7 +244,7 @@ func (this *Controller) getFilteredDevices(
 	}
 	if includeImports && (expectedInteraction == devicemodel.EVENT || expectedInteraction == "") {
 		this.config.GetLogger().Debug("GetFilteredDevices() Loading matching imports")
-		importResult, err, code := this.getFilteredImports(token, descriptions)
+		importResult, err, code := this.getFilteredImports(ctx, token, descriptions)
 		if err != nil {
 			return result, err, code
 		}
@@ -253,6 +257,7 @@ func (this *Controller) getFilteredDevices(
 }
 
 func (this *Controller) getFilteredDevicesV2(
+	ctx context.Context,
 	token string,
 	options GetFilteredDevicesV2Options,
 	devicesByDeviceTypeCache *map[string][]models.ExtendedDevice,
@@ -263,13 +268,13 @@ func (this *Controller) getFilteredDevicesV2(
 ) {
 	this.config.GetLogger().Debug("getFilteredDevicesV2() inputs", "options", fmt.Sprintf("%+v", options))
 	if options.IncludeDevices {
-		deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCachedV2(token, options.FilterCriteria, options.IncludeIdModified)
+		deviceTypeSelectables, err := this.GetDeviceTypeSelectablesCachedV2(ctx, token, options.FilterCriteria, options.IncludeIdModified)
 		if err != nil {
 			return result, err, 500
 		}
 		this.config.GetLogger().Debug("getFilteredDevicesV2()::GetDeviceTypeSelectablesCachedV2()", "deviceTypeSelectables_count", len(deviceTypeSelectables))
 
-		devicesByDeviceType, err, code := this.getDevicesOfDeviceTypeSelectables(token, devicesByDeviceTypeCache, deviceTypeSelectables, options.WithDeviceIds, options.WithLocalDeviceIds, options.LocalDeviceOwner, options.FilterByDeviceAttributeKeys)
+		devicesByDeviceType, err, code := this.getDevicesOfDeviceTypeSelectables(ctx, token, devicesByDeviceTypeCache, deviceTypeSelectables, options.WithDeviceIds, options.WithLocalDeviceIds, options.LocalDeviceOwner, options.FilterByDeviceAttributeKeys)
 		if err != nil {
 			return result, err, code
 		}
@@ -322,14 +327,14 @@ func (this *Controller) getFilteredDevicesV2(
 		}
 	}
 	if options.IncludeGroups {
-		groupResult, err, code := this.getFilteredDeviceGroupsV2(token, options.FilterCriteria)
+		groupResult, err, code := this.getFilteredDeviceGroupsV2(ctx, token, options.FilterCriteria)
 		if err != nil {
 			return result, err, code
 		}
 		result = append(result, groupResult...)
 	}
 	if options.IncludeImports && !criteriaContainRequestInteraction(options.FilterCriteria) {
-		importResult, err, code := this.getFilteredImportsV2(token, options.FilterCriteria, options.ImportPathTrimFirstElement)
+		importResult, err, code := this.getFilteredImportsV2(ctx, token, options.FilterCriteria, options.ImportPathTrimFirstElement)
 		if err != nil {
 			return result, err, code
 		}
@@ -347,7 +352,7 @@ func (this *Controller) getFilteredDevicesV2(
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesByDeviceTypeCache *map[string][]models.ExtendedDevice, deviceTypeSelectables []devicemodel.DeviceTypeSelectable, withDeviceIds []string, withLocalDeviceIds []string, owner string, filterByDeviceAttributeKeys []string) (devicesByDeviceType map[string][]models.ExtendedDevice, err error, code int) {
+func (this *Controller) getDevicesOfDeviceTypeSelectables(ctx context.Context, token string, devicesByDeviceTypeCache *map[string][]models.ExtendedDevice, deviceTypeSelectables []devicemodel.DeviceTypeSelectable, withDeviceIds []string, withLocalDeviceIds []string, owner string, filterByDeviceAttributeKeys []string) (devicesByDeviceType map[string][]models.ExtendedDevice, err error, code int) {
 	if devicesByDeviceTypeCache == nil {
 		devicesByDeviceTypeCache = &map[string][]models.ExtendedDevice{}
 	}
@@ -369,7 +374,7 @@ func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesB
 	//find matching devices
 	matchingDevices := []models.ExtendedDevice{}
 	if len(dtList) > 0 {
-		matchingDevices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+		matchingDevices, _, err, code = this.devicerepo.ListExtendedDevices(ctx, token, client.ExtendedDeviceListOptions{
 			DeviceTypeIds: dtList,
 			Ids:           withDeviceIds,
 			LocalIds:      withLocalDeviceIds,
@@ -404,7 +409,7 @@ func (this *Controller) getDevicesOfDeviceTypeSelectables(token string, devicesB
 
 		}
 	}
-	modefiedDevices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+	modefiedDevices, _, err, code = this.devicerepo.ListExtendedDevices(ctx, token, client.ExtendedDeviceListOptions{
 		Ids:        devicesToModefy,
 		Limit:      1000,
 		Offset:     0,

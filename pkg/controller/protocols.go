@@ -17,9 +17,11 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 )
 
-func (this *Controller) GetProtocols(token string) (result []devicemodel.Protocol, err error, code int) {
-	return this.devicerepo.ListProtocols(token, 9999, 0, "name.asc")
+func (this *Controller) GetProtocols(ctx context.Context, token string) (result []devicemodel.Protocol, err error, code int) {
+	return this.devicerepo.ListProtocols(ctx, token, 9999, 0, "name.asc")
 }

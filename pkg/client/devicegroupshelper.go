@@ -18,6 +18,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -35,7 +36,7 @@ type DeviceGroupHelperOptions struct {
 	FunctionBlockList       []string
 }
 
-func (c *ClientImpl) DeviceGroupHelper(token string, deviceIds []string, options *DeviceGroupHelperOptions) (result model.DeviceGroupHelperResult, code int, err error) {
+func (c *ClientImpl) DeviceGroupHelper(ctx context.Context, token string, deviceIds []string, options *DeviceGroupHelperOptions) (result model.DeviceGroupHelperResult, code int, err error) {
 	query := url.Values{}
 	if options != nil {
 		if options.Search != "" {
@@ -59,10 +60,10 @@ func (c *ClientImpl) DeviceGroupHelper(token string, deviceIds []string, options
 	if err != nil {
 		return result, http.StatusInternalServerError, err
 	}
-	req, err := http.NewRequest(http.MethodPost, c.baseUrl+"/device-group-helper?"+query.Encode(), bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseUrl+"/device-group-helper?"+query.Encode(), bytes.NewBuffer(b))
 	if err != nil {
 		return result, http.StatusInternalServerError, err
 	}
 	req.Header.Set("Authorization", token)
-	return do[model.DeviceGroupHelperResult](req)
+	return do[model.DeviceGroupHelperResult](c, req)
 }

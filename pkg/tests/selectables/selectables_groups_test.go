@@ -792,7 +792,7 @@ const token = helper.AdminJwt
 
 func testCheckSelectionWithoutOptions(ctrl *controller.Controller, criteria model.FilterCriteriaAndSet, interaction devicemodel.Interaction, includeGroups bool, expectedResult []model.Selectable) func(t *testing.T) {
 	return func(t *testing.T) {
-		result, err, _ := ctrl.GetFilteredDevices(token, criteria, nil, interaction, includeGroups, false, nil)
+		result, err, _ := ctrl.GetFilteredDevices(context.Background(), token, criteria, nil, interaction, includeGroups, false, nil)
 		if err != nil {
 			t.Error(err)
 			return

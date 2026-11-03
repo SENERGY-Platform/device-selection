@@ -93,7 +93,7 @@ func (this *DeviceGroupsHelper) DeviceGroupsHelper(router *http.ServeMux, config
 			functionBlockList = strings.Split(functionBlockListStr, ",")
 		}
 
-		result, err, code := ctrl.DeviceGroupHelper(token, deviceIds, search, filterMaintainsGroupUsability, functionBlockList)
+		result, err, code := ctrl.DeviceGroupHelper(request.Context(), token, deviceIds, search, filterMaintainsGroupUsability, functionBlockList)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

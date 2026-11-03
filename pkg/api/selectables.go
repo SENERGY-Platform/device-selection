@@ -81,13 +81,13 @@ func (this *DeviceGroupsHelper) Selectables(router *http.ServeMux, config config
 			}
 		}
 
-		result, err, code := ctrl.GetFilteredDevices(token, criteria, blockedProtocols, blockedInteraction, includeGroups, includeImports, withLocalDeviceIds)
+		result, err, code := ctrl.GetFilteredDevices(request.Context(), token, criteria, blockedProtocols, blockedInteraction, includeGroups, includeImports, withLocalDeviceIds)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return
 		}
 		if request.URL.Query().Get("complete_services") == "true" {
-			result, err = ctrl.CompleteServices(token, result, criteria)
+			result, err = ctrl.CompleteServices(request.Context(), token, result, criteria)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
 				return
@@ -174,7 +174,7 @@ func (this *DeviceGroupsHelper) SelectablesV2(router *http.ServeMux, config conf
 			}
 		}
 
-		result, err, code := ctrl.GetFilteredDevicesV2(token, model.GetFilteredDevicesV2Options{
+		result, err, code := ctrl.GetFilteredDevicesV2(request.Context(), token, model.GetFilteredDevicesV2Options{
 			FilterCriteria:              criteria,
 			IncludeDevices:              includeDevices,
 			IncludeGroups:               includeGroups,
@@ -265,7 +265,7 @@ func (this *DeviceGroupsHelper) QuerySelectables(router *http.ServeMux, config c
 			}
 		}
 
-		result, err, code := ctrl.GetFilteredDevicesV2(token, model.GetFilteredDevicesV2Options{
+		result, err, code := ctrl.GetFilteredDevicesV2(request.Context(), token, model.GetFilteredDevicesV2Options{
 			FilterCriteria:              criteria,
 			IncludeDevices:              includeDevices,
 			IncludeGroups:               includeGroups,

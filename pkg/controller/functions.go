@@ -17,13 +17,15 @@
 package controller
 
 import (
+	"context"
 	"errors"
-	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 	"sync"
+
+	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 )
 
-func (this *Controller) GetFunction(id string, token string) (f devicemodel.Function, err error) {
-	functions, err := this.GetFunctions(token)
+func (this *Controller) GetFunction(ctx context.Context, id string, token string) (f devicemodel.Function, err error) {
+	functions, err := this.GetFunctions(ctx, token)
 	if err != nil {
 		return
 	}
@@ -35,14 +37,14 @@ func (this *Controller) GetFunction(id string, token string) (f devicemodel.Func
 	return f, errors.New("not found")
 }
 
-func (this *Controller) GetFunctions(token string) (functions []devicemodel.Function, err error) {
+func (this *Controller) GetFunctions(ctx context.Context, token string) (functions []devicemodel.Function, err error) {
 	err = this.cache.Use("functions", func() (interface{}, error) {
 		mux := sync.Mutex{}
 		wg := sync.WaitGroup{}
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			controllfunctions, localErr, _ := this.devicerepo.GetFunctionsByType(devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION)
+			controllfunctions, localErr, _ := this.devicerepo.GetFunctionsByType(ctx, devicemodel.SES_ONTOLOGY_CONTROLLING_FUNCTION)
 			mux.Lock()
 			defer mux.Unlock()
 			if err != nil {
@@ -53,7 +55,7 @@ func (this *Controller) GetFunctions(token string) (functions []devicemodel.Func
 		}()
 		go func() {
 			defer wg.Done()
-			measuringfunctions, localErr, _ := this.devicerepo.GetFunctionsByType(devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION)
+			measuringfunctions, localErr, _ := this.devicerepo.GetFunctionsByType(ctx, devicemodel.SES_ONTOLOGY_MEASURING_FUNCTION)
 			mux.Lock()
 			defer mux.Unlock()
 			if err != nil {

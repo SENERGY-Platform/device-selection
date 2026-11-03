@@ -329,7 +329,7 @@ func TestSelectableLocalId(t *testing.T) {
 
 func testCheckSelectionWithLocalIdsWithoutOptions(ctrl *controller.Controller, criteria model.FilterCriteriaAndSet, interaction devicemodel.Interaction, includeGroups bool, localIds []string, expectedResult []model.Selectable) func(t *testing.T) {
 	return func(t *testing.T) {
-		result, err, _ := ctrl.GetFilteredDevices(token, criteria, nil, interaction, includeGroups, false, localIds)
+		result, err, _ := ctrl.GetFilteredDevices(context.Background(), token, criteria, nil, interaction, includeGroups, false, localIds)
 		if err != nil {
 			t.Error(err)
 			return
@@ -355,8 +355,8 @@ func testCheckSelectionWithLocalIdsWithoutOptions(ctrl *controller.Controller, c
 
 func testCheckSelectionV2WithDeviceIds(config configuration.Config, criteria []models.DeviceGroupFilterCriteria, includeGroups bool, ids []string, expectedResult []model.Selectable) func(t *testing.T) {
 	return func(t *testing.T) {
-		c := client.NewClient("http://localhost:" + config.ApiPort)
-		result, _, err := c.GetSelectables(token, criteria, &client.GetSelectablesOptions{
+		c := client.NewClient("http://localhost:"+config.ApiPort, client.Options{})
+		result, _, err := c.GetSelectables(context.Background(), token, criteria, &client.GetSelectablesOptions{
 			IncludeGroups:  includeGroups,
 			IncludeDevices: true,
 			WithDeviceIds:  ids,
@@ -388,8 +388,8 @@ func testCheckSelectionV2WithLocalDeviceIds(config configuration.Config, criteri
 	return func(t *testing.T) {
 		//use different admin token to test LocalDeviceOwner field
 		testAdminToken := `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwMDAwMDAwMDAsImlhdCI6MTAwMDAwMDAwMCwiYXV0aF90aW1lIjoxMDAwMDAwMDAwLCJpc3MiOiJpbnRlcm5hbCIsImF1ZCI6W10sInN1YiI6InRlc3QiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZCIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJhZG1pbiIsImRldmVsb3BlciIsInVzZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJtYXN0ZXItcmVhbG0iOnsicm9sZXMiOltdfSwiQmFja2VuZC1yZWFsbSI6eyJyb2xlcyI6W119LCJhY2NvdW50Ijp7InJvbGVzIjpbXX19LCJyb2xlcyI6WyJhZG1pbiIsImRldmVsb3BlciIsInVzZXIiXSwibmFtZSI6IlNlcGwgQWRtaW4iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJzZXBsIiwiZ2l2ZW5fbmFtZSI6IlNlcGwiLCJsb2NhbGUiOiJlbiIsImZhbWlseV9uYW1lIjoiQWRtaW4iLCJlbWFpbCI6InNlcGxAc2VwbC5kZSJ9.-A5JKZptW3UrvaK5vD06eVuzoa1snijdneUOjDCKt6w`
-		c := client.NewClient("http://localhost:" + config.ApiPort)
-		result, _, err := c.GetSelectables(testAdminToken, criteria, &client.GetSelectablesOptions{
+		c := client.NewClient("http://localhost:"+config.ApiPort, client.Options{})
+		result, _, err := c.GetSelectables(context.Background(), testAdminToken, criteria, &client.GetSelectablesOptions{
 			IncludeGroups:      includeGroups,
 			IncludeDevices:     true,
 			WithLocalDeviceIds: localIds,

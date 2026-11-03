@@ -17,6 +17,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -27,11 +28,11 @@ import (
 	"github.com/SENERGY-Platform/models/go/models"
 )
 
-func (this *Controller) GetFilteredDeviceTypes(token string, criteria []client.FilterCriteria) (result []models.DeviceType, err error, code int) {
-	return this.getCachedFilteredDeviceTypes(token, criteria, nil)
+func (this *Controller) GetFilteredDeviceTypes(ctx context.Context, token string, criteria []client.FilterCriteria) (result []models.DeviceType, err error, code int) {
+	return this.getCachedFilteredDeviceTypes(ctx, token, criteria, nil)
 }
 
-func (this *Controller) getCachedFilteredDeviceTypes(token string, criteria []client.FilterCriteria, cache *map[string][]models.DeviceType) (result []models.DeviceType, err error, code int) {
+func (this *Controller) getCachedFilteredDeviceTypes(ctx context.Context, token string, criteria []client.FilterCriteria, cache *map[string][]models.DeviceType) (result []models.DeviceType, err error, code int) {
 	hash := hashClientCriteriaList(criteria)
 	if cache != nil {
 		if cacheResult, ok := (*cache)[hash]; ok {
@@ -49,7 +50,7 @@ func (this *Controller) getCachedFilteredDeviceTypes(token string, criteria []cl
 		IncludeModified: true,
 	}
 
-	result, _, err, code = this.devicerepo.ListDeviceTypesV3(token, query)
+	result, _, err, code = this.devicerepo.ListDeviceTypesV3(ctx, token, query)
 	if err != nil {
 		debug.PrintStack()
 		return result, err, code

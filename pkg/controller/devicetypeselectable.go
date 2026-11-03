@@ -17,6 +17,7 @@
 package controller
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/SENERGY-Platform/device-repository/v3/lib/client"
@@ -25,24 +26,24 @@ import (
 	"github.com/SENERGY-Platform/models/go/models"
 )
 
-func (this *Controller) GetDeviceTypeSelectablesCached(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
+func (this *Controller) GetDeviceTypeSelectablesCached(ctx context.Context, token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
 	hash := hashCriteriaAndSet(descriptions)
 	err = this.cache.Use("device-type-selectables."+hash, func() (interface{}, error) {
-		return this.GetDeviceTypeSelectables(token, descriptions)
+		return this.GetDeviceTypeSelectables(ctx, token, descriptions)
 	}, &result)
 	return
 }
 
-func (this *Controller) GetDeviceTypeSelectablesCachedV2(token string, descriptions model.FilterCriteriaAndSet, includeIdModified bool) (result []devicemodel.DeviceTypeSelectable, err error) {
+func (this *Controller) GetDeviceTypeSelectablesCachedV2(ctx context.Context, token string, descriptions model.FilterCriteriaAndSet, includeIdModified bool) (result []devicemodel.DeviceTypeSelectable, err error) {
 	hash := hashCriteriaAndSet(descriptions)
 	hash = hash + strconv.FormatBool(includeIdModified)
 	err = this.cache.Use("device-type-selectables.v2."+hash, func() (interface{}, error) {
-		return this.GetDeviceTypeSelectablesV2(token, descriptions, includeIdModified)
+		return this.GetDeviceTypeSelectablesV2(ctx, token, descriptions, includeIdModified)
 	}, &result)
 	return
 }
 
-func (this *Controller) GetDeviceTypeSelectables(token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
+func (this *Controller) GetDeviceTypeSelectables(ctx context.Context, token string, descriptions model.FilterCriteriaAndSet) (result []devicemodel.DeviceTypeSelectable, err error) {
 	criteria := []client.FilterCriteria{}
 	for _, c := range descriptions {
 		criteria = append(criteria, client.FilterCriteria{
@@ -53,11 +54,11 @@ func (this *Controller) GetDeviceTypeSelectables(token string, descriptions mode
 			AspectIds:     c.AspectIds,
 		})
 	}
-	result, err, _ = this.devicerepo.GetDeviceTypeSelectables(criteria, "", nil, false)
+	result, err, _ = this.devicerepo.GetDeviceTypeSelectables(ctx, criteria, "", nil, false)
 	return result, err
 }
 
-func (this *Controller) GetDeviceTypeSelectablesV2(token string, descriptions model.FilterCriteriaAndSet, includeIdModified bool) (result []devicemodel.DeviceTypeSelectable, err error) {
+func (this *Controller) GetDeviceTypeSelectablesV2(ctx context.Context, token string, descriptions model.FilterCriteriaAndSet, includeIdModified bool) (result []devicemodel.DeviceTypeSelectable, err error) {
 	criteria := []client.FilterCriteria{}
 	for _, c := range descriptions {
 		criteria = append(criteria, client.FilterCriteria{
@@ -68,6 +69,6 @@ func (this *Controller) GetDeviceTypeSelectablesV2(token string, descriptions mo
 			AspectIds:     c.AspectIds,
 		})
 	}
-	result, err, _ = this.devicerepo.GetDeviceTypeSelectablesV2(criteria, "", includeIdModified, false)
+	result, err, _ = this.devicerepo.GetDeviceTypeSelectablesV2(ctx, criteria, "", includeIdModified, false)
 	return result, err
 }

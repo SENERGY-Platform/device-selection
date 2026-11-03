@@ -17,13 +17,15 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/SENERGY-Platform/device-repository/v3/lib/client"
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 	"github.com/SENERGY-Platform/models/go/models"
 )
 
-func (this *Controller) getFilteredDeviceGroups(token string, descriptions model.FilterCriteriaAndSet, expectedInteraction devicemodel.Interaction) (result []model.Selectable, err error, code int) {
+func (this *Controller) getFilteredDeviceGroups(ctx context.Context, token string, descriptions model.FilterCriteriaAndSet, expectedInteraction devicemodel.Interaction) (result []model.Selectable, err error, code int) {
 	criteriaList := []client.FilterCriteria{}
 	for _, c := range descriptions {
 		criteria := client.FilterCriteria{
@@ -38,7 +40,7 @@ func (this *Controller) getFilteredDeviceGroups(token string, descriptions model
 		criteriaList = append(criteriaList, criteria)
 	}
 
-	groups, _, err, code := this.devicerepo.ListDeviceGroups(token, client.DeviceGroupListOptions{
+	groups, _, err, code := this.devicerepo.ListDeviceGroups(ctx, token, client.DeviceGroupListOptions{
 		Ids:             nil,
 		Limit:           1000,
 		SortBy:          "name.asc",
@@ -59,7 +61,7 @@ func (this *Controller) getFilteredDeviceGroups(token string, descriptions model
 	return result, nil, 200
 }
 
-func (this *Controller) getFilteredDeviceGroupsV2(token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
+func (this *Controller) getFilteredDeviceGroupsV2(ctx context.Context, token string, descriptions model.FilterCriteriaAndSet) (result []model.Selectable, err error, code int) {
 	criteriaList := []client.FilterCriteria{}
 	for _, c := range descriptions {
 		interaction := models.Interaction(c.Interaction)
@@ -76,7 +78,7 @@ func (this *Controller) getFilteredDeviceGroupsV2(token string, descriptions mod
 		criteriaList = append(criteriaList, criteria)
 	}
 
-	groups, _, err, code := this.devicerepo.ListDeviceGroups(token, client.DeviceGroupListOptions{
+	groups, _, err, code := this.devicerepo.ListDeviceGroups(ctx, token, client.DeviceGroupListOptions{
 		Ids:             nil,
 		Limit:           1000,
 		SortBy:          "name.asc",

@@ -17,12 +17,14 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 )
 
-func (this *Controller) GetAspectNode(id string, token string) (result devicemodel.AspectNode, err error) {
+func (this *Controller) GetAspectNode(ctx context.Context, id string, token string) (result devicemodel.AspectNode, err error) {
 	err = this.cache.Use("aspect-nodes."+id, func() (interface{}, error) {
-		aspect, err, _ := this.devicerepo.GetAspectNode(id)
+		aspect, err, _ := this.devicerepo.GetAspectNode(ctx, id)
 		return aspect, err
 	}, &result)
 	return

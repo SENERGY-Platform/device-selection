@@ -17,6 +17,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -25,12 +26,12 @@ import (
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
 )
 
-func (this *Controller) getDevicesOfType(token string, deviceTypeId string) (result []model.PermSearchDevice, err error, code int) {
-	return this.getCachedDevicesOfType(token, deviceTypeId, nil)
+func (this *Controller) getDevicesOfType(ctx context.Context, token string, deviceTypeId string) (result []model.PermSearchDevice, err error, code int) {
+	return this.getCachedDevicesOfType(ctx, token, deviceTypeId, nil)
 }
 
 // limited to 1000 devices
-func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice) (result []model.PermSearchDevice, err error, code int) {
+func (this *Controller) getCachedDevicesOfType(ctx context.Context, token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice) (result []model.PermSearchDevice, err error, code int) {
 	if cache != nil {
 		if cacheResult, ok := (*cache)[deviceTypeId]; ok {
 			return cacheResult, nil, http.StatusOK
@@ -39,7 +40,7 @@ func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string
 
 	pureId, modifier := idmodifier.SplitModifier(deviceTypeId)
 
-	devices, _, err, code := this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+	devices, _, err, code := this.devicerepo.ListExtendedDevices(ctx, token, client.ExtendedDeviceListOptions{
 		DeviceTypeIds: []string{pureId},
 		Limit:         9999,
 		Offset:        0,
@@ -55,7 +56,7 @@ func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string
 		for _, device := range devices {
 			ids = append(ids, idmodifier.JoinModifier(device.Id, modifier))
 		}
-		devices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+		devices, _, err, code = this.devicerepo.ListExtendedDevices(ctx, token, client.ExtendedDeviceListOptions{
 			Ids:        ids,
 			SortBy:     "name.asc",
 			Permission: client.READ,
@@ -89,7 +90,7 @@ func (this *Controller) getCachedDevicesOfType(token string, deviceTypeId string
 	return result, nil, http.StatusOK
 }
 
-func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice, localDeviceIds []string) (result []model.PermSearchDevice, err error, code int) {
+func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(ctx context.Context, token string, deviceTypeId string, cache *map[string][]model.PermSearchDevice, localDeviceIds []string) (result []model.PermSearchDevice, err error, code int) {
 	if cache != nil {
 		if cacheResult, ok := (*cache)[deviceTypeId]; ok {
 			return cacheResult, nil, http.StatusOK
@@ -97,7 +98,7 @@ func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(token string
 	}
 	pureId, modifier := idmodifier.SplitModifier(deviceTypeId)
 
-	devices, _, err, code := this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+	devices, _, err, code := this.devicerepo.ListExtendedDevices(ctx, token, client.ExtendedDeviceListOptions{
 		DeviceTypeIds: []string{pureId},
 		LocalIds:      localDeviceIds,
 		Limit:         9999,
@@ -114,7 +115,7 @@ func (this *Controller) getCachedDevicesOfTypeFilteredByLocalIdList(token string
 		for _, device := range devices {
 			ids = append(ids, idmodifier.JoinModifier(device.Id, modifier))
 		}
-		devices, _, err, code = this.devicerepo.ListExtendedDevices(token, client.ExtendedDeviceListOptions{
+		devices, _, err, code = this.devicerepo.ListExtendedDevices(ctx, token, client.ExtendedDeviceListOptions{
 			Ids:        ids,
 			SortBy:     "name.asc",
 			Permission: client.READ,

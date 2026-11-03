@@ -62,13 +62,13 @@ func (this *BulkEndpoints) SelectablesV2(router *http.ServeMux, config configura
 
 		config.GetLogger().Debug("bulk request", "criteria", fmt.Sprintf("%+v", criteria))
 
-		result, err, code := ctrl.BulkGetFilteredDevicesV2(token, criteria)
+		result, err, code := ctrl.BulkGetFilteredDevicesV2(request.Context(), token, criteria)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return
 		}
 		if request.URL.Query().Get("complete_services") == "true" {
-			result, err = ctrl.CompleteBulkServicesV2(token, result, criteria)
+			result, err = ctrl.CompleteBulkServicesV2(request.Context(), token, result, criteria)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
 				return
@@ -115,13 +115,13 @@ func (this *BulkEndpoints) Selectables(router *http.ServeMux, config configurati
 
 		config.GetLogger().Debug("bulk request", "criteria", fmt.Sprintf("%+v", criteria))
 
-		result, err, code := ctrl.BulkGetFilteredDevices(token, criteria)
+		result, err, code := ctrl.BulkGetFilteredDevices(request.Context(), token, criteria)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return
 		}
 		if request.URL.Query().Get("complete_services") == "true" {
-			result, err = ctrl.CompleteBulkServices(token, result, criteria)
+			result, err = ctrl.CompleteBulkServices(request.Context(), token, result, criteria)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
 				return
@@ -173,7 +173,7 @@ func (this *BulkEndpoints) SelectablesCombinedDevices(router *http.ServeMux, con
 				return
 			}
 		}
-		temp, err, code := ctrl.BulkGetFilteredDevices(token, criteria)
+		temp, err, code := ctrl.BulkGetFilteredDevices(request.Context(), token, criteria)
 		if err != nil {
 			http.Error(writer, err.Error(), code)
 			return

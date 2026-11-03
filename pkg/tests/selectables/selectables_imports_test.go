@@ -224,7 +224,7 @@ func TestSelectableImports(t *testing.T) {
 				ImportType: &lamp,
 			},
 		}
-		selectables, err := ctrl.CompleteServices(token, selectables, criteria)
+		selectables, err := ctrl.CompleteServices(context.Background(), token, selectables, criteria)
 		if err != nil {
 			t.Error(err)
 			return
@@ -271,7 +271,7 @@ func TestSelectableImports(t *testing.T) {
 
 func testCheckImportSelection(ctrl *controller.Controller, criteria model.FilterCriteriaAndSet, expectedResult []model.Selectable) func(t *testing.T) {
 	return func(t *testing.T) {
-		result, err, _ := ctrl.GetFilteredDevices(token, criteria, nil, "", false, true, nil)
+		result, err, _ := ctrl.GetFilteredDevices(context.Background(), token, criteria, nil, "", false, true, nil)
 		if err != nil {
 			t.Error(err)
 			return

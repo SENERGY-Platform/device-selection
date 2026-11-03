@@ -62,7 +62,7 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 		return
 	}
 
-	_, err, _ = repo.GetFilteredDeviceTypes(helper.AdminJwt, []client.FilterCriteria{{
+	_, err, _ = repo.GetFilteredDeviceTypes(context.Background(), helper.AdminJwt, []client.FilterCriteria{{
 		FunctionId: "fid",
 	}})
 
@@ -71,7 +71,7 @@ func TestGetFilteredDeviceTypes(t *testing.T) {
 		return
 	}
 
-	dt, err, _ := repo.GetFilteredDeviceTypes(helper.AdminJwt, []client.FilterCriteria{{
+	dt, err, _ := repo.GetFilteredDeviceTypes(context.Background(), helper.AdminJwt, []client.FilterCriteria{{
 		FunctionId:    "fid",
 		DeviceClassId: "dc1",
 		AspectId:      "a1",
@@ -183,7 +183,7 @@ func TestGetFilteredDevices(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	d, err, _ := repo.GetFilteredDevices(helper.AdminJwt, DeviceDescriptions{{
+	d, err, _ := repo.GetFilteredDevices(context.Background(), helper.AdminJwt, DeviceDescriptions{{
 		CharacteristicId: "chid1",
 		Function:         devicemodel.Function{Id: devicemodel.MEASURING_FUNCTION_PREFIX + "_1"},
 		DeviceClass:      &devicemodel.DeviceClass{Id: "dc1"},

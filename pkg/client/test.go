@@ -17,6 +17,7 @@
 package client
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
@@ -35,14 +36,14 @@ func NewTestClient() *TestClient {
 	return &TestClient{value: []model.Selectable{}, code: http.StatusOK, err: nil}
 }
 
-func (c *TestClient) GetSelectables(token string, criteria []models.DeviceGroupFilterCriteria, options *GetSelectablesOptions) ([]model.Selectable, int, error) {
+func (c *TestClient) GetSelectables(ctx context.Context, token string, criteria []models.DeviceGroupFilterCriteria, options *GetSelectablesOptions) ([]model.Selectable, int, error) {
 	return c.value, c.code, c.err
 }
 
 // GetBulkSelectablesV2 answers every request element with the same selectables, unless a bulk
 // result was set explicitly. Answering per element is what a caller that keys the result by id
 // needs, so the fallback keeps the ids of the request rather than returning an empty list.
-func (c *TestClient) GetBulkSelectablesV2(token string, bulk model.BulkRequestV2, options *GetBulkSelectablesOptions) (model.BulkResult, int, error) {
+func (c *TestClient) GetBulkSelectablesV2(ctx context.Context, token string, bulk model.BulkRequestV2, options *GetBulkSelectablesOptions) (model.BulkResult, int, error) {
 	if c.bulkResult != nil {
 		return c.bulkResult, c.code, c.err
 	}
@@ -53,7 +54,7 @@ func (c *TestClient) GetBulkSelectablesV2(token string, bulk model.BulkRequestV2
 	return result, c.code, c.err
 }
 
-func (c *TestClient) DeviceGroupHelper(token string, deviceIds []string, options *DeviceGroupHelperOptions) (model.DeviceGroupHelperResult, int, error) {
+func (c *TestClient) DeviceGroupHelper(ctx context.Context, token string, deviceIds []string, options *DeviceGroupHelperOptions) (model.DeviceGroupHelperResult, int, error) {
 	return c.deviceGroupHelperResult, c.code, c.err
 }
 

@@ -17,12 +17,14 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model/devicemodel"
 )
 
-func (this *Controller) GetConcept(id string, token string) (c devicemodel.Concept, err error) {
+func (this *Controller) GetConcept(ctx context.Context, id string, token string) (c devicemodel.Concept, err error) {
 	err = this.cache.Use(id, func() (interface{}, error) {
-		result, err, _ := this.devicerepo.GetConceptWithoutCharacteristics(id)
+		result, err, _ := this.devicerepo.GetConceptWithoutCharacteristics(ctx, id)
 		return result, err
 	}, &c)
 	return

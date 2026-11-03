@@ -17,6 +17,8 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/SENERGY-Platform/device-repository/v3/lib/client"
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/model"
 )
@@ -25,8 +27,8 @@ import (
 // it derives them from its device-types and recomputes the stored criteria of a group whenever
 // one of those is written. Deriving them a second time here would drift from that on every
 // change to the rules - the aspect list of a content variable was the last such change.
-func (this *Controller) DeviceGroupHelper(token string, deviceIds []string, search model.DeviceGroupHelperPagination, maintainGroupUsability bool, functionBlockList []string) (result model.DeviceGroupHelperResult, err error, code int) {
-	return this.devicerepo.DeviceGroupHelper(token, deviceIds, client.DeviceGroupHelperOptions{
+func (this *Controller) DeviceGroupHelper(ctx context.Context, token string, deviceIds []string, search model.DeviceGroupHelperPagination, maintainGroupUsability bool, functionBlockList []string) (result model.DeviceGroupHelperResult, err error, code int) {
+	return this.devicerepo.DeviceGroupHelper(ctx, token, deviceIds, client.DeviceGroupHelperOptions{
 		Search:                  search.Search,
 		Limit:                   search.Limit,
 		Offset:                  search.Offset,

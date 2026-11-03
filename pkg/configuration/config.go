@@ -31,12 +31,16 @@ import (
 	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 )
 
+// OtelEndpointOff as otel_endpoint switches tracing off, e.g. locally without a collector
+const OtelEndpointOff = "off"
+
 type ConfigStruct struct {
 	ApiPort         string   `json:"api_port"`
 	DeviceRepoUrl   string   `json:"device_repo_url"`
 	ImportDeployUrl string   `json:"import_deploy_url"`
 	ImportRepoUrl   string   `json:"import_repo_url"`
 	MemcachedUrls   []string `json:"memcached_urls"`
+	OtelEndpoint    string   `json:"otel_endpoint"` //OTLP gRPC collector for traces; empty: default of gin-middleware/otelx; OtelEndpointOff: no tracing
 	Debug           bool     `json:"debug"`
 
 	KafkaUrl                        string   `json:"kafka_url"`

@@ -307,7 +307,7 @@ func testGroupHelper(repo *controller.Controller, deviceIds []string, expectedRe
 	return func(t *testing.T) {
 		//the criteria come from the device-repository, which owns them; the helper only passes
 		//the request on, so this asserts what the group would look like end to end
-		helperResult, err, code := repo.DeviceGroupHelper(helper.AdminJwt, deviceIds, model.DeviceGroupHelperPagination{Limit: 100}, false, nil)
+		helperResult, err, code := repo.DeviceGroupHelper(context.Background(), helper.AdminJwt, deviceIds, model.DeviceGroupHelperPagination{Limit: 100}, false, nil)
 		if err != nil {
 			t.Error(err, code)
 			return

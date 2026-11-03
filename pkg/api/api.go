@@ -28,6 +28,7 @@ import (
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/api/util"
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/configuration"
 	"github.com/SENERGY-Platform/device-selection/v2/pkg/controller"
+	"github.com/SENERGY-Platform/gin-middleware/otelx"
 	"github.com/SENERGY-Platform/service-commons/pkg/accesslog"
 )
 
@@ -41,7 +42,7 @@ var endpoints = []interface{}{} //list of objects with EndpointMethod
 // starts http server; if wg is not nil it will be set as done when the server is stopped
 func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, ctrl *controller.Controller) (err error) {
 	config.GetLogger().Info("start api on " + config.ApiPort)
-	router := Router(config, ctrl)
+	router := withTracing(config, Router(config, ctrl))
 	server := &http.Server{Addr: ":" + config.ApiPort, Handler: router, WriteTimeout: 10 * time.Second, ReadTimeout: 2 * time.Second, ReadHeaderTimeout: 2 * time.Second}
 	wg.Add(1)
 	go func() {
@@ -76,6 +77,23 @@ func Router(config configuration.Config, ctrl *controller.Controller) http.Handl
 	config.GetLogger().Info("add logging")
 	logger := accesslog.New(corsHandler)
 	return logger
+}
+
+// withTracing starts a span per request, continuing the trace of the caller, and exports it to
+// config.OtelEndpoint; with configuration.OtelEndpointOff no exporter is started and the handler
+// stays as it is. Only Start adds it, so tests that mount Router export nothing.
+func withTracing(config configuration.Config, handler http.Handler) http.Handler {
+	if config.OtelEndpoint == configuration.OtelEndpointOff {
+		config.GetLogger().Info("tracing off")
+		return handler
+	}
+	config.GetLogger().Info("add tracing")
+	traced, err := otelx.HTTPOpenTelemetry(context.Background(), config.OtelEndpoint, "device-selection", handler)
+	if err != nil {
+		config.GetLogger().Warn("unable to add tracing", "error", err)
+		return handler
+	}
+	return traced
 }
 
 func GetRouterWithoutMiddleware(config configuration.Config, command *controller.Controller) http.Handler {

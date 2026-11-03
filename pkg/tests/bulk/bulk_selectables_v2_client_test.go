@@ -40,7 +40,7 @@ func TestClientBulkSelectablesV2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	c := client.NewClient(selectionurl)
+	c := client.NewClient(selectionurl, client.Options{})
 
 	matching := devicemodel.FilterCriteria{
 		FunctionId:    devicemodel.MEASURING_FUNCTION_PREFIX + "_1",
@@ -57,7 +57,7 @@ func TestClientBulkSelectablesV2(t *testing.T) {
 		{Id: "unmatched", Criteria: model.FilterCriteriaAndSet{unmatched}, IncludeDevices: true},
 	}
 
-	result, code, err := c.GetBulkSelectablesV2(client.InternalAdminToken, request, &client.GetBulkSelectablesOptions{CompleteServices: true})
+	result, code, err := c.GetBulkSelectablesV2(context.Background(), client.InternalAdminToken, request, &client.GetBulkSelectablesOptions{CompleteServices: true})
 	if err != nil {
 		t.Fatal(err, code)
 	}
